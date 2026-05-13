@@ -1,0 +1,19 @@
+{
+  "data": [
+    {
+      "id": 1501,
+      "form_ids": [
+        1502
+      ],
+      "name": "AvatarVersion_Aria_01",
+      "index": 1,
+      "avatar_id": 1501
+    },
+    {
+      "id": 1502,
+      "name": "AvatarVersion_Aria_02",
+      "index": 2,
+      "avatar_id": 1501
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+# Yoshunko Admin Rust 版修改日志
+
+> 基于 Python 版 (yoshunko-admin-python) 完全重写的 Tauri v2 原生桌面应用。版本号与 Python 版同步。
+
+---
+
+## V0.613 (2026-05-14)
+
+### UI/UX 完全重设计 — ZZZ 风格
+
+**设计语言重构**
+- 基于《绝区零》游戏 UI 设计语言完全重写视觉系统
+- 新增 ZZZ 标志性平行四边形（skew）卡片效果
+- 新增柠檬黄（#d4ff00）作为第二强调色
+- 暗色主题设为默认主题
+- 新增 "YOSHUNKO" 水印背景纹理
+
+**颜色系统**
+- 主强调色：电光蓝（#4a9fd8）→ 青绿色（#00d4aa）
+- 新增第二强调色：柠檬黄（#d4ff00）
+- S 稀有度：金色渐变（#ffd700 → #ffaa00）
+- A 稀有度：紫色渐变（#b388ff → #9c6fd4）
+- 危险色：红色（#ff2d78）
+- 所有颜色变量适配暗色/亮色双主题
+
+**组件更新**
+- 卡片、按钮、导航项、输入框等添加 skewX(-4deg) 平行四边形效果
+- 稀有度徽章添加反向 skew 补偿
+- 导航栏添加活跃状态左侧青绿色边框
+- 按钮悬停添加辉光效果（box-shadow glow）
+- 所有动画从弹跳曲线改为平滑 ease 过渡
+
+**图标系统**
+- 从 CSS 几何图标迁移到 Lucide Vue Next SVG 图标
+- 新增图标：Users、CircleDot、Hexagon、Triangle、User、Rocket、Settings、Sun、Moon
+
+**Naive UI 集成**
+- 更新 themeOverrides 匹配新颜色系统
+- 主按钮、输入框、菜单等组件适配青绿色主题
+
+---
+
+## V0.612 (2026-05-13)
+
+### 版本号重置
+
+- 版本号从 V0.700 重置为 V0.612-r，采用新的版本号递增规则
+- 新规则：底层代码修改递增修订号，满30进1；同一问题重复修改或外围修改不递增
+
+---
+
+## V0.700 (2026-05-13)
+
+### 前端完全重写 — Vue 3 + Naive UI
+
+**核心架构变更**
+- 前端：从原生 HTML/CSS/JS 完全重写为 Vue 3 + TypeScript + Naive UI
+- 构建：引入 Vite 6 构建系统，支持 HMR 热更新和代码自动分割
+- 样式：Tailwind CSS 4 + 原有 CSS 设计系统完整迁移
+- 状态管理：Vue 3 响应式系统 (composable 模式)
+- 动画：Vue 内置 Transition/TransitionGroup 组件
+- IPC：直接使用 @tauri-apps/api，移除 tauri-compat.js 兼容层
+- 打包体积：5.8MB (原版) → 预计 ~6MB (Vue 版)
+
+**新增功能**
+- 快速启动：Rust 后端新增 5 个命令（get_launch_config、set_launch_path、launch_program、launch_program_admin、launch_yoshunko）
+- 模板数据补全：get_templates 返回完整的 suit_groups、main_stat_options、sub_stat_options、stat_names、profession_names
+- 驱动盘编辑器：主词条/副词条选择下拉框现在可用（数据来自后端模板）
+
+**前端重写详情**
+- 33 个 TypeScript/Vue 源文件
+- 9 个面板组件（Setup、角色、音擎、驱动盘、式舆防卫战、玩家信息、快速启动、设置、快捷键）
+- 8 个共享组件（Stepper、SearchBar、GameCard、SkeletonGrid、EditorPage、RankDots、StarRating、SkillGrid）
+- 3 个 composable（useAppState、useTheme、useKeyboard）
+- 完整的 TypeScript 类型定义（与 api.rs 返回值完全对齐）
+- 所有面板自动代码分割（lazy loaded）
+- 拼音搜索数据完整迁移（58 角色 + 93 音擎 + 28 套装）
+
+**后端改动**
+- `template_loader.rs`：新增 stat_names 加载
+- `api.rs`：get_templates 补全 6 个字段
+- `api.rs`：新增 5 个快速启动命令
+- `lib.rs`：注册 5 个新命令（共 31 个）
+- `tauri.conf.json`：frontendDist 改为 ../dist，添加 Vite 构建命令
+
+**配置变更**
+- 新增：package.json、tsconfig.json、vite.config.ts、index.html
+- 修改：tauri.conf.json（frontendDist、withGlobalTauri、构建命令）
+- 保留：static/ 目录（旧前端，迁移完成后可删除）
+
+---
+
+## V0.609 (2026-05-13)
+
+### 初始版本 — 从 Python 版完整移植
+
+**核心架构**
+- 前端：复用 Python 版全部 HTML/CSS/JS，零改动
+- 后端：Rust + Tauri v2，原生 WebView2 渲染
+- 兼容层：`tauri-compat.js` 将 `pywebview.api` 调用映射到 Tauri IPC
+- 打包体积：50MB (Python) → 5.8MB (Rust)
+
+**已实现功能**
+- 角色管理（等级、影画、技能、潜能激发、皮肤ID、英文名）
+- 音擎仓库（等级、精炼、英文名）
+- 驱动盘仓库（创建、编辑、删除、套装英文名）
+- 式舆防卫战存档编辑
+- 玩家基本信息修改
+- 角色分组切换（阵营/职业）
+- 拼音搜索（全拼/首字母）
+- 暗色/亮色主题切换
+- 快速启动面板（Yoshunko 服务端 + 三件套路径配置）
+- 数据导出/导入（前端接口，后端待实现）
+- 果冻动画（面板切换、卡片弹出、编辑器滑入）
+- 键盘快捷键（1-7 切换面板、Ctrl+S 保存、F 打开编辑器）
+
+**Rust 后端修复（相比初始移植）**
+- ZON 解析器：`=` 符号处理、`.{` 数组/结构体区分、裸点号跳过、关键字边界检查
+- 输入验证：所有 update/create 端点添加范围校验
+- 数据完整性：`get_avatar` 返回完整字段（exp、rank、talent_switch_list、dressed_equip 等）
+- `get_equip` 返回 properties 和 sub_properties
+- `list_dir` 过滤 "next" 和 ".tmp" 文件
+
+**已知限制**
+- 导出/导入功能未实现（前端接口已有，后端返回未实现提示）
+- `window_move` 未实现（Tauri 原生处理窗口拖拽）
+- 数据目录需手动复制到 exe 同目录

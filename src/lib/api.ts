@@ -56,4 +56,12 @@ export const api = {
   getHadalZone: (uid: number) => invoke<HadalZone | null>('get_hadal_zone', { uid }),
   updateHadalZone: (uid: number, data: HadalZoneUpdate) =>
     invoke<{ ok: boolean; error?: string }>('update_hadal_zone', { uid, data }),
+
+  // Quick Launch
+  getLaunchConfig: () => invoke<{ config: Record<string, string> }>('get_launch_config'),
+  setLaunchPath: (key: string, path: string) =>
+    invoke<{ ok: boolean; error?: string }>('set_launch_path', { key, path }),
+  launchProgram: (key: string) => invoke<{ ok: boolean; error?: string }>('launch_program', { key }),
+  launchProgramAdmin: (path: string) => invoke<{ ok: boolean; error?: string }>('launch_program_admin', { path }),
+  launchYoshunko: () => invoke<{ ok: boolean; error?: string }>('launch_yoshunko'),
 }

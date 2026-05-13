@@ -37,4 +37,5 @@ export function setTheme(target: 'light' | 'dark') {
   overlay.style.background = oldBg
   document.body.appendChild(overlay)
   overlay.addEventListener('animationend', () => overlay.remove())
+  setTimeout(() => { if (overlay.parentNode) overlay.remove() }, 700)
 }

@@ -79,6 +79,7 @@ async function selectWeapon(wuid: number, event?: Event) {
   editorLoading.value = true
   try {
     const w = await api.getWeapon(uid.value!, wuid)
+    if (selectedWeaponUid.value !== wuid) return
     if (!w) { toast('音擎数据未找到', 'error'); backToGallery(); return }
     editorData.value = w
     editLevel.value = w.level

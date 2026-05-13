@@ -33,10 +33,12 @@ async function checkConfig() {
   try {
     const cfg = await api.getConfig()
     if (cfg.configured && cfg.config_exists) {
-      configured.value = true
       templates.value = await api.getTemplates()
+      configured.value = true
     }
-  } catch {}
+  } catch (e) {
+    console.error('Config check failed:', e)
+  }
   loading.value = false
 }
 
@@ -52,7 +54,9 @@ async function loadCounts() {
     weaponCache.value = wp.weapons
     equipCache.value = eq.equips
     cacheDirty.value = false
-  } catch {}
+  } catch (e) {
+    console.error('Failed to load counts:', e)
+  }
 }
 
 onMounted(() => {
@@ -72,7 +76,6 @@ watch(panel, () => {
 })
 
 function onConnected() {
-  configured.value = true
   checkConfig()
 }
 </script>

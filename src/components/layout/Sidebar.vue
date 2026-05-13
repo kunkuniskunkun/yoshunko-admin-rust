@@ -39,7 +39,7 @@ async function loadPlayers() {
     const data = await api.getPlayerList()
     if (data && Array.isArray(data.players)) {
       players.value = data.players
-      if (data.players.length > 0 && !uid.value) {
+      if (data.players.length > 0 && uid.value === null) {
         uid.value = data.players[0]
       }
     }

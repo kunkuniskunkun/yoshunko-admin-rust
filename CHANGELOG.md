@@ -4,6 +4,49 @@
 
 ---
 
+## V0.614 (2026-05-14)
+
+### 全面 Bug 修复 — 40 个问题修复
+
+**高严重度修复 (5 个)**
+- zon.rs: 修复 UTF-8 多字节字符导致的 tokenizer panic（中文 ZON 文件无法解析）
+- api.rs: 修复 `launch_program_admin` 的命令注入漏洞（路径含特殊字符时可执行任意命令）
+- api.rs: 修复 `debug_avatar_ids` 中 Mutex unwrap 导致的潜在崩溃
+- MainContent.vue: 修复 `templates` 加载失败时 `configured` 被误设为 true（主界面空数据）
+- AvatarsPanel/WeaponsPanel/EquipsPanel: 修复快速切换时编辑器显示错误数据的竞争条件
+
+**中严重度修复 (19 个)**
+- useTheme.ts: 添加 overlay 移除的 setTimeout 兜底，防止遮罩残留
+- useStaggeredAnimation.ts: 添加 rAF 取消机制，防止快速搜索时卡片闪烁
+- MainContent.vue: 修复 `onConnected` 竞态条件，await checkConfig 后再设置 configured
+- MainContent.vue: 修复 `loadCounts` 静默吞掉异常，添加错误日志
+- Sidebar.vue: 修复 uid 为 0 时的 falsy 判断错误
+- PlayerPanel: 修复导出时 `URL.revokeObjectURL` 竞态条件
+- PlayerPanel: 修复导入数据缺少 schema 校验
+- PlayerPanel: 修复表单保存时缺少输入值范围校验
+- PlayerPanel: 修复确认对话框中 uid 空值风险
+- App.vue: 修复确认对话框不等待异步回调就关闭
+- api.ts: 添加缺失的 4 个快速启动 API 封装
+- api.ts: 修复 `debug_avatar_ids` 发送未使用的 uid 参数
+- types.ts: 修复 `main_stat_options` 键类型从 number 改为 string
+- QuickLaunchPanel: 修复 `savePath` 不持久化到后端（重启后丢失）
+- QuickLaunchPanel: 修复 `launch`/`launchAll` 为 stub（后端已实现）
+- api.rs: 修复 `set_launch_path` 配置写入失败不报错
+- api.rs: 修复 `set_state_dir` 配置写入失败不报错
+- data_manager.rs: 修复 `write_zon` 原子写入缺少 sync_all 和错误检查
+- zon.rs: 修复解析器静默接受未闭合的花括号
+
+**低严重度修复 (16 个)**
+- RankDots/StarRating/SkeletonGrid: 修复 `max`/`count` 为 0 时的错误回退（`||` → `??`）
+- GameCard.vue: 修复 setTimeout 组件卸载后未清理
+- AvatarsPanel: 修复 `core_skill` 插入位置硬编码回退
+- useKeyboard.ts: 添加 metaKey 检查，防止 Win+数字键触发面板切换
+- data_manager.rs: 修复 `backup_zon` 中 unwrap 导致的潜在 panic
+- data_manager.rs: 修复 `delete_equip` 静默忽略错误
+- data_manager.rs: 修复 `next_uid` 整数溢出
+
+---
+
 ## V0.613 (2026-05-14)
 
 ### UI/UX 完全重设计 — ZZZ 风格

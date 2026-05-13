@@ -81,6 +81,7 @@ async function selectEquip(euid: number, event?: Event) {
   editorLoading.value = true
   try {
     const eq = await api.getEquip(uid.value!, euid)
+    if (selectedEquipUid.value !== euid) return
     if (!eq) { toast('驱动盘数据未找到', 'error'); backToGallery(); return }
     editorData.value = eq
     editLevel.value = eq.level

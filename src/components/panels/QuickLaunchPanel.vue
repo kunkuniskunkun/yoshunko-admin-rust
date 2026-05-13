@@ -34,9 +34,14 @@ const allConfigured = computed(() => {
 
 onMounted(async () => {
   try {
-    const cfg = await api.getConfig()
-    launchConfig.value = cfg.launch_config || {}
-  } catch {}
+    const r = await api.getLaunchConfig()
+    launchConfig.value = r.config || {}
+  } catch {
+    try {
+      const cfg = await api.getConfig()
+      launchConfig.value = cfg.launch_config || {}
+    } catch {}
+  }
 })
 
 function startEdit(key: string) {
@@ -50,10 +55,19 @@ function cancelEdit() {
 }
 
 async function savePath(key: string) {
-  // Note: set_launch_path not yet implemented in backend
-  launchConfig.value[key] = editPath.value
+  try {
+    const r = await api.setLaunchPath(key, editPath.value)
+    if (r.ok) {
+      launchConfig.value[key] = editPath.value
+      toast('路径已保存', 'success')
+    } else {
+      toast(r.error || '保存失败', 'error')
+    }
+  } catch (e: unknown) {
+    launchConfig.value[key] = editPath.value
+    toast('路径已保存（本地）', 'info')
+  }
   editingKey.value = null
-  toast('路径已保存（本地）', 'info')
 }
 
 async function pastePath() {
@@ -66,12 +80,33 @@ async function pastePath() {
 }
 
 async function launch(key: string) {
-  // Note: launch commands not yet implemented in backend
-  toast('启动功能待后端命令实现', 'info')
+  try {
+    if (key === 'yoshunko') {
+      const r = await api.launchYoshunko()
+      if (r.ok) toast('Yoshunko 服务端已启动', 'success')
+      else toast(r.error || '启动失败', 'error')
+    } else if (key === 'yidhari') {
+      const path = launchConfig.value[key]
+      if (!path) { toast('请先配置路径', 'error'); return }
+      const r = await api.launchProgramAdmin(path)
+      if (r.ok) toast('游戏客户端已启动', 'success')
+      else toast(r.error || '启动失败', 'error')
+    } else {
+      const r = await api.launchProgram(key)
+      if (r.ok) toast('已启动', 'success')
+      else toast(r.error || '启动失败', 'error')
+    }
+  } catch (e: unknown) {
+    toast(e instanceof Error ? e.message : '启动失败', 'error')
+  }
 }
 
 async function launchAll() {
-  toast('一键启动功能待后端命令实现', 'info')
+  for (const item of launchItems) {
+    if (item.isAuto || launchConfig.value[item.key]) {
+      await launch(item.key)
+    }
+  }
 }
 </script>
 

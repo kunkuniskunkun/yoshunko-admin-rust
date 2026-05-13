@@ -132,6 +132,7 @@ async function loadEditor(aid: number) {
   editorLoading.value = true
   try {
     const r = await api.getAvatar(uid.value!, aid)
+    if (selectedAvatarId.value !== aid) return
     if (!r) {
       toast('角色数据未找到', 'error')
       backToGallery()
@@ -175,7 +176,7 @@ async function saveAvatar() {
   }
   // core_skill = 1 + passive_skill_level
   const coreIdx = types.indexOf('core_skill')
-  skillLevels.splice(coreIdx >= 0 ? coreIdx : 5, 0, { type: 'core_skill', level: 1 + editPassive.value })
+  skillLevels.splice(coreIdx >= 0 ? coreIdx : skillLevels.length, 0, { type: 'core_skill', level: 1 + editPassive.value })
 
   // awake_id
   const awakeId = editAwake.value === 0 ? 0 : aid * 100 + (editAwake.value - 1)

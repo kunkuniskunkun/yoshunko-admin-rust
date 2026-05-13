@@ -85,7 +85,7 @@ const themeOverrides = {
                     <p>{{ confirmState.message }}</p>
                     <div class="confirm-actions">
                       <button class="btn btn-ghost" @click="closeConfirm">取消</button>
-                      <button class="btn btn-primary" @click="confirmState.onConfirm?.(); closeConfirm()">确认</button>
+                      <button class="btn btn-primary" @click="async () => { await confirmState.onConfirm?.(); closeConfirm() }">确认</button>
                     </div>
                   </div>
                 </div>

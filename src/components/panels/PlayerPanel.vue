@@ -37,6 +37,8 @@ onMounted(async () => {
 
 async function save() {
   if (!uid.value) return
+  if (editLevel.value < 1 || editLevel.value > 60) { toast('等级需在 1-60 之间', 'error'); return }
+  if (!editNickname.value.trim()) { toast('昵称不能为空', 'error'); return }
   try {
     const r = await api.updatePlayerBasic(uid.value, {
       nickname: editNickname.value,
@@ -78,7 +80,7 @@ async function exportData() {
     a.href = URL.createObjectURL(blob)
     a.download = `yoshunko_player_${uid.value}_${new Date().toISOString().slice(0, 10)}.json`
     a.click()
-    URL.revokeObjectURL(a.href)
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000)
     toast('数据已导出', 'success')
   } catch (e: unknown) {
     toast('导出失败: ' + (e instanceof Error ? e.message : ''), 'error')
@@ -96,9 +98,12 @@ function importData() {
       const text = await file.text()
       const json = JSON.parse(text)
       if (!json.uid) { toast('无效的导出文件', 'error'); return }
+      if (json.info && (typeof json.info.nickname !== 'string' || typeof json.info.level !== 'number')) {
+        toast('导入数据格式无效', 'error'); return
+      }
       showConfirm(`导入将覆盖当前玩家 ${uid.value} 的数据，继续？`, async () => {
         try {
-          if (json.info) await api.updatePlayerBasic(uid.value!, json.info)
+          if (json.info && uid.value) await api.updatePlayerBasic(uid.value, json.info)
           toast('导入完成', 'success')
           markCacheDirty()
         } catch (e: unknown) {

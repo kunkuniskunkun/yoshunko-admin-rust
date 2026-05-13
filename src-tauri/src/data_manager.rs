@@ -121,9 +121,12 @@ impl DataManager {
         self.write_zon(&path, data);
     }
 
-    pub fn delete_equip(&self, uid: i64, equip_uid: i64) {
+    pub fn delete_equip(&self, uid: i64, equip_uid: i64) -> Result<(), String> {
         let path = self.player_path(uid, "equip", &equip_uid.to_string());
-        let _ = fs::remove_file(&path);
+        if path.exists() {
+            fs::remove_file(&path).map_err(|e| e.to_string())?;
+        }
+        Ok(())
     }
 
     pub fn create_equip(&self, uid: i64, data: &BTreeMap<String, ZonValue>) -> Result<i64, String> {
@@ -146,7 +149,7 @@ impl DataManager {
                 }
             }
         }
-        max_id + 1
+        max_id.saturating_add(1)
     }
 
     // ─── Hadal Zone ───────────────────────────────────────
@@ -203,9 +206,15 @@ impl DataManager {
         let tmp = path.with_extension("tmp");
         let zon_str = serialize_zon(&ZonValue::Object(data.clone()));
         if let Ok(mut f) = fs::File::create(&tmp) {
-            let _ = f.write_all(zon_str.as_bytes());
-            let _ = f.write_all(b"\n");
-            let _ = f.flush();
+            if f.write_all(zon_str.as_bytes()).is_err() || f.write_all(b"\n").is_err() {
+                let _ = fs::remove_file(&tmp);
+                return;
+            }
+            if f.sync_all().is_err() {
+                let _ = fs::remove_file(&tmp);
+                return;
+            }
+            drop(f);
             let _ = fs::rename(&tmp, path);
         }
 
@@ -217,12 +226,12 @@ impl DataManager {
         if !path.exists() {
             return Ok(());
         }
-        let backup_dir = path.parent().unwrap().join(".backup");
+        let backup_dir = path.parent().ok_or("Path has no parent")?.join(".backup");
         fs::create_dir_all(&backup_dir).map_err(|_| "Cannot create backup dir")?;
 
         use chrono::Local;
         let ts = Local::now().format("%Y%m%d_%H%M%S").to_string();
-        let fname = path.file_name().unwrap().to_str().unwrap();
+        let fname = path.file_name().ok_or("Path has no filename")?.to_str().ok_or("Filename not UTF-8")?;
         let backup_path = backup_dir.join(format!("{}.{}", fname, ts));
 
         fs::copy(path, &backup_path).map_err(|_| "Backup copy failed")?;

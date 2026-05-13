@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicedoc/tauri/v2/crates/tauri-config-schema/schema.json",
   "productName": "Yoshunko Admin",
-  "version": "0.613.0",
+  "version": "0.614.0",
   "identifier": "com.yoshunko.admin",
   "build": {
     "frontendDist": "../dist",

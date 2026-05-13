@@ -217,7 +217,7 @@ export interface Templates {
   weapons: WeaponTemplate[]
   profession_names: Record<string, string>
   suit_groups: Record<string, SuitGroup>
-  main_stat_options: Record<number, StatOption[]>
+  main_stat_options: Record<string, StatOption[]>
   sub_stat_options: StatOption[]
   stat_names: Record<number, string>
   fixed_main_slots: number[]

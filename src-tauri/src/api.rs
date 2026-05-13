@@ -91,8 +91,14 @@ pub fn set_state_dir(state: State<AppState>, path: String) -> Value {
     let config = json!({"state_dir": path, "version": "V0.700"});
     let tmp = format!("{}.tmp", state.config_path);
     if let Ok(mut f) = std::fs::File::create(&tmp) {
-        let _ = serde_json::to_writer_pretty(&mut f, &config);
-        let _ = std::fs::rename(&tmp, &state.config_path);
+        if serde_json::to_writer_pretty(&mut f, &config).is_err() {
+            let _ = std::fs::remove_file(&tmp);
+            return json!({"ok": false, "error": "Failed to write config"});
+        }
+        if std::fs::rename(&tmp, &state.config_path).is_err() {
+            let _ = std::fs::remove_file(&tmp);
+            return json!({"ok": false, "error": "Failed to save config"});
+        }
     }
     if let Ok(mut guard) = state.data_manager.lock() {
         *guard = Some(dm);
@@ -135,7 +141,10 @@ pub fn debug_list_dir(path: String) -> Value {
 
 #[tauri::command]
 pub fn debug_avatar_ids(state: State<AppState>) -> Value {
-    let guard = state.data_manager.lock().unwrap();
+    let guard = match state.data_manager.lock() {
+        Ok(g) => g,
+        Err(e) => return json!({"error": format!("Lock poisoned: {}", e)}),
+    };
     if let Some(dm) = guard.as_ref() {
         let ids = dm.list_avatars(1);
         let count = ids.len();
@@ -568,8 +577,10 @@ pub fn create_equip(state: State<AppState>, uid: i64, data: BTreeMap<String, Zon
 #[tauri::command]
 pub fn delete_equip(state: State<AppState>, uid: i64, equip_uid: i64) -> Value {
     with_manager(&state, |dm| {
-        dm.delete_equip(uid, equip_uid);
-        json!({"ok": true})
+        match dm.delete_equip(uid, equip_uid) {
+            Ok(()) => json!({"ok": true}),
+            Err(e) => json!({"ok": false, "error": e}),
+        }
     })
 }
 
@@ -620,8 +631,14 @@ pub fn set_launch_path(state: State<AppState>, key: String, path: String) -> Val
     config_map.insert("launch".to_string(), launch);
     let tmp = format!("{}.tmp", state.config_path);
     if let Ok(mut f) = std::fs::File::create(&tmp) {
-        let _ = serde_json::to_writer_pretty(&mut f, &config_map);
-        let _ = std::fs::rename(&tmp, &state.config_path);
+        if serde_json::to_writer_pretty(&mut f, &config_map).is_err() {
+            let _ = std::fs::remove_file(&tmp);
+            return json!({"ok": false, "error": "Failed to write config"});
+        }
+        if std::fs::rename(&tmp, &state.config_path).is_err() {
+            let _ = std::fs::remove_file(&tmp);
+            return json!({"ok": false, "error": "Failed to save config"});
+        }
     }
     json!({"ok": true})
 }
@@ -636,7 +653,10 @@ pub fn launch_program(path: String) -> Value {
 
 #[tauri::command]
 pub fn launch_program_admin(path: String) -> Value {
-    // Use PowerShell Start-Process with -Verb RunAs for admin elevation
+    // Validate path contains no shell metacharacters
+    if path.contains(|c: char| c == '\'' || c == '"' || c == ';' || c == '|' || c == '&' || c == '`') {
+        return json!({"ok": false, "error": "Invalid characters in path"});
+    }
     match std::process::Command::new("powershell")
         .args(&["-Command", &format!("Start-Process -FilePath '{}' -Verb RunAs", path)])
         .spawn()

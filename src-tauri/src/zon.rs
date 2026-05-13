@@ -120,7 +120,8 @@ fn tokenize(text: &str) -> Result<Vec<(Token, usize)>, String> {
             while i < n && chars[i].is_ascii_digit() {
                 i += 1;
             }
-            let num: i64 = text[start - 1..i].parse().map_err(|_| "Invalid number")?;
+            let num_str: String = chars[start - 1..i].iter().collect();
+            let num: i64 = num_str.parse().map_err(|_| "Invalid number")?;
             tokens.push((Token::Int(num), i));
             continue;
         }
@@ -129,7 +130,8 @@ fn tokenize(text: &str) -> Result<Vec<(Token, usize)>, String> {
             while i < n && chars[i].is_ascii_digit() {
                 i += 1;
             }
-            let num: i64 = text[start..i].parse().map_err(|_| "Invalid number")?;
+            let num_str: String = chars[start..i].iter().collect();
+            let num: i64 = num_str.parse().map_err(|_| "Invalid number")?;
             tokens.push((Token::Int(num), i));
             continue;
         }
@@ -164,7 +166,7 @@ fn tokenize(text: &str) -> Result<Vec<(Token, usize)>, String> {
             while i < n && (chars[i].is_alphanumeric() || chars[i] == '_') {
                 i += 1;
             }
-            let id = text[start..i].to_string();
+            let id: String = chars[start..i].iter().collect();
             tokens.push((Token::DotId(id), i));
             continue;
         }
@@ -315,10 +317,11 @@ impl ZonParser {
         let mut obj = BTreeMap::new();
         loop {
             match self.peek() {
-                Some(Token::RBrace) | None => {
+                Some(Token::RBrace) => {
                     self.advance();
                     break;
                 }
+                None => return Err("Unexpected end of input, expected '}'".into()),
                 _ => {}
             }
             let key = match self.peek() {

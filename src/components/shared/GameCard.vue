@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { onUnmounted } from 'vue'
+
 defineProps<{
   rarity?: 's' | 'a' | 'b'
   title: string
@@ -11,12 +13,17 @@ const emit = defineEmits<{
   (e: 'click'): void
 }>()
 
+let pressTimer: ReturnType<typeof setTimeout> | null = null
+
 function onPress(e: Event) {
   const target = e.currentTarget as HTMLElement
   target.style.transition = 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
   target.style.transform = 'scale(0.92)'
-  setTimeout(() => { target.style.transform = 'scale(1)' }, 120)
+  if (pressTimer) clearTimeout(pressTimer)
+  pressTimer = setTimeout(() => { target.style.transform = 'scale(1)' }, 120)
 }
+
+onUnmounted(() => { if (pressTimer) clearTimeout(pressTimer) })
 </script>
 
 <template>

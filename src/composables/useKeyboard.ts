@@ -26,7 +26,7 @@ export function useKeyboard(opts: {
     }
 
     // 1-7: panel switch
-    if (e.key >= '1' && e.key <= '7' && !e.ctrlKey && !e.altKey) {
+    if (e.key >= '1' && e.key <= '7' && !e.ctrlKey && !e.altKey && !e.metaKey) {
       const p = PANEL_MAP[e.key]
       if (p && uid.value) {
         panel.value = p

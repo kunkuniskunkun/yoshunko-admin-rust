@@ -376,6 +376,7 @@ watch(panel, (_, old) => { if (old === 'equips') { equipView.value = 'gallery'; 
 
 onActivated(async () => {
   await refreshCache()
+  nextTick(() => applyStaggeredAnimation('.equip-card'))
 })
 </script>
 

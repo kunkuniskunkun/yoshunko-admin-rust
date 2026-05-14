@@ -231,6 +231,7 @@ watch(panel, (_, old) => { if (old === 'avatars') { avatarView.value = 'gallery'
 
 onActivated(async () => {
   await refreshCache()
+  nextTick(() => applyStaggeredAnimation('.avatar-gallery__card'))
 })
 
 watch(filteredAvatars, () => {

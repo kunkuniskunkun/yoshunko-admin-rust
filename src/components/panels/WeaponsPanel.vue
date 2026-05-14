@@ -154,6 +154,7 @@ watch(panel, (_, old) => { if (old === 'weapons') { weaponView.value = 'gallery'
 
 onActivated(async () => {
   await refreshCache()
+  nextTick(() => applyStaggeredAnimation('.avatar-gallery__card'))
 })
 </script>
 

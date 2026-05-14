@@ -4,6 +4,28 @@
 
 ---
 
+## V0.618 (2026-05-14)
+
+### CSS 合并修复 + 包体优化 #8-9 + 构建脚本改进
+
+**Bug 修复**
+- 修复 CSS 合并缺失 `flex-direction: column` 导致标题栏窗口控制按钮跑到左侧（`.app-layout` 规则）
+- 修复 sidebar 底部按钮（设置/主题切换）被裁剪不可见：`.sidebar-nav` 补上 `flex: 1; overflow-y: auto;`
+- 修复快速启动卡片侧边颜色不显示：添加 `launch-card--ready` 条件类
+- 修复切换面板后搜索框保留上次输入：离开面板时重置 `searchQuery`
+- 消除 CSS 构建警告：`@media` 内 CSS 变量声明包裹 `:root`
+
+**包体优化**
+- \#8 拼音数据后端化 — 跳过（复杂度高，仅省 17 KB，性价比不足）
+- \#9 发布版移除 `devtools` feature，减少攻击面
+
+**构建脚本**
+- 重写 `build-run.ps1`：自动杀进程、创建目录、显示版本号和耗时、自动加入 Node.js PATH
+- 修复闪退问题：移除 `$ErrorActionPreference="Stop"`，改用 try/catch
+- 删除旧版 `build.ps1`，统一使用 `build-run.ps1`
+
+---
+
 ## V0.617 (2026-05-15)
 
 ### 8 项 Bug 修复 + 4 项追加修复 + 回归 Python 版 UI

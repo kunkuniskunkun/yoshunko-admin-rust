@@ -247,7 +247,7 @@ body {
   padding: 18px 10px 10px;
   z-index: var(--z-sidebar); position: relative;
   -webkit-app-region: no-drag;
-  overflow: hidden; overflow-y: auto;
+  overflow-y: auto;
 }
 
 /* Logo */
@@ -1506,7 +1506,7 @@ body {
 
 /* Utility classes */
 .form-select--flex2 { flex: 1; }
-.prop-value-readonly { width: 62px; text-align: center; }
+.prop-value-readonly { flex: 1; text-align: center; }
 .prop-value-stepper { width: 40px; text-align: center; }
 .prop-add-label { font-size: 12px; width: 40px; text-align: center; }
 .hint-text { margin-bottom: 8px; font-size: var(--text-sm); color: var(--text-dim); }
@@ -1567,6 +1567,7 @@ body {
 .app-body {
   display: flex;
   flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 .sidebar-brand {

@@ -506,13 +506,13 @@ onActivated(() => {
             <button class="btn btn-ghost mb-3" @click="backToSuits">← 返回选择套装</button>
             <div class="slot-grid">
               <div
-                v-for="slot in currentSuitSlots"
-                :key="slot.slot"
+                v-for="n in 6"
+                :key="n"
                 class="slot-card"
                 tabindex="0" role="button"
-                @click="selectCreateSlot(slot)"
+                @click="selectCreateSlot(currentSuitSlots[n-1] || { id: 0, slot: n, slot_name: n + '号位' })"
               >
-                <div class="slot-card__num">{{ slot.slot }}</div>
+                <div class="slot-card__num">{{ n }}</div>
               </div>
             </div>
           </div>

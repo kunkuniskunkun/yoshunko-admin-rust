@@ -274,19 +274,13 @@ watch(filteredAvatars, () => {
       <div class="skill-grid">
         <div v-for="(skill, i) in editSkills" :key="skill.type" class="skill-card">
           <div class="skill-name">{{ SKILL_NAMES[skill.type] || skill.type }}</div>
-          <input
-            type="number"
-            class="skill-input"
-            v-model.number="editSkills[i].level"
-            min="1"
-            max="12"
-          />
+          <Stepper v-model="editSkills[i].level" :min="1" :max="12" />
           <div class="text-xs text-muted">max 12</div>
         </div>
         <!-- Core passive -->
         <div class="skill-card">
           <div class="skill-name">核心被动</div>
-          <input type="number" class="skill-input" v-model.number="editPassive" min="0" max="6" />
+          <Stepper v-model="editPassive" :min="0" :max="6" />
           <div class="text-xs text-muted">max 6</div>
         </div>
       </div>

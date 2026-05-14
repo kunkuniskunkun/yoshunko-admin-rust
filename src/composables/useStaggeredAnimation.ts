@@ -21,8 +21,8 @@ export function applyStaggeredAnimation(selector: string) {
       void el.offsetHeight
 
       // Animate in with stagger (+15% slower)
-      const delay = (i % 8) * 35
-      el.style.transition = `opacity 0.35s cubic-bezier(0.34,1.56,0.64,1) ${delay}ms, transform 0.35s cubic-bezier(0.34,1.56,0.64,1) ${delay}ms`
+      const delay = (i % 8) * 38
+      el.style.transition = `opacity 0.38s cubic-bezier(0.34,1.56,0.64,1) ${delay}ms, transform 0.38s cubic-bezier(0.34,1.56,0.64,1) ${delay}ms`
       const id = requestAnimationFrame(() => {
         el.style.opacity = '1'
         el.style.transform = 'translateY(0)'

@@ -22,3 +22,4 @@ Desktop.ini
 .env
 .env.local
 node_modules
+src-tauri/gen/

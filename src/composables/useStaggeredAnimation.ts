@@ -20,9 +20,9 @@ export function applyStaggeredAnimation(selector: string) {
       // Force reflow so reset is painted before animating
       void el.offsetHeight
 
-      // Animate in with stagger
-      const delay = (i % 8) * 30
-      el.style.transition = `opacity 0.3s cubic-bezier(0.34,1.56,0.64,1) ${delay}ms, transform 0.3s cubic-bezier(0.34,1.56,0.64,1) ${delay}ms`
+      // Animate in with stagger (+15% slower)
+      const delay = (i % 8) * 35
+      el.style.transition = `opacity 0.35s cubic-bezier(0.34,1.56,0.64,1) ${delay}ms, transform 0.35s cubic-bezier(0.34,1.56,0.64,1) ${delay}ms`
       const id = requestAnimationFrame(() => {
         el.style.opacity = '1'
         el.style.transform = 'translateY(0)'

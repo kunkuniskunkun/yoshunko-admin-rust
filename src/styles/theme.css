@@ -184,12 +184,14 @@
 /* ── Reset ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── naive-ui wrapper divs: make transparent to flex layout ── */
-body > div:first-child { display: contents; }
-body > div:first-child > div:first-child { display: contents; }
-body > div:first-child > div:first-child > div:first-child { display: contents; }
-body > div:first-child > div:first-child > div:first-child > div:first-child { display: contents; }
-body > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child { display: contents; }
+/* ── naive-ui wrapper divs: propagate height from body ── */
+body > div:first-child,
+body > div:first-child > div:first-child,
+body > div:first-child > div:first-child > div:first-child,
+body > div:first-child > div:first-child > div:first-child > div:first-child,
+body > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child {
+  height: 100%;
+}
 
 /* ── Custom title bar ──────────────────────────────────── */
 .title-bar {
@@ -1497,7 +1499,7 @@ body {
 }
 
 /* Utility classes */
-.app-layout { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+.app-layout { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
 .setup-error { display: none; color: var(--danger); margin-bottom: 16px; text-align: left; padding: 8px 12px; background: var(--danger-bg); border-radius: 6px; white-space: pre-wrap; }
 .setup-error.visible { display: block; }
 .text-danger { color: var(--danger); }

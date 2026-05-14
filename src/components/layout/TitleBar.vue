@@ -10,8 +10,9 @@ function close() { appWindow.close() }
 
 <template>
   <div data-tauri-drag-region class="title-bar">
-    <div class="title-bar__title" data-tauri-drag-region>
-      <span class="title-bar__brand">Yoshunko Admin</span>
+    <div class="title-bar__left" data-tauri-drag-region>
+      <span class="title-bar__brand">YOSHUNKO</span>
+      <span class="title-bar__version">v0.614</span>
     </div>
     <div class="title-bar__controls">
       <button class="tb-btn" aria-label="最小化" @click="minimize">

@@ -11,40 +11,40 @@ const naiveTheme = computed(() => currentTheme.value === 'light' ? lightTheme : 
 
 const themeOverrides = {
   common: {
-    primaryColor: '#00d4aa',
-    primaryColorHover: '#00b894',
-    primaryColorPressed: '#009688',
+    primaryColor: '#2EB6FF',
+    primaryColorHover: '#5bc8ff',
+    primaryColorPressed: '#1a9fe6',
     borderRadius: '6px',
     borderRadiusSmall: '4px',
-    fontFamily: '"Microsoft YaHei", "Microsoft YaHei UI", "PingFang SC", "Segoe UI", sans-serif',
+    fontFamily: '"Inter", "Microsoft YaHei", "Microsoft YaHei UI", "PingFang SC", "Segoe UI", sans-serif',
   },
   Button: {
     borderRadiusMedium: '6px',
-    colorPrimary: '#00d4aa',
-    colorHoverPrimary: '#00b894',
-    colorPressedPrimary: '#009688',
-    textColorPrimary: '#1a1a1a',
-    textColorHoverPrimary: '#1a1a1a',
-    textColorPressedPrimary: '#1a1a1a',
+    colorPrimary: '#2EB6FF',
+    colorHoverPrimary: '#5bc8ff',
+    colorPressedPrimary: '#1a9fe6',
+    textColorPrimary: '#000000',
+    textColorHoverPrimary: '#000000',
+    textColorPressedPrimary: '#000000',
   },
   Input: {
     borderRadius: '6px',
-    borderHover: '#00d4aa',
-    borderFocus: '#00d4aa',
-    boxShadowFocus: '0 0 0 3px rgba(0, 212, 170, 0.15)',
+    borderHover: '#2EB6FF',
+    borderFocus: '#2EB6FF',
+    boxShadowFocus: '0 0 0 3px rgba(46, 182, 255, 0.15)',
   },
   Card: {
-    borderRadius: '10px',
+    borderRadius: '12px',
   },
   Tag: {
     borderRadius: '4px',
   },
   Menu: {
     borderRadius: '6px',
-    itemTextColorActive: '#00d4aa',
-    itemTextColorActiveHover: '#00d4aa',
-    itemIconColorActive: '#00d4aa',
-    itemIconColorActiveHover: '#00d4aa',
+    itemTextColorActive: '#2EB6FF',
+    itemTextColorActiveHover: '#2EB6FF',
+    itemIconColorActive: '#2EB6FF',
+    itemIconColorActiveHover: '#2EB6FF',
   },
 }
 </script>

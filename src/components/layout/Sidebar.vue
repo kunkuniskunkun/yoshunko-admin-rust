@@ -58,49 +58,50 @@ defineExpose({ updateCounts, loadPlayers })
 </script>
 
 <template>
-  <aside class="sidebar">
-    <div class="sidebar-brand">
-      <img src="@/assets/icon.png" alt="Logo" class="sidebar-brand__logo" />
-      <div>
-        <h1 class="sidebar-brand__title">Yoshunko Admin</h1>
-        <p class="sidebar-brand__sub">Game Data Manager</p>
-      </div>
+  <aside class="sidebar group">
+    <!-- Logo -->
+    <div class="sidebar-logo">
+      <img src="@/assets/icon.png" alt="Logo" class="sidebar-logo__icon" />
+      <span class="sidebar-logo__text">YOSHUNKO</span>
     </div>
 
+    <!-- Player select (visible on hover) -->
     <div class="sidebar-player">
-      <select class="form-select" :value="uid ?? ''" @change="onPlayerChange">
+      <select class="sidebar-select" :value="uid ?? ''" @change="onPlayerChange">
         <option value="">-- 选择玩家 --</option>
-        <option v-for="pid in players" :key="pid" :value="pid">玩家 UID: {{ pid }}</option>
+        <option v-for="pid in players" :key="pid" :value="pid">UID: {{ pid }}</option>
       </select>
     </div>
 
+    <!-- Navigation -->
     <nav class="sidebar-nav" role="navigation" aria-label="功能导航">
-      <div role="tablist" aria-label="功能面板">
-        <div
-          v-for="item in navItems"
-          :key="item.key"
-          class="nav-item"
-          :class="{ active: panel === item.key, dirty: dirty && panel === item.key }"
-          role="tab"
-          :aria-selected="panel === item.key"
-          @click="selectPanel(item.key)"
-        >
-          <component :is="item.icon" class="nav-icon" :size="18" />
-          <span class="nav-item__label">{{ item.label }}</span>
-          <span v-if="item.countKey === 'avatar'" class="nav-badge" id="avatar-count">{{ avatarCount }}</span>
-          <span v-if="item.countKey === 'weapon'" class="nav-badge" id="weapon-count">{{ weaponCount }}</span>
-          <span v-if="item.countKey === 'equip'" class="nav-badge" id="equip-count">{{ equipCount }}</span>
+      <div
+        v-for="item in navItems"
+        :key="item.key"
+        class="nav-item"
+        :class="{ active: panel === item.key, dirty: dirty && panel === item.key }"
+        role="tab"
+        :aria-selected="panel === item.key"
+        @click="selectPanel(item.key)"
+      >
+        <div class="nav-item__icon-wrap">
+          <component :is="item.icon" :size="20" />
         </div>
+        <span class="nav-item__label">{{ item.label }}</span>
+        <span v-if="item.countKey === 'avatar'" class="nav-badge" id="avatar-count">{{ avatarCount }}</span>
+        <span v-if="item.countKey === 'weapon'" class="nav-badge" id="weapon-count">{{ weaponCount }}</span>
+        <span v-if="item.countKey === 'equip'" class="nav-badge" id="equip-count">{{ equipCount }}</span>
       </div>
     </nav>
 
+    <!-- Footer -->
     <div class="sidebar-footer">
-      <button class="sidebar-settings-btn" aria-label="设置" @click="selectPanel('settings')">
-        <Settings :size="18" />
+      <button class="sidebar-icon-btn" aria-label="设置" @click="selectPanel('settings')">
+        <Settings :size="20" />
       </button>
-      <button class="theme-toggle--sidebar" aria-label="切换主题" @click="toggleTheme">
-        <Sun v-if="currentTheme === 'dark'" class="theme-icon-sun" :size="18" />
-        <Moon v-else class="theme-icon-moon" :size="18" />
+      <button class="sidebar-icon-btn" aria-label="切换主题" @click="toggleTheme">
+        <Sun v-if="currentTheme === 'dark'" :size="20" />
+        <Moon v-else :size="20" />
       </button>
     </div>
   </aside>

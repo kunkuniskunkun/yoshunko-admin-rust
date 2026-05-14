@@ -122,7 +122,7 @@ async function launchAll() {
     </div>
 
     <div class="launch-grid">
-      <div v-for="item in launchItems" :key="item.key" class="launch-card">
+      <div v-for="item in launchItems" :key="item.key" class="launch-card" :class="{ 'launch-card--ready': item.isAuto || !!launchConfig[item.key] }">
         <div class="launch-card__dot" :class="{ active: item.isAuto || !!launchConfig[item.key] }"></div>
         <div class="launch-card__info">
           <div class="launch-card__name">

@@ -372,7 +372,7 @@ onMounted(async () => {
 })
 
 // 离开面板时重置为仓库视图
-watch(panel, (_, old) => { if (old === 'equips') { equipView.value = 'gallery'; selectedEquipUid.value = null } })
+watch(panel, (_, old) => { if (old === 'equips') { equipView.value = 'gallery'; selectedEquipUid.value = null; searchQuery.equips = '' } })
 
 onActivated(() => {
   applyStaggeredAnimation('.equip-card')

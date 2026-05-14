@@ -31,6 +31,8 @@
 - 任务栏图标：运行时 `set_icon` 注入 256x256 PNG（lib.rs + tauri `image-png` feature）
 - 创建驱动盘改为独立模态框（Teleport → body），匹配 Python 版弹窗体验（EquipsPanel.vue）
 - 移除 Suspense 外包层，避免切面板重复显示 skeleton + 三面板 `onActivated` 缓存刷新
+- 驱动盘编辑页副属性可编辑：下拉选择属性 + 基础值输入 + +/- 强化按钮（EquipsPanel.vue）
+- 未知装备兜底显示：`suit_name` 不存在时显示 `装备_{id}` 而非 `Suit_0`（template_loader.rs）
 - 标题栏按钮：SVG 图标居中（flexbox center）+ 标题栏还原单行布局
 
 **其他**

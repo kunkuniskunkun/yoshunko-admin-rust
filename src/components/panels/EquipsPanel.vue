@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onActivated, nextTick } from 'vue'
 import {
   uid, equipCache, cacheDirty, searchQuery,
-  selectedEquipUid, equipView, markCacheDirty, templates,
+  selectedEquipUid, equipView, markCacheDirty, markDirty, templates,
 } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/utils'
@@ -197,6 +197,34 @@ async function deleteEquip() {
   }
 }
 
+// ─── 编辑器副属性操作 ──────────────────────────────
+
+function onEditSubKeyChange(index: number, key: number) {
+  const arr = [...editSubProps.value]
+  if (key === 0) {
+    arr[index] = null
+  } else {
+    const opt = subStatOptions.value.find(o => o.key === key)
+    arr[index] = { key, key_name: opt?.name || '', base_value: 0, add_value: 0 }
+  }
+  editSubProps.value = arr
+  markDirty()
+}
+
+function onEditSubBaseChange(index: number, value: number) {
+  const arr = [...editSubProps.value]
+  const p = arr[index]
+  if (p) { arr[index] = { ...p, base_value: value }; markDirty() }
+  editSubProps.value = arr
+}
+
+function onEditSubAddChange(index: number, value: number) {
+  const arr = [...editSubProps.value]
+  const p = arr[index]
+  if (p) { arr[index] = { ...p, add_value: Math.max(0, value) }; markDirty() }
+  editSubProps.value = arr
+}
+
 // ─── 创建驱动盘流程 ────────────────────────────────
 
 function openCreate() {
@@ -384,12 +412,36 @@ onActivated(async () => {
       </div>
 
       <!-- Sub stats -->
-      <div class="section-title">副属性</div>
-      <div v-for="(prop, i) in editSubProps" :key="i" class="sub-stat-row">
-        <span v-if="prop" class="sub-stat-item">
-          {{ getMainStatName(prop.key) }}: {{ prop.base_value }} +{{ prop.add_value }}
-        </span>
-        <span v-else class="text-muted">空</span>
+      <div class="section-title">副属性 · {{ editSubProps.filter(p => p).length }} 条</div>
+      <div class="prop-header">
+        <span>#</span><span>属性</span><span>基础值</span><span>强化</span>
+      </div>
+      <div v-for="(prop, i) in editSubProps" :key="i" class="prop-row">
+        <span class="prop-index">{{ i + 1 }}</span>
+        <select class="form-select form-select--flex2"
+          :value="prop?.key || 0"
+          @change="onEditSubKeyChange(i, Number(($event.target as HTMLSelectElement).value))"
+        >
+          <option :value="0">— 无 —</option>
+          <option v-for="opt in subStatOptions" :key="opt.key" :value="opt.key">
+            {{ opt.name }}
+          </option>
+        </select>
+        <input
+          class="form-input prop-value-readonly"
+          type="number"
+          :value="prop?.base_value || 0"
+          @input="onEditSubBaseChange(i, Number(($event.target as HTMLInputElement).value))"
+          :disabled="!prop"
+          placeholder="0"
+        >
+        <div style="display:inline-flex;align-items:center;gap:0;">
+          <button class="stepper-btn" @click="onEditSubAddChange(i, Math.max(0, (prop?.add_value || 0) - 1))" :disabled="!prop">−</button>
+          <input class="stepper-input" type="number" :value="prop?.add_value || 0" min="0" max="20"
+            @input="onEditSubAddChange(i, Number(($event.target as HTMLInputElement).value))"
+            :disabled="!prop" style="width:40px;text-align:center;">
+          <button class="stepper-btn" @click="onEditSubAddChange(i, (prop?.add_value || 0) + 1)" :disabled="!prop">+</button>
+        </div>
       </div>
       <div class="enhance-sum" :class="{
         'enhance-sum--valid': getEnhanceSum() >= 4 && getEnhanceSum() <= 5,

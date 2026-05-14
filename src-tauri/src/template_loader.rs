@@ -207,6 +207,9 @@ impl TemplateLoader {
     }
     pub fn suit_name(&self, equip_id: i64) -> String {
         let st = self.equip_suit_types.get(&equip_id).copied().unwrap_or(0);
+        if st == 0 {
+            return format!("装备_{}", equip_id);
+        }
         self.suit_chinese.get(&st).cloned().unwrap_or_else(|| format!("Suit_{}", st))
     }
     pub fn suit_en_name(&self, equip_id: i64) -> String {

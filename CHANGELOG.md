@@ -27,7 +27,9 @@
 **追加修复 (4 项)**
 - 侧边栏文字 "Yoshunko Admin" 拆为两行排版（Sidebar.vue）
 - 创建驱动盘：Rust 端 `clean_equip_data` 清洗 `key_name` + 过滤 null 副属性，对齐 Python `_dict_to_equip_data`（api.rs）
+- 创建驱动盘乱码根因修复：`template_loader.load_templates` 使用 `suit_chinese` 中文名替代 JSON 本地化 key（template_loader.rs）
 - 任务栏图标：运行时 `set_icon` 注入 256x256 PNG（lib.rs + tauri `image-png` feature）
+- 移除 Suspense 外包层，避免切面板重复显示 skeleton + 三面板 `onActivated` 缓存刷新
 - 标题栏按钮：SVG 图标居中（flexbox center）+ 标题栏还原单行布局
 
 **其他**

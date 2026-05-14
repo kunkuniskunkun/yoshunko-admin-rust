@@ -163,9 +163,11 @@ impl TemplateLoader {
                 if let Some(items) = val.get("data").and_then(|d| d.as_array()) {
                     for item in items {
                         if let Some(id) = item.get("id").and_then(|v| v.as_i64()) {
-                            if let Some(name) = item.get("name").and_then(|v| v.as_str()) {
-                                self.suit_names.insert(id, name.to_string());
-                            }
+                            // Use Chinese name from suit_chinese, fall back to JSON name field
+                            let cn = self.suit_chinese.get(&id).cloned()
+                                .or_else(|| item.get("name").and_then(|v| v.as_str()).map(|s| s.to_string()))
+                                .unwrap_or_else(|| format!("Suit_{}", id));
+                            self.suit_names.insert(id, cn);
                         }
                     }
                 }

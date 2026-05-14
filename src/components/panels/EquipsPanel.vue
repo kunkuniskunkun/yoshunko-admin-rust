@@ -415,145 +415,129 @@ onActivated(async () => {
       <button class="btn btn-success" @click="openCreate">+ 创建驱动盘</button>
     </div>
 
-    <!-- 创建驱动盘面板 -->
-    <div v-if="showCreate" class="create-panel">
-      <div class="create-panel__header">
-        <h3>创建驱动盘</h3>
-        <div class="create-steps">
-          <span class="create-step" :class="{ active: createStep === 1 }">1. 选择套装</span>
-          <span class="create-step-arrow">→</span>
-          <span class="create-step" :class="{ active: createStep === 2 }">2. 选择位置</span>
-          <span class="create-step-arrow">→</span>
-          <span class="create-step" :class="{ active: createStep === 3 }">3. 配置属性</span>
-        </div>
-      </div>
+    <!-- 创建驱动盘 — Modal overlay (Python-style) -->
+    <Teleport to="body">
+      <div v-if="showCreate" class="modal-overlay" @click.self="closeCreate">
+        <div class="modal modal--wide">
+          <div class="create-steps">
+            <span class="create-step" :class="{ active: createStep === 1 }">1. 选择套装</span>
+            <span class="create-step-arrow">→</span>
+            <span class="create-step" :class="{ active: createStep === 2 }">2. 选择位置</span>
+            <span class="create-step-arrow">→</span>
+            <span class="create-step" :class="{ active: createStep === 3 }">3. 配置属性</span>
+          </div>
+          <h2>
+            创建驱动盘
+            <span class="text-accent" v-if="createStep === 1"> — 选择套装</span>
+            <span class="text-accent" v-else-if="createStep === 2"> — {{ createSuitName }}</span>
+            <span class="text-accent" v-else> — {{ createSuitName }} · {{ createSlotName }}号位</span>
+          </h2>
 
-      <!-- Step 1: 选择套装 -->
-      <div v-if="createStep === 1" class="create-grid">
-        <div
-          v-for="suit in suitList"
-          :key="suit.suit_type"
-          class="create-card suit-select-card"
-          :class="suitColorClass(suit.suit_name)"
-          tabindex="0" role="button"
-          @click="selectCreateSuit(suit.suit_type, suit.suit_name)"
-        >
-          <div class="create-card__name">{{ suit.suit_name }}</div>
-          <div class="create-card__slots">
-            {{ suit.slots.map(s => s.slot_name).join(' · ') }}
+          <!-- Step 1: 选择套装 -->
+          <div v-if="createStep === 1" class="suit-grid-scroll">
+            <div
+              v-for="suit in suitList"
+              :key="suit.suit_type"
+              class="suit-card"
+              tabindex="0" role="button"
+              @click="selectCreateSuit(suit.suit_type, suit.suit_name)"
+            >
+              <div class="suit-card__name">{{ suit.suit_name }}</div>
+              <div class="suit-card__slots">
+                {{ suit.slots.map(s => s.slot_name).join(' · ') }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: 选择位置 -->
+          <div v-if="createStep === 2">
+            <button class="btn btn-ghost mb-3" @click="backToSuits">← 返回选择套装</button>
+            <div class="slot-grid">
+              <div
+                v-for="slot in currentSuitSlots"
+                :key="slot.slot"
+                class="slot-card"
+                tabindex="0" role="button"
+                @click="selectCreateSlot(slot)"
+              >
+                <div class="slot-card__num">{{ slot.slot_name }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: 配置属性 -->
+          <div v-if="createStep === 3">
+            <button class="btn btn-ghost mb-3" @click="backToSlots">← 返回选择位置</button>
+            <div class="section-title">{{ createSuitName }} · {{ createSlotName }}号位 · 主属性</div>
+            <div class="prop-row">
+              <select
+                v-model="createMainKey"
+                class="form-select form-select--flex2"
+                :disabled="isSlotFixed"
+                @change="onMainKeyChange"
+              >
+                <option v-for="opt in currentMainOptions" :key="opt.key" :value="opt.key">
+                  {{ opt.name }}
+                </option>
+              </select>
+              <input
+                class="form-input prop-value-readonly"
+                type="number"
+                v-model.number="createMainBase"
+                placeholder="基础值"
+              >
+              <span class="text-muted prop-add-label">+0</span>
+            </div>
+            <div v-if="isSlotFixed" class="text-sm text-muted hint-text">1-3号位主属性固定，不可更改</div>
+
+            <div class="section-title">副属性 · 4 条 <span class="text-sm text-muted">（追加强化 0-4）</span></div>
+            <div class="prop-header">
+              <span>#</span><span>属性</span><span>基础值</span><span>强化</span>
+            </div>
+            <div v-for="(prop, i) in createSubProps" :key="i" class="prop-row">
+              <span class="prop-index">{{ i + 1 }}</span>
+              <select
+                class="form-select form-select--flex2"
+                :value="prop.key"
+                @change="onSubKeyChange(i, Number(($event.target as HTMLSelectElement).value))"
+              >
+                <option :value="0">— 无 —</option>
+                <option v-for="opt in subStatOptions" :key="opt.key" :value="opt.key">
+                  {{ opt.name }}
+                </option>
+              </select>
+              <input
+                class="form-input prop-value-readonly"
+                type="number"
+                v-model.number="prop.base"
+                placeholder="0"
+                :disabled="prop.key === 0"
+              >
+              <div class="input-stepper" style="--stepper-height: 36px; display: inline-flex; align-items: center; gap: 0;">
+                <button class="stepper-btn" @click="prop.add = Math.max(0, prop.add - 1)" :disabled="prop.key === 0">−</button>
+                <input class="stepper-input" type="number" v-model.number="prop.add" min="0" max="4" :disabled="prop.key === 0" style="width:40px; text-align:center;">
+                <button class="stepper-btn" @click="prop.add = Math.min(4, prop.add + 1)" :disabled="prop.key === 0">+</button>
+              </div>
+            </div>
+
+            <div
+              class="enhance-sum"
+              :class="{
+                'enhance-sum--valid': createEnhanceSum >= 4 && createEnhanceSum <= 5,
+                'enhance-sum--warn': createEnhanceSum < 4 || createEnhanceSum > 5,
+              }"
+            >
+              追加强化总和: <strong>{{ createEnhanceSum }}</strong> / 5
+            </div>
+
+            <div class="btn-group">
+              <button class="btn btn-ghost" @click="closeCreate">取消</button>
+              <button class="btn btn-success btn-lg" @click="submitCreate">创建驱动盘</button>
+            </div>
           </div>
         </div>
       </div>
-
-      <!-- Step 2: 选择位置 -->
-      <div v-if="createStep === 2">
-        <button class="btn btn-ghost mb-3" @click="backToSuits">← 返回选择套装</button>
-        <div class="text-accent mb-2">{{ createSuitName }}</div>
-        <div class="create-grid create-grid--small">
-          <div
-            v-for="slot in currentSuitSlots"
-            :key="slot.slot"
-            class="create-card slot-select-card"
-            tabindex="0" role="button"
-            @click="selectCreateSlot(slot)"
-          >
-            <div class="create-card__name">{{ slot.slot_name }}号位</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 3: 配置属性 -->
-      <div v-if="createStep === 3">
-        <button class="btn btn-ghost mb-3" @click="backToSlots">← 返回选择位置</button>
-        <div class="section-title">{{ createSuitName }} · {{ createSlotName }}号位</div>
-
-        <!-- 基础属性 -->
-        <div class="section-title" style="margin-top:14px">基础属性</div>
-        <div class="form-row">
-          <div class="form-field">
-            <label class="form-label">等级</label>
-            <Stepper v-model="createLevel" :min="0" :max="15" label="等级" />
-          </div>
-          <div class="form-field">
-            <label class="form-label">星级</label>
-            <Stepper v-model="createStar" :min="1" :max="5" label="星级" />
-          </div>
-        </div>
-
-        <!-- 主属性 -->
-        <div class="section-title" style="margin-top:14px">主属性</div>
-        <div class="create-prop-row">
-          <select
-            v-model="createMainKey"
-            class="form-select form-select--flex2"
-            :disabled="isSlotFixed"
-            @change="onMainKeyChange"
-          >
-            <option v-for="opt in currentMainOptions" :key="opt.key" :value="opt.key">
-              {{ opt.name }}
-            </option>
-          </select>
-          <input
-            class="form-input prop-value-readonly"
-            type="number"
-            v-model.number="createMainBase"
-            placeholder="基础值"
-          >
-          <span class="text-muted prop-add-label">+0</span>
-        </div>
-        <div v-if="isSlotFixed" class="text-sm text-muted hint-text">1-3号位主属性固定，不可更改</div>
-
-        <!-- 副属性 -->
-        <div class="section-title" style="margin-top:18px">
-          副属性 · 4 条
-          <span class="text-sm text-muted">（追加强化 0-4）</span>
-        </div>
-        <div class="create-prop-header">
-          <span>#</span><span>属性</span><span>基础值</span><span>强化</span>
-        </div>
-        <div v-for="(prop, i) in createSubProps" :key="i" class="create-prop-row">
-          <span class="prop-index">{{ i + 1 }}</span>
-          <select
-            class="form-select form-select--flex2"
-            :value="prop.key"
-            @change="onSubKeyChange(i, Number(($event.target as HTMLSelectElement).value))"
-          >
-            <option :value="0">— 无 —</option>
-            <option v-for="opt in subStatOptions" :key="opt.key" :value="opt.key">
-              {{ opt.name }}
-            </option>
-          </select>
-          <input
-            class="form-input prop-value-readonly"
-            type="number"
-            v-model.number="prop.base"
-            placeholder="0"
-            :disabled="prop.key === 0"
-          >
-          <Stepper
-            :model-value="prop.add"
-            @update:model-value="prop.add = $event"
-            :min="0" :max="4"
-            :label="'强化' + (i + 1)"
-          />
-        </div>
-
-        <div
-          class="enhance-sum"
-          :class="{
-            'enhance-sum--valid': createEnhanceSum >= 4 && createEnhanceSum <= 5,
-            'enhance-sum--warn': createEnhanceSum < 4 || createEnhanceSum > 5,
-          }"
-        >
-          追加强化总和: <strong>{{ createEnhanceSum }}</strong> / 5
-        </div>
-
-        <div class="btn-group">
-          <button class="btn btn-ghost" @click="closeCreate">取消</button>
-          <button class="btn btn-success btn-lg" @click="submitCreate">创建驱动盘</button>
-        </div>
-      </div>
-    </div>
+    </Teleport>
 
     <SearchBar v-model="searchQuery.equips" placeholder="搜索驱动盘 UID、套装、槽位..." />
 

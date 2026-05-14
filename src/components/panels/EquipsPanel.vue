@@ -417,7 +417,7 @@ onActivated(() => {
       <!-- Sub stats -->
       <div class="section-title">副属性 · {{ editSubProps.filter(p => p).length }} 条</div>
       <div class="prop-header">
-        <span>#</span><span>属性</span><span>基础值</span><span>强化</span>
+        <span>#</span><span>属性</span><span>基础值</span><span>强化次数</span>
       </div>
       <div v-for="(prop, i) in editSubProps" :key="i" class="prop-row">
         <span class="prop-index">{{ i + 1 }}</span>
@@ -498,9 +498,6 @@ onActivated(() => {
               @click="selectCreateSuit(suit.suit_type, suit.suit_name)"
             >
               <div class="suit-card__name">{{ suit.suit_name }}</div>
-              <div class="suit-card__slots">
-                {{ suit.slots.map(s => s.slot_name).join(' · ') }}
-              </div>
             </div>
           </div>
 
@@ -515,7 +512,7 @@ onActivated(() => {
                 tabindex="0" role="button"
                 @click="selectCreateSlot(slot)"
               >
-                <div class="slot-card__num">{{ slot.slot_name }}</div>
+                <div class="slot-card__num">{{ slot.slot }}</div>
               </div>
             </div>
           </div>
@@ -547,7 +544,7 @@ onActivated(() => {
 
             <div class="section-title">副属性 · 4 条 <span class="text-sm text-muted">（追加强化 0-4）</span></div>
             <div class="prop-header">
-              <span>#</span><span>属性</span><span>基础值</span><span>强化</span>
+              <span>#</span><span>属性</span><span>基础值</span><span>强化次数</span>
             </div>
             <div v-for="(prop, i) in createSubProps" :key="i" class="prop-row">
               <span class="prop-index">{{ i + 1 }}</span>

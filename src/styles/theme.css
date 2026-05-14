@@ -407,7 +407,7 @@ body {
 }
 .page-header h2 {
   font-family: var(--font-display);
-  font-size: 22px; font-weight: 400; color: var(--text);
+  font-size: 26px; font-weight: 700; color: var(--text);
   letter-spacing: 0.5px;
 }
 .page-header .subtitle {
@@ -1081,7 +1081,7 @@ body {
 .prop-header { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 4px; }
 .prop-header span { font-size: 10px; text-transform: uppercase; color: var(--text-dim); font-weight: 600; letter-spacing: 0.5px; }
 .prop-header span:first-child { width: 24px; flex-shrink: 0; }
-.prop-header span:nth-child(2) { flex: 2; }
+.prop-header span:nth-child(2) { flex: 1; }
 .prop-header span:nth-child(3) { flex: 1; }
 .prop-header span:nth-child(4) { flex: 1; }
 
@@ -1173,7 +1173,7 @@ body {
   padding: 10px 16px; margin-bottom: 12px;
   background: var(--bg-surface); border-radius: var(--radius);
   border-left: 3px solid var(--accent);
-  font-size: 13px; font-weight: 700; color: var(--text-secondary);
+  font-size: 16px; font-weight: 700; color: var(--text-secondary);
 }
 .avatar-gallery__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 12px; }
 .avatar-gallery__card { display: flex; flex-direction: column; gap: 6px; min-height: 150px; position: relative; }
@@ -1186,7 +1186,7 @@ body {
 }
 .avatar-card__camp-tag {
   font-size: 11px; padding: 3px 12px;
-  background: var(--accent-bg); color: var(--accent);
+  background: var(--bg-elevated); color: var(--text-secondary);
   border-radius: var(--radius-full); font-weight: 600;
   letter-spacing: 0.3px;
 }
@@ -1505,7 +1505,7 @@ body {
 .empty-state__action { margin-top: var(--space-4); }
 
 /* Utility classes */
-.form-select--flex2 { flex: 2; }
+.form-select--flex2 { flex: 1; }
 .prop-value-readonly { width: 62px; text-align: center; }
 .prop-value-stepper { width: 40px; text-align: center; }
 .prop-add-label { font-size: 12px; width: 40px; text-align: center; }
@@ -1587,6 +1587,7 @@ body {
 }
 .main-content {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 28px 32px;

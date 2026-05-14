@@ -33,6 +33,7 @@
 - 移除 Suspense 外包层，避免切面板重复显示 skeleton + 三面板 `onActivated` 缓存刷新
 - 驱动盘编辑页副属性可编辑：下拉选择属性 + 基础值输入 + +/- 强化按钮（EquipsPanel.vue）
 - 未知装备兜底显示：`suit_name` 不存在时显示 `装备_{id}` 而非 `Suit_0`（template_loader.rs）
+- 修复删除驱动盘后幽灵卡片：立即从缓存移除已删除 equip，不再仅设 dirty flag（EquipsPanel.vue）
 - 标题栏按钮：SVG 图标居中（flexbox center）+ 标题栏还原单行布局
 
 **其他**

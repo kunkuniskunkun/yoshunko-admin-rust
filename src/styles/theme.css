@@ -290,7 +290,7 @@ body {
 .sidebar-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
 
 /* Nav items */
-.sidebar-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow-y: auto; }
+.sidebar-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
 
 .nav-item {
   position: relative;
@@ -366,6 +366,7 @@ body {
 /* Sidebar footer */
 .sidebar-footer {
   margin-top: auto;
+  flex-shrink: 0;
   padding: 12px 6px 4px;
   border-top: 1px solid var(--border-subtle);
   display: flex; align-items: center; gap: 10px;

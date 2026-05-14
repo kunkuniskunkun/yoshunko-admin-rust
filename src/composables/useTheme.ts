@@ -43,10 +43,10 @@ export function setTheme(target: 'light' | 'dark') {
       try { localStorage.setItem('yos-theme', target) } catch {}
 
       // overlay 渐隐
-      overlay.style.transition = 'opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
+      overlay.style.transition = 'opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1)'
       overlay.style.opacity = '0'
       overlay.addEventListener('transitionend', () => overlay.remove())
-      setTimeout(() => { if (overlay.parentNode) overlay.remove() }, 900)
+      setTimeout(() => { if (overlay.parentNode) overlay.remove() }, 750)
     })
   })
 }

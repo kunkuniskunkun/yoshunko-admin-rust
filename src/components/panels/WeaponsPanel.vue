@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onActivated, nextTick } from 'vue'
 import {
   uid, weaponCache, cacheDirty, searchQuery,
   selectedWeaponUid, weaponView, markCacheDirty,
@@ -123,25 +123,36 @@ async function saveWeapon() {
   }
 }
 
-onMounted(async () => {
+async function refreshCache() {
   if (!uid.value) return
   if (weaponCache.value.length && !cacheDirty.value) {
     loading.value = false
-  } else {
-    try {
-      const data = await api.getWeapons(uid.value)
-      weaponCache.value = data.weapons
-      cacheDirty.value = false
-    } catch (e: unknown) {
-      toast('加载音擎失败: ' + (e instanceof Error ? e.message : ''), 'error')
-    }
-    loading.value = false
+    return
   }
+  try {
+    const data = await api.getWeapons(uid.value)
+    weaponCache.value = data.weapons
+    cacheDirty.value = false
+  } catch (e: unknown) {
+    toast('加载音擎失败: ' + (e instanceof Error ? e.message : ''), 'error')
+  }
+  loading.value = false
+}
+
+onMounted(async () => {
+  await refreshCache()
   if (weaponView.value === 'editor' && selectedWeaponUid.value) {
     loadEditor(selectedWeaponUid.value)
   }
   if (weaponView.value === 'gallery') {
     applyStaggeredAnimation('.avatar-gallery__card')
+  }
+})
+
+onActivated(async () => {
+  await refreshCache()
+  if (weaponView.value === 'editor' && selectedWeaponUid.value) {
+    loadEditor(selectedWeaponUid.value)
   }
 })
 </script>

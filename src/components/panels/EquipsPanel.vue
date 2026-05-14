@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onActivated, nextTick } from 'vue'
 import {
   uid, equipCache, cacheDirty, searchQuery,
   selectedEquipUid, equipView, markCacheDirty, templates,
@@ -315,25 +315,36 @@ async function submitCreate() {
   }
 }
 
-onMounted(async () => {
+async function refreshCache() {
   if (!uid.value) return
   if (equipCache.value.length && !cacheDirty.value) {
     loading.value = false
-  } else {
-    try {
-      const data = await api.getEquips(uid.value)
-      equipCache.value = data.equips
-      cacheDirty.value = false
-    } catch (e: unknown) {
-      toast('加载驱动盘失败: ' + (e instanceof Error ? e.message : ''), 'error')
-    }
-    loading.value = false
+    return
   }
+  try {
+    const data = await api.getEquips(uid.value)
+    equipCache.value = data.equips
+    cacheDirty.value = false
+  } catch (e: unknown) {
+    toast('加载驱动盘失败: ' + (e instanceof Error ? e.message : ''), 'error')
+  }
+  loading.value = false
+}
+
+onMounted(async () => {
+  await refreshCache()
   if (equipView.value === 'editor' && selectedEquipUid.value) {
     loadEditor(selectedEquipUid.value)
   }
   if (equipView.value === 'gallery') {
     applyStaggeredAnimation('.equip-card')
+  }
+})
+
+onActivated(async () => {
+  await refreshCache()
+  if (equipView.value === 'editor' && selectedEquipUid.value) {
+    loadEditor(selectedEquipUid.value)
   }
 })
 </script>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, onActivated, nextTick, watch } from 'vue'
 import type { Ref } from 'vue'
 import {
   uid, avatarCache, cacheDirty, avatarGroupBy, searchQuery,
@@ -200,25 +200,36 @@ async function saveAvatar() {
   }
 }
 
-onMounted(async () => {
+async function refreshCache() {
   if (!uid.value) return
   if (avatarCache.value.length && !cacheDirty.value) {
     loading.value = false
-  } else {
-    try {
-      const data = await api.getAvatars(uid.value)
-      avatarCache.value = data.avatars
-      cacheDirty.value = false
-    } catch (e: unknown) {
-      toast('加载角色失败: ' + (e instanceof Error ? e.message : ''), 'error')
-    }
-    loading.value = false
+    return
   }
+  try {
+    const data = await api.getAvatars(uid.value)
+    avatarCache.value = data.avatars
+    cacheDirty.value = false
+  } catch (e: unknown) {
+    toast('加载角色失败: ' + (e instanceof Error ? e.message : ''), 'error')
+  }
+  loading.value = false
+}
+
+onMounted(async () => {
+  await refreshCache()
   if (avatarView.value === 'editor' && selectedAvatarId.value) {
     loadEditor(selectedAvatarId.value)
   }
   if (avatarView.value === 'gallery') {
     applyStaggeredAnimation('.avatar-gallery__card')
+  }
+})
+
+onActivated(async () => {
+  await refreshCache()
+  if (avatarView.value === 'editor' && selectedAvatarId.value) {
+    loadEditor(selectedAvatarId.value)
   }
 })
 

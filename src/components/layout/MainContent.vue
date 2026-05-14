@@ -88,22 +88,17 @@ function onConnected() {
       <div class="empty-state__icon"></div>
       <p>选择一个玩家开始管理游戏数据</p>
     </div>
-    <Suspense v-else>
-      <KeepAlive>
-        <component :is="{
-          avatars: AvatarsPanel,
-          weapons: WeaponsPanel,
-          equips: EquipsPanel,
-          hadal_zone: HadalPanel,
-          player_info: PlayerPanel,
-          quick_launch: QuickLaunchPanel,
-          settings: SettingsPanel,
-          shortcuts: ShortcutsPanel,
-        }[panel] || AvatarsPanel" />
-      </KeepAlive>
-      <template #fallback>
-        <SkeletonGrid />
-      </template>
-    </Suspense>
+    <KeepAlive v-else>
+      <component :is="{
+        avatars: AvatarsPanel,
+        weapons: WeaponsPanel,
+        equips: EquipsPanel,
+        hadal_zone: HadalPanel,
+        player_info: PlayerPanel,
+        quick_launch: QuickLaunchPanel,
+        settings: SettingsPanel,
+        shortcuts: ShortcutsPanel,
+      }[panel] || AvatarsPanel" />
+    </KeepAlive>
   </main>
 </template>

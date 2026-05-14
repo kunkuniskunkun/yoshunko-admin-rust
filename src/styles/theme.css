@@ -189,7 +189,8 @@ body > div:first-child,
 body > div:first-child > div:first-child,
 body > div:first-child > div:first-child > div:first-child,
 body > div:first-child > div:first-child > div:first-child > div:first-child,
-body > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child {
+body > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child,
+body > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child {
   display: flex;
   flex-direction: column;
   flex: 1;

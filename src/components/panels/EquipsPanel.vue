@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onActivated, nextTick } from 'vue'
+import { ref, computed, onMounted, onActivated, nextTick, watch } from 'vue'
 import {
-  uid, equipCache, cacheDirty, searchQuery,
+  uid, panel, equipCache, cacheDirty, searchQuery,
   selectedEquipUid, equipView, markCacheDirty, markDirty, templates,
 } from '@/composables/useAppState'
 import { api } from '@/lib/api'
@@ -371,11 +371,11 @@ onMounted(async () => {
   }
 })
 
+// 离开面板时重置为仓库视图
+watch(panel, (_, old) => { if (old === 'equips') { equipView.value = 'gallery'; selectedEquipUid.value = null } })
+
 onActivated(async () => {
   await refreshCache()
-  if (equipView.value === 'editor' && selectedEquipUid.value) {
-    loadEditor(selectedEquipUid.value)
-  }
 })
 </script>
 

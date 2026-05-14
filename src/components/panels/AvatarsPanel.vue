@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onActivated, nextTick, watch } from 'vue'
 import type { Ref } from 'vue'
 import {
-  uid, avatarCache, cacheDirty, avatarGroupBy, searchQuery,
+  uid, panel, avatarCache, cacheDirty, avatarGroupBy, searchQuery,
   selectedAvatarId, avatarView, templates, avatarMap,
   markCacheDirty, markDirty,
 } from '@/composables/useAppState'
@@ -226,11 +226,11 @@ onMounted(async () => {
   }
 })
 
+// 离开面板时重置为仓库视图
+watch(panel, (_, old) => { if (old === 'avatars') { avatarView.value = 'gallery'; selectedAvatarId.value = null } })
+
 onActivated(async () => {
   await refreshCache()
-  if (avatarView.value === 'editor' && selectedAvatarId.value) {
-    loadEditor(selectedAvatarId.value)
-  }
 })
 
 watch(filteredAvatars, () => {

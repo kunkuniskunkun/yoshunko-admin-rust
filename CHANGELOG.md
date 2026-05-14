@@ -34,6 +34,7 @@
 - 驱动盘编辑页副属性可编辑：下拉选择属性 + 基础值输入 + +/- 强化按钮（EquipsPanel.vue）
 - 未知装备兜底显示：`suit_name` 不存在时显示 `装备_{id}` 而非 `Suit_0`（template_loader.rs）
 - 修复删除驱动盘后幽灵卡片：立即从缓存移除已删除 equip，不再仅设 dirty flag（EquipsPanel.vue）
+- 编辑页切走再返回重置为仓库视图：watch panel 离开时清空 editor 状态（三面板统一处理）
 - 标题栏按钮：SVG 图标居中（flexbox center）+ 标题栏还原单行布局
 
 **其他**

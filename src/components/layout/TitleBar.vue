@@ -23,8 +23,7 @@ onMounted(async () => {
 <template>
   <div data-tauri-drag-region class="title-bar">
     <div class="title-bar__left" data-tauri-drag-region>
-      <span class="title-bar__brand">Yoshunko</span>
-      <span class="title-bar__brand">Admin</span>
+      <span class="title-bar__brand">Yoshunko Admin</span>
       <span class="title-bar__version">{{ version }}</span>
     </div>
     <div class="title-bar__controls">

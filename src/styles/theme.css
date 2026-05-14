@@ -194,23 +194,24 @@
   user-select: none;
 }
 .title-bar__left {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 0; line-height: 1.1;
+  display: flex; flex-direction: row; align-items: center; gap: 8px;
 }
 .title-bar__brand {
-  font-size: 10px; font-weight: 500; color: var(--text-dim);
+  font-size: 11px; font-weight: 500; color: var(--text-dim);
   letter-spacing: 0.5px;
 }
 .title-bar__version {
   font-size: 10px; color: var(--text-disabled);
   font-family: var(--font-mono);
 }
-.title-bar__controls { display: flex; gap: 2px; -webkit-app-region: no-drag; }
+.title-bar__controls { display: flex; gap: 2px; -webkit-app-region: no-drag; align-items: center; }
 .tb-btn {
   width: 34px; height: 26px; border: none; background: transparent;
   color: var(--text-secondary); font-size: 12px; cursor: pointer;
   border-radius: var(--radius-xs);
   font-family: var(--font);
   transition: background var(--transition-fast), color var(--transition-fast);
+  display: flex; align-items: center; justify-content: center;
 }
 .tb-btn:hover { background: var(--bg-hover); color: var(--text); }
 .tb-btn--close:hover { background: #e81123; color: #fff; }

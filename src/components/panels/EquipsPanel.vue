@@ -285,7 +285,7 @@ async function submitCreate() {
     star: createStar.value,
     properties: [{
       key: createMainKey.value,
-      key_name: createMainName.value,
+      key_name: '',
       base_value: createMainBase.value,
       add_value: 0,
     }],
@@ -293,9 +293,9 @@ async function submitCreate() {
       if (p.key === 0) return null
       return {
         key: p.key,
-        key_name: p.name,
+        key_name: '',
         base_value: p.base,
-        add_value: p.add,
+        add_value: p.add + 1,
       }
     }),
   }

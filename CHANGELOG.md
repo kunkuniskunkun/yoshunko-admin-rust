@@ -4,9 +4,9 @@
 
 ---
 
-## V0.616 (2026-05-14)
+## V0.616 (2026-05-15)
 
-### 8 项 Bug 修复 + 回归 Python 版 UI
+### 8 项 Bug 修复 + 4 项追加修复 + 回归 Python 版 UI
 
 **UI 全面回归 Python 版设计语言**
 - theme.css 完全重写：浅色主题、Consolas 字体、干净卡片设计
@@ -23,6 +23,12 @@
 - 主题切换过渡优化：遮罩先行、切换再渐变（useTheme.ts）
 - 任务栏图标模糊：生成 256x256 PNG 加入 bundle（tauri.conf.json）
 - 面板切换性能：`KeepAlive` 缓存组件实例，避免销毁重建（MainContent.vue）
+
+**追加修复 (4 项)**
+- 侧边栏文字 "Yoshunko Admin" 拆为两行排版（Sidebar.vue）
+- 创建驱动盘 `add_value` 修正（+1 偏移匹配游戏数据规范）+ 移除冗余 `key_name`
+- 任务栏图标：ICO 重新生成，32x32 置于首层（Tauri 仅读取首个图层）
+- 标题栏按钮：SVG 图标居中（flexbox center）+ 标题栏还原单行布局
 
 **其他**
 - Naive UI 主题补全 `primaryColorSuppl`（暗色模式适配）

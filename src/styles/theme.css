@@ -1505,7 +1505,7 @@ body {
 }
 
 /* Utility classes */
-.app-layout { display: flex; flex: 1; overflow: hidden; }
+.app-layout { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
 .setup-error { display: none; color: var(--danger); margin-bottom: 16px; text-align: left; padding: 8px 12px; background: var(--danger-bg); border-radius: 6px; white-space: pre-wrap; }
 .setup-error.visible { display: block; }
 .text-danger { color: var(--danger); }

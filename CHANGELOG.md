@@ -4,6 +4,32 @@
 
 ---
 
+## V0.616 (2026-05-14)
+
+### 8 项 Bug 修复 + 回归 Python 版 UI
+
+**UI 全面回归 Python 版设计语言**
+- theme.css 完全重写：浅色主题、Consolas 字体、干净卡片设计
+- 侧边栏：大图标 (85px)、白色渐变背景、蓝色左侧 accent 条指示导航
+- 标题栏：36px 高度、简洁品牌标识、版本号动态读取
+- 强调色回归 Python 版蓝色 (#4a9fd8)
+
+**Bug 修复 (8 项)**
+- 修复编辑页导航切换后显示空白：`onMounted` 增加编辑器状态恢复逻辑（AvatarsPanel / WeaponsPanel / EquipsPanel）
+- 修复导航栏计数全显示 0：watch cache 自动更新、移除 `defineExpose` 外部依赖（Sidebar.vue）
+- 新增驱动盘创建入口：3 步创建流程 UI（选择套装 → 位置 → 配置属性）+ API 集成（EquipsPanel.vue）
+- 标题栏 "Yoshunko Admin" 分两行排列（TitleBar.vue + theme.css）
+- 动态读取版本号：`get_version` 从 tauri.conf.json 解析（api.rs）
+- 主题切换过渡优化：遮罩先行、切换再渐变（useTheme.ts）
+- 任务栏图标模糊：生成 256x256 PNG 加入 bundle（tauri.conf.json）
+- 面板切换性能：`KeepAlive` 缓存组件实例，避免销毁重建（MainContent.vue）
+
+**其他**
+- Naive UI 主题补全 `primaryColorSuppl`（暗色模式适配）
+- Tailwind preflight 冲突修复：meta 标签确保 Naive UI 样式优先级（main.ts）
+
+---
+
 ## V0.615 (2026-05-14)
 
 ### UI/UX 全面重构 — GachaBase 设计语言

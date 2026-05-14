@@ -43,6 +43,7 @@ async function loadPlayers() {
         uid.value = data.players[0]
       }
     }
+    updateCounts()
   } catch (e) {
     console.error('Failed to load players:', e)
   }
@@ -54,15 +55,21 @@ watch(configured, (val) => {
   if (val) loadPlayers()
 })
 
-defineExpose({ updateCounts, loadPlayers })
+// 自动监听缓存变化，更新导航栏计数
+watch(avatarCache, () => updateCounts(), { deep: true })
+watch(weaponCache, () => updateCounts(), { deep: true })
+watch(equipCache, () => updateCounts(), { deep: true })
 </script>
 
 <template>
-  <aside class="sidebar group">
+  <aside class="sidebar">
     <!-- Logo -->
     <div class="sidebar-logo">
-      <img src="@/assets/icon.png" alt="Logo" class="sidebar-logo__icon" />
-      <span class="sidebar-logo__text">YOSHUNKO</span>
+      <img src="@/assets/icon.ico" alt="Logo" class="sidebar-logo__icon" />
+      <div>
+        <h1 class="sidebar-logo__text" style="font-family:Consolas,'Microsoft YaHei','PingFang SC',sans-serif;font-size:17px;font-weight:700;">Yoshunko Admin</h1>
+        <span style="font-size:10px;color:var(--text-dim)">Game Data Manager</span>
+      </div>
     </div>
 
     <!-- Player select (visible on hover) -->

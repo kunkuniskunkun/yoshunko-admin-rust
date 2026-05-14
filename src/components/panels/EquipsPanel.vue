@@ -7,7 +7,7 @@ import {
 import { api } from '@/lib/api'
 import { toast } from '@/lib/utils'
 import { SUIT_PINYIN } from '@/assets/pinyin-data'
-import type { EquipListItem, EquipDetail, EquipProperty } from '@/lib/types'
+import type { EquipListItem, EquipDetail, EquipProperty, EquipCreate } from '@/lib/types'
 import SearchBar from '@/components/shared/SearchBar.vue'
 import Stepper from '@/components/shared/Stepper.vue'
 import SkeletonGrid from '@/components/shared/SkeletonGrid.vue'
@@ -22,6 +22,54 @@ const editLevel = ref(0)
 const editStar = ref(5)
 const editMainProp = ref<EquipProperty>({ key: 0, key_name: '', base_value: 0, add_value: 0 })
 const editSubProps = ref<(EquipProperty | null)[]>([null, null, null, null])
+
+// ─── 创建驱动盘状态 ────────────────────────────────
+const showCreate = ref(false)
+const createStep = ref<1 | 2 | 3>(1)
+const createSuitType = ref(0)
+const createSuitName = ref('')
+const createEquipId = ref(0)
+const createSlot = ref(0)
+const createSlotName = ref('')
+const createLevel = ref(15)
+const createStar = ref(5)
+const createMainKey = ref(0)
+const createMainName = ref('')
+const createMainBase = ref(0)
+const createSubProps = ref<{ key: number; name: string; base: number; add: number }[]>([
+  { key: 0, name: '', base: 0, add: 0 },
+  { key: 0, name: '', base: 0, add: 0 },
+  { key: 0, name: '', base: 0, add: 0 },
+  { key: 0, name: '', base: 0, add: 0 },
+])
+
+const suitList = computed(() => {
+  if (!templates.value) return []
+  return Object.entries(templates.value.suit_groups)
+    .sort((a, b) => Number(a[0]) - Number(b[0]))
+    .map(([, group]) => group)
+})
+
+const currentSuitSlots = computed(() => {
+  if (!templates.value || !createSuitType.value) return []
+  const group = templates.value.suit_groups[String(createSuitType.value)]
+  return group?.slots || []
+})
+
+const currentMainOptions = computed(() => {
+  if (!templates.value || !createSlot.value) return []
+  return templates.value.main_stat_options[String(createSlot.value)] || []
+})
+
+const subStatOptions = computed(() => {
+  return templates.value?.sub_stat_options || []
+})
+
+const isSlotFixed = computed(() => createSlot.value >= 1 && createSlot.value <= 3)
+
+const createEnhanceSum = computed(() => {
+  return createSubProps.value.reduce((s, p) => s + (p.key > 0 ? p.add : 0), 0)
+})
 
 const filteredEquips = computed(() => {
   let list = [...equipCache.value]
@@ -68,16 +116,7 @@ function getMainStatName(key: number): string {
   return templates.value.stat_names[key] || '属性' + key
 }
 
-async function selectEquip(euid: number, event?: Event) {
-  // Card press animation
-  if (event?.currentTarget) {
-    const el = event.currentTarget as HTMLElement
-    el.style.transition = 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
-    el.style.transform = 'scale(0.92)'
-    setTimeout(() => { el.style.transform = 'scale(1)' }, 120)
-  }
-  selectedEquipUid.value = euid
-  equipView.value = 'editor'
+async function loadEditor(euid: number) {
   editorLoading.value = true
   try {
     const eq = await api.getEquip(uid.value!, euid)
@@ -94,6 +133,19 @@ async function selectEquip(euid: number, event?: Event) {
     backToGallery()
   }
   editorLoading.value = false
+}
+
+async function selectEquip(euid: number, event?: Event) {
+  // Card press animation
+  if (event?.currentTarget) {
+    const el = event.currentTarget as HTMLElement
+    el.style.transition = 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
+    el.style.transform = 'scale(0.92)'
+    setTimeout(() => { el.style.transform = 'scale(1)' }, 120)
+  }
+  selectedEquipUid.value = euid
+  equipView.value = 'editor'
+  loadEditor(euid)
   // Editor slide-in
   nextTick(() => {
     const mainEl = document.querySelector('.main-content') as HTMLElement
@@ -145,17 +197,141 @@ async function deleteEquip() {
   }
 }
 
-onMounted(async () => {
-  if (!uid.value) return
-  if (equipCache.value.length && !cacheDirty.value) { loading.value = false; return }
+// ─── 创建驱动盘流程 ────────────────────────────────
+
+function openCreate() {
+  showCreate.value = true
+  createStep.value = 1
+  createSuitType.value = 0
+  createSuitName.value = ''
+  createEquipId.value = 0
+  createSlot.value = 0
+  createSlotName.value = ''
+  createLevel.value = 15
+  createStar.value = 5
+  createMainKey.value = 0
+  createMainName.value = ''
+  createMainBase.value = 0
+  createSubProps.value = [
+    { key: 0, name: '', base: 0, add: 0 },
+    { key: 0, name: '', base: 0, add: 0 },
+    { key: 0, name: '', base: 0, add: 0 },
+    { key: 0, name: '', base: 0, add: 0 },
+  ]
+}
+
+function closeCreate() {
+  showCreate.value = false
+}
+
+function selectCreateSuit(suitType: number, suitName: string) {
+  createSuitType.value = suitType
+  createSuitName.value = suitName
+  createStep.value = 2
+}
+
+function selectCreateSlot(slot: { id: number; slot: number; slot_name: string }) {
+  createEquipId.value = slot.id
+  createSlot.value = slot.slot
+  createSlotName.value = slot.slot_name
+  createStep.value = 3
+  const opts = currentMainOptions.value
+  if (opts.length > 0) {
+    createMainKey.value = opts[0].key
+    createMainName.value = opts[0].name
+    createMainBase.value = 0
+  }
+}
+
+function backToSuits() { createStep.value = 1 }
+function backToSlots() { createStep.value = 2 }
+
+function onMainKeyChange() {
+  const opt = currentMainOptions.value.find(o => o.key === createMainKey.value)
+  createMainName.value = opt?.name || ''
+}
+
+function onSubKeyChange(index: number, key: number) {
+  const prop = createSubProps.value[index]
+  prop.key = key
+  if (key === 0) {
+    prop.name = ''
+    prop.base = 0
+    prop.add = 0
+  } else {
+    const opt = subStatOptions.value.find(o => o.key === key)
+    prop.name = opt?.name || ''
+  }
+}
+
+async function submitCreate() {
+  if (!uid.value || !createEquipId.value) return
+
+  if (createEnhanceSum.value < 4 || createEnhanceSum.value > 5) {
+    toast(`副属性追加强化总和必须为 4-5，当前为 ${createEnhanceSum.value}`, 'error')
+    return
+  }
+
+  const activeKeys = createSubProps.value.filter(p => p.key > 0)
+  const keys = activeKeys.map(p => p.key)
+  if (new Set(keys).size !== keys.length) {
+    toast('副属性种类不能重复', 'error')
+    return
+  }
+
+  const data: EquipCreate = {
+    id: createEquipId.value,
+    level: createLevel.value,
+    star: createStar.value,
+    properties: [{
+      key: createMainKey.value,
+      key_name: createMainName.value,
+      base_value: createMainBase.value,
+      add_value: 0,
+    }],
+    sub_properties: createSubProps.value.map(p => {
+      if (p.key === 0) return null
+      return {
+        key: p.key,
+        key_name: p.name,
+        base_value: p.base,
+        add_value: p.add,
+      }
+    }),
+  }
+
   try {
-    const data = await api.getEquips(uid.value)
-    equipCache.value = data.equips
+    const r = await api.createEquip(uid.value, data)
+    if (r.ok === false) throw new Error(r.error || '创建失败')
+    toast(`驱动盘 #${r.uid} 已创建`, 'success')
+    closeCreate()
+    markCacheDirty()
+    // 刷新列表
+    const result = await api.getEquips(uid.value)
+    equipCache.value = result.equips
     cacheDirty.value = false
   } catch (e: unknown) {
-    toast('加载驱动盘失败: ' + (e instanceof Error ? e.message : ''), 'error')
+    toast(e instanceof Error ? e.message : '创建失败', 'error')
   }
-  loading.value = false
+}
+
+onMounted(async () => {
+  if (!uid.value) return
+  if (equipCache.value.length && !cacheDirty.value) {
+    loading.value = false
+  } else {
+    try {
+      const data = await api.getEquips(uid.value)
+      equipCache.value = data.equips
+      cacheDirty.value = false
+    } catch (e: unknown) {
+      toast('加载驱动盘失败: ' + (e instanceof Error ? e.message : ''), 'error')
+    }
+    loading.value = false
+  }
+  if (equipView.value === 'editor' && selectedEquipUid.value) {
+    loadEditor(selectedEquipUid.value)
+  }
   if (equipView.value === 'gallery') {
     applyStaggeredAnimation('.equip-card')
   }
@@ -224,6 +400,147 @@ onMounted(async () => {
       <div>
         <h2>驱动盘仓库</h2>
         <span class="subtitle text-muted">管理驱动盘数据，包括主属性与副属性</span>
+      </div>
+      <button class="btn btn-success" @click="openCreate">+ 创建驱动盘</button>
+    </div>
+
+    <!-- 创建驱动盘面板 -->
+    <div v-if="showCreate" class="create-panel">
+      <div class="create-panel__header">
+        <h3>创建驱动盘</h3>
+        <div class="create-steps">
+          <span class="create-step" :class="{ active: createStep === 1 }">1. 选择套装</span>
+          <span class="create-step-arrow">→</span>
+          <span class="create-step" :class="{ active: createStep === 2 }">2. 选择位置</span>
+          <span class="create-step-arrow">→</span>
+          <span class="create-step" :class="{ active: createStep === 3 }">3. 配置属性</span>
+        </div>
+      </div>
+
+      <!-- Step 1: 选择套装 -->
+      <div v-if="createStep === 1" class="create-grid">
+        <div
+          v-for="suit in suitList"
+          :key="suit.suit_type"
+          class="create-card suit-select-card"
+          :class="suitColorClass(suit.suit_name)"
+          tabindex="0" role="button"
+          @click="selectCreateSuit(suit.suit_type, suit.suit_name)"
+        >
+          <div class="create-card__name">{{ suit.suit_name }}</div>
+          <div class="create-card__slots">
+            {{ suit.slots.map(s => s.slot_name).join(' · ') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: 选择位置 -->
+      <div v-if="createStep === 2">
+        <button class="btn btn-ghost mb-3" @click="backToSuits">← 返回选择套装</button>
+        <div class="text-accent mb-2">{{ createSuitName }}</div>
+        <div class="create-grid create-grid--small">
+          <div
+            v-for="slot in currentSuitSlots"
+            :key="slot.slot"
+            class="create-card slot-select-card"
+            tabindex="0" role="button"
+            @click="selectCreateSlot(slot)"
+          >
+            <div class="create-card__name">{{ slot.slot_name }}号位</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: 配置属性 -->
+      <div v-if="createStep === 3">
+        <button class="btn btn-ghost mb-3" @click="backToSlots">← 返回选择位置</button>
+        <div class="section-title">{{ createSuitName }} · {{ createSlotName }}号位</div>
+
+        <!-- 基础属性 -->
+        <div class="section-title" style="margin-top:14px">基础属性</div>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">等级</label>
+            <Stepper v-model="createLevel" :min="0" :max="15" label="等级" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">星级</label>
+            <Stepper v-model="createStar" :min="1" :max="5" label="星级" />
+          </div>
+        </div>
+
+        <!-- 主属性 -->
+        <div class="section-title" style="margin-top:14px">主属性</div>
+        <div class="create-prop-row">
+          <select
+            v-model="createMainKey"
+            class="form-select form-select--flex2"
+            :disabled="isSlotFixed"
+            @change="onMainKeyChange"
+          >
+            <option v-for="opt in currentMainOptions" :key="opt.key" :value="opt.key">
+              {{ opt.name }}
+            </option>
+          </select>
+          <input
+            class="form-input prop-value-readonly"
+            type="number"
+            v-model.number="createMainBase"
+            placeholder="基础值"
+          >
+          <span class="text-muted prop-add-label">+0</span>
+        </div>
+        <div v-if="isSlotFixed" class="text-sm text-muted hint-text">1-3号位主属性固定，不可更改</div>
+
+        <!-- 副属性 -->
+        <div class="section-title" style="margin-top:18px">
+          副属性 · 4 条
+          <span class="text-sm text-muted">（追加强化 0-4）</span>
+        </div>
+        <div class="create-prop-header">
+          <span>#</span><span>属性</span><span>基础值</span><span>强化</span>
+        </div>
+        <div v-for="(prop, i) in createSubProps" :key="i" class="create-prop-row">
+          <span class="prop-index">{{ i + 1 }}</span>
+          <select
+            class="form-select form-select--flex2"
+            :value="prop.key"
+            @change="onSubKeyChange(i, Number(($event.target as HTMLSelectElement).value))"
+          >
+            <option :value="0">— 无 —</option>
+            <option v-for="opt in subStatOptions" :key="opt.key" :value="opt.key">
+              {{ opt.name }}
+            </option>
+          </select>
+          <input
+            class="form-input prop-value-readonly"
+            type="number"
+            v-model.number="prop.base"
+            placeholder="0"
+            :disabled="prop.key === 0"
+          >
+          <Stepper
+            :model-value="prop.add"
+            @update:model-value="prop.add = $event"
+            :min="0" :max="4"
+            :label="'强化' + (i + 1)"
+          />
+        </div>
+
+        <div
+          class="enhance-sum"
+          :class="{
+            'enhance-sum--valid': createEnhanceSum >= 4 && createEnhanceSum <= 5,
+            'enhance-sum--warn': createEnhanceSum < 4 || createEnhanceSum > 5,
+          }"
+        >
+          追加强化总和: <strong>{{ createEnhanceSum }}</strong> / 5
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-ghost" @click="closeCreate">取消</button>
+          <button class="btn btn-success btn-lg" @click="submitCreate">创建驱动盘</button>
+        </div>
       </div>
     </div>
 

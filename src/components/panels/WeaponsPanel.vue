@@ -66,16 +66,7 @@ function rarityLabel(id: number): string {
   return 'B'
 }
 
-async function selectWeapon(wuid: number, event?: Event) {
-  // Card press animation
-  if (event?.currentTarget) {
-    const el = event.currentTarget as HTMLElement
-    el.style.transition = 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
-    el.style.transform = 'scale(0.92)'
-    setTimeout(() => { el.style.transform = 'scale(1)' }, 120)
-  }
-  selectedWeaponUid.value = wuid
-  weaponView.value = 'editor'
+async function loadEditor(wuid: number) {
   editorLoading.value = true
   try {
     const w = await api.getWeapon(uid.value!, wuid)
@@ -89,6 +80,19 @@ async function selectWeapon(wuid: number, event?: Event) {
     backToGallery()
   }
   editorLoading.value = false
+}
+
+async function selectWeapon(wuid: number, event?: Event) {
+  // Card press animation
+  if (event?.currentTarget) {
+    const el = event.currentTarget as HTMLElement
+    el.style.transition = 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
+    el.style.transform = 'scale(0.92)'
+    setTimeout(() => { el.style.transform = 'scale(1)' }, 120)
+  }
+  selectedWeaponUid.value = wuid
+  weaponView.value = 'editor'
+  loadEditor(wuid)
   // Editor slide-in
   nextTick(() => {
     const mainEl = document.querySelector('.main-content') as HTMLElement
@@ -121,15 +125,21 @@ async function saveWeapon() {
 
 onMounted(async () => {
   if (!uid.value) return
-  if (weaponCache.value.length && !cacheDirty.value) { loading.value = false; return }
-  try {
-    const data = await api.getWeapons(uid.value)
-    weaponCache.value = data.weapons
-    cacheDirty.value = false
-  } catch (e: unknown) {
-    toast('加载音擎失败: ' + (e instanceof Error ? e.message : ''), 'error')
+  if (weaponCache.value.length && !cacheDirty.value) {
+    loading.value = false
+  } else {
+    try {
+      const data = await api.getWeapons(uid.value)
+      weaponCache.value = data.weapons
+      cacheDirty.value = false
+    } catch (e: unknown) {
+      toast('加载音擎失败: ' + (e instanceof Error ? e.message : ''), 'error')
+    }
+    loading.value = false
   }
-  loading.value = false
+  if (weaponView.value === 'editor' && selectedWeaponUid.value) {
+    loadEditor(selectedWeaponUid.value)
+  }
   if (weaponView.value === 'gallery') {
     applyStaggeredAnimation('.avatar-gallery__card')
   }

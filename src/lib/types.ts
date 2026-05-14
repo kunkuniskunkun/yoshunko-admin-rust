@@ -204,7 +204,13 @@ export interface SuitGroup {
   suit_type: number
   suit_name: string
   suit_en_name: string
-  slots: number[]
+  slots: EquipSlotInfo[]
+}
+
+export interface EquipSlotInfo {
+  id: number
+  slot: number
+  slot_name: string
 }
 
 export interface StatOption {

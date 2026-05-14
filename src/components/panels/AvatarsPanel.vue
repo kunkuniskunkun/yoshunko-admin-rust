@@ -204,16 +204,19 @@ onMounted(async () => {
   if (!uid.value) return
   if (avatarCache.value.length && !cacheDirty.value) {
     loading.value = false
-    return
+  } else {
+    try {
+      const data = await api.getAvatars(uid.value)
+      avatarCache.value = data.avatars
+      cacheDirty.value = false
+    } catch (e: unknown) {
+      toast('加载角色失败: ' + (e instanceof Error ? e.message : ''), 'error')
+    }
+    loading.value = false
   }
-  try {
-    const data = await api.getAvatars(uid.value)
-    avatarCache.value = data.avatars
-    cacheDirty.value = false
-  } catch (e: unknown) {
-    toast('加载角色失败: ' + (e instanceof Error ? e.message : ''), 'error')
+  if (avatarView.value === 'editor' && selectedAvatarId.value) {
+    loadEditor(selectedAvatarId.value)
   }
-  loading.value = false
   if (avatarView.value === 'gallery') {
     applyStaggeredAnimation('.avatar-gallery__card')
   }

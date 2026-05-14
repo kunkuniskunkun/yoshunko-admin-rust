@@ -74,7 +74,24 @@ pub fn get_config(state: State<AppState>) -> Value {
 
 #[tauri::command]
 pub fn get_version() -> Value {
-    json!({"version": "V0.700"})
+    let config_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tauri.conf.json");
+    let version = std::fs::read_to_string(&config_path)
+        .ok()
+        .and_then(|s| {
+            let v: serde_json::Value = serde_json::from_str(&s).ok()?;
+            v.get("version")?.as_str().map(|s| s.to_string())
+        })
+        .unwrap_or_else(|| "0.0.0".to_string());
+    // Format as "Vx.yyy" — e.g. "0.615.0" → "V0.615"
+    let parts: Vec<&str> = version.split('.').collect();
+    let formatted = if parts.len() >= 2 {
+        let major = parts[0];
+        let minor = parts[1].parse::<u32>().unwrap_or(0);
+        format!("V{}.{:03}", major, minor)
+    } else {
+        format!("V{}", version)
+    };
+    json!({"version": formatted})
 }
 
 #[tauri::command]
@@ -215,10 +232,17 @@ pub fn get_templates(state: State<AppState>) -> Value {
     let mut suit_groups = serde_json::Map::new();
     for (suit_type, name) in &tl.suit_names {
         let en_name = tl.suit_en.get(suit_type).cloned().unwrap_or_default();
-        // Find equip IDs belonging to this suit
+        // Find equip IDs belonging to this suit, include id + slot + slot_name
         let slots: Vec<Value> = tl.equip_suit_types.iter()
             .filter(|(_, &st)| st == *suit_type)
-            .map(|(equip_id, _)| json!(tl.equip_slot(*equip_id)))
+            .map(|(equip_id, _)| {
+                let slot = tl.equip_slot(*equip_id);
+                json!({
+                    "id": equip_id,
+                    "slot": slot,
+                    "slot_name": slot_name(slot),
+                })
+            })
             .collect();
         suit_groups.insert(suit_type.to_string(), json!({
             "suit_type": suit_type,

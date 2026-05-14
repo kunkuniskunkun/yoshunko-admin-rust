@@ -1,18 +1,31 @@
 <script setup lang="ts">
 import { getCurrentWindow } from '@tauri-apps/api/window'
+import { api } from '@/lib/api'
+import { ref, onMounted } from 'vue'
 
 const appWindow = getCurrentWindow()
+const version = ref('---')
 
 function minimize() { appWindow.minimize() }
 function toggleMax() { appWindow.toggleMaximize() }
 function close() { appWindow.close() }
+
+onMounted(async () => {
+  try {
+    const data = await api.getVersion()
+    version.value = data.version
+  } catch {
+    version.value = '---'
+  }
+})
 </script>
 
 <template>
   <div data-tauri-drag-region class="title-bar">
     <div class="title-bar__left" data-tauri-drag-region>
-      <span class="title-bar__brand">YOSHUNKO</span>
-      <span class="title-bar__version">v0.614</span>
+      <span class="title-bar__brand">Yoshunko</span>
+      <span class="title-bar__brand">Admin</span>
+      <span class="title-bar__version">{{ version }}</span>
     </div>
     <div class="title-bar__controls">
       <button class="tb-btn" aria-label="最小化" @click="minimize">

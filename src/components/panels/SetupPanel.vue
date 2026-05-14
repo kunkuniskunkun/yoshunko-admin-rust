@@ -65,7 +65,6 @@ async function paste() {
   <div class="setup-page">
     <div class="setup-card">
       <div class="setup-brand">
-        <img src="@/assets/icon.png" alt="Logo" class="setup-logo" width="85" height="85" />
         <h1>Yoshunko Admin</h1>
         <p class="text-muted">{{ version }}</p>
       </div>

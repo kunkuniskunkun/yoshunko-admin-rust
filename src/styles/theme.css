@@ -184,6 +184,18 @@
 /* ── Reset ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ── Flex chain fix for naive-ui wrapper divs ────────── */
+body > div,
+body > div > div,
+body > div > div > div,
+body > div > div > div > div,
+body > div > div > div > div > div {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 /* ── Custom title bar ──────────────────────────────────── */
 .title-bar {
   display: flex; align-items: center; justify-content: space-between;
@@ -247,7 +259,6 @@ body {
   padding: 18px 10px 10px;
   z-index: var(--z-sidebar); position: relative;
   -webkit-app-region: no-drag;
-  overflow-y: auto;
 }
 
 /* Logo */

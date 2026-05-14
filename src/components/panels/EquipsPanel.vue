@@ -269,16 +269,33 @@ function selectCreateSlot(slot: { id: number; slot: number; slot_name: string })
   if (opts.length > 0) {
     createMainKey.value = opts[0].key
     createMainName.value = opts[0].name
-    createMainBase.value = 0
+    createMainBase.value = MAIN_STAT_BASE_VALUES[opts[0].key] || 0
   }
 }
 
 function backToSuits() { createStep.value = 1 }
 function backToSlots() { createStep.value = 2 }
 
+// ZZZ 驱动盘主属性默认基础值 (Lv.0)
+const MAIN_STAT_BASE_VALUES: Record<number, number> = {
+  11103: 270,   // 生命值 (flat)
+  12103: 57,    // 攻击力 (flat)
+  13103: 57,    // 防御力 (flat)
+  11102: 20,    // 生命值% (×0.1%)
+  12102: 20,    // 攻击力%
+  13102: 25,    // 防御力%
+  20103: 16,    // 暴击率%
+  21103: 32,    // 暴击伤害%
+  23103: 20,    // 穿透率%
+  23203: 18,    // 穿透值
+  31203: 9,     // 异常精通
+  30502: 6,     // 能量自动回复
+}
+
 function onMainKeyChange() {
   const opt = currentMainOptions.value.find(o => o.key === createMainKey.value)
   createMainName.value = opt?.name || ''
+  createMainBase.value = MAIN_STAT_BASE_VALUES[createMainKey.value] || 0
 }
 
 function onSubKeyChange(index: number, key: number) {
@@ -438,11 +455,11 @@ onActivated(() => {
           :disabled="!prop"
           placeholder="0"
         >
-        <div style="display:inline-flex;align-items:center;gap:0;">
+        <div class="input-stepper">
           <button class="stepper-btn" @click="onEditSubAddChange(i, Math.max(0, (prop?.add_value || 0) - 1))" :disabled="!prop">−</button>
           <input class="stepper-input" type="number" :value="prop?.add_value || 0" min="0" max="20"
             @input="onEditSubAddChange(i, Number(($event.target as HTMLInputElement).value))"
-            :disabled="!prop" style="width:40px;text-align:center;">
+            :disabled="!prop">
           <button class="stepper-btn" @click="onEditSubAddChange(i, (prop?.add_value || 0) + 1)" :disabled="!prop">+</button>
         </div>
       </div>
@@ -565,9 +582,9 @@ onActivated(() => {
                 placeholder="0"
                 :disabled="prop.key === 0"
               >
-              <div class="input-stepper" style="--stepper-height: 36px; display: inline-flex; align-items: center; gap: 0;">
+              <div class="input-stepper">
                 <button class="stepper-btn" @click="prop.add = Math.max(0, prop.add - 1)" :disabled="prop.key === 0">−</button>
-                <input class="stepper-input" type="number" v-model.number="prop.add" min="0" max="4" :disabled="prop.key === 0" style="width:40px; text-align:center;">
+                <input class="stepper-input" type="number" v-model.number="prop.add" min="0" max="4" :disabled="prop.key === 0">
                 <button class="stepper-btn" @click="prop.add = Math.min(4, prop.add + 1)" :disabled="prop.key === 0">+</button>
               </div>
             </div>

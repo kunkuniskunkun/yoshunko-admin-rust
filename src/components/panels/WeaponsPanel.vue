@@ -153,7 +153,7 @@ onMounted(async () => {
 watch(panel, (_, old) => { if (old === 'weapons') { weaponView.value = 'gallery'; selectedWeaponUid.value = null } })
 
 onActivated(() => {
-  nextTick(() => applyStaggeredAnimation('.avatar-gallery__card'))
+  applyStaggeredAnimation('.avatar-gallery__card')
   refreshCache()
 })
 </script>

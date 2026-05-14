@@ -375,7 +375,7 @@ onMounted(async () => {
 watch(panel, (_, old) => { if (old === 'equips') { equipView.value = 'gallery'; selectedEquipUid.value = null } })
 
 onActivated(() => {
-  nextTick(() => applyStaggeredAnimation('.equip-card'))
+  applyStaggeredAnimation('.equip-card')
   refreshCache()
 })
 </script>

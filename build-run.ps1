@@ -20,6 +20,19 @@ $env:TEMP = $tmpDir
 $env:CARGO_TARGET_DIR = $buildDir
 $env:CARGO_HTTP_CHECK_REVOKE = "false"
 
+# Ensure npm is in PATH
+$nodePaths = @(
+    "$env:ProgramFiles\nodejs",
+    "$env:ProgramFiles(x86)\nodejs",
+    "$env:APPDATA\npm",
+    "$env:LOCALAPPDATA\fnm"
+)
+foreach ($p in $nodePaths) {
+    if ((Test-Path $p) -and ($env:PATH -notlike "*$p*")) {
+        $env:PATH = "$p;$env:PATH"
+    }
+}
+
 try {
     $version = (Get-Content "$PSScriptRoot\src-tauri\tauri.conf.json" -ErrorAction Stop | ConvertFrom-Json).version
 } catch {

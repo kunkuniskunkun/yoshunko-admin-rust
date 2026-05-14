@@ -152,9 +152,9 @@ onMounted(async () => {
 // 离开面板时重置为仓库视图
 watch(panel, (_, old) => { if (old === 'weapons') { weaponView.value = 'gallery'; selectedWeaponUid.value = null } })
 
-onActivated(async () => {
-  await refreshCache()
+onActivated(() => {
   nextTick(() => applyStaggeredAnimation('.avatar-gallery__card'))
+  refreshCache()
 })
 </script>
 

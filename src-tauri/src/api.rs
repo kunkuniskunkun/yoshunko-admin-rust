@@ -569,7 +569,7 @@ pub fn get_equip(state: State<AppState>, uid: i64, equip_uid: i64) -> Value {
 }
 
 #[tauri::command]
-pub fn update_equip(state: State<AppState>, uid: i64, equip_uid: i64, data: BTreeMap<String, ZonValue>) -> Value {
+pub fn update_equip(state: State<AppState>, uid: i64, equip_uid: i64, mut data: BTreeMap<String, ZonValue>) -> Value {
     with_manager(&state, |dm| {
         if let Some(v) = data.get("level").and_then(|v| v.as_i64()) {
             if let Err(e) = check_range(v, MIN_EQUIP_LEVEL, MAX_EQUIP_LEVEL, "level") { return json!({"ok": false, "error": e}); }
@@ -577,13 +577,14 @@ pub fn update_equip(state: State<AppState>, uid: i64, equip_uid: i64, data: BTre
         if let Some(v) = data.get("star").and_then(|v| v.as_i64()) {
             if let Err(e) = check_range(v, MIN_STAR, MAX_EQUIP_STAR, "star") { return json!({"ok": false, "error": e}); }
         }
+        clean_equip_data(&mut data);
         dm.update_equip(uid, equip_uid, &data);
         json!({"ok": true})
     })
 }
 
 #[tauri::command]
-pub fn create_equip(state: State<AppState>, uid: i64, data: BTreeMap<String, ZonValue>) -> Value {
+pub fn create_equip(state: State<AppState>, uid: i64, mut data: BTreeMap<String, ZonValue>) -> Value {
     with_manager(&state, |dm| {
         if let Some(v) = data.get("level").and_then(|v| v.as_i64()) {
             if let Err(e) = check_range(v, MIN_EQUIP_LEVEL, MAX_EQUIP_LEVEL, "level") { return json!({"ok": false, "error": e}); }
@@ -591,6 +592,7 @@ pub fn create_equip(state: State<AppState>, uid: i64, data: BTreeMap<String, Zon
         if let Some(v) = data.get("star").and_then(|v| v.as_i64()) {
             if let Err(e) = check_range(v, MIN_STAR, MAX_EQUIP_STAR, "star") { return json!({"ok": false, "error": e}); }
         }
+        clean_equip_data(&mut data);
         match dm.create_equip(uid, &data) {
             Ok(new_uid) => json!({"ok": true, "uid": new_uid}),
             Err(e) => json!({"ok": false, "error": e}),
@@ -802,5 +804,28 @@ fn extract_equip_properties(e: &BTreeMap<String, ZonValue>, key: &str) -> Value 
             Value::Array(props)
         }
         _ => json!([]),
+    }
+}
+
+/// Strip frontend-only fields (key_name) and null entries from equip data
+/// before writing to ZON, matching Python's _dict_to_equip_data behavior.
+fn clean_equip_data(data: &mut BTreeMap<String, ZonValue>) {
+    // Clean properties: remove key_name from each entry
+    if let Some(ZonValue::Array(props)) = data.get_mut("properties") {
+        for p in props.iter_mut() {
+            if let ZonValue::Object(obj) = p {
+                obj.remove("key_name");
+            }
+        }
+    }
+    // Clean sub_properties: remove key_name from each entry, filter out nulls
+    if let Some(ZonValue::Array(subs)) = data.get_mut("sub_properties") {
+        for s in subs.iter_mut() {
+            if let ZonValue::Object(obj) = s {
+                obj.remove("key_name");
+            }
+        }
+        // Remove null entries (unfilled sub-property slots)
+        subs.retain(|s| !matches!(s, ZonValue::Null));
     }
 }

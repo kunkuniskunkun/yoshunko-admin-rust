@@ -26,8 +26,8 @@
 
 **追加修复 (4 项)**
 - 侧边栏文字 "Yoshunko Admin" 拆为两行排版（Sidebar.vue）
-- 创建驱动盘 `add_value` 修正（+1 偏移匹配游戏数据规范）+ 移除冗余 `key_name`
-- 任务栏图标：ICO 重新生成，32x32 置于首层（Tauri 仅读取首个图层）
+- 创建驱动盘：Rust 端 `clean_equip_data` 清洗 `key_name` + 过滤 null 副属性，对齐 Python `_dict_to_equip_data`（api.rs）
+- 任务栏图标：运行时 `set_icon` 注入 256x256 PNG（lib.rs + tauri `image-png` feature）
 - 标题栏按钮：SVG 图标居中（flexbox center）+ 标题栏还原单行布局
 
 **其他**

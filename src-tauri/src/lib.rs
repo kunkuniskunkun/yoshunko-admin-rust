@@ -7,6 +7,7 @@ use api::AppState;
 use data_manager::DataManager;
 use std::fs;
 use template_loader::TemplateLoader;
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -50,6 +51,16 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .setup(|app| {
+            // Set high-resolution window icon for clear taskbar display
+            let icon_bytes = include_bytes!("../icons/256x256.png");
+            if let Ok(icon) = tauri::image::Image::from_bytes(icon_bytes) {
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.set_icon(icon);
+                }
+            }
+            Ok(())
+        })
         .manage(AppState {
             data_manager: std::sync::Mutex::new(dm),
             template_loader: tl,

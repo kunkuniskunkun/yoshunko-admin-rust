@@ -1,4 +1,3 @@
-$ErrorActionPreference = "Stop"
 $exe = "D:\cargo-build\release\yoshunko-admin.exe"
 $tmpDir = "D:\cargo-tmp"
 $buildDir = "D:\cargo-build"
@@ -21,24 +20,29 @@ $env:TEMP = $tmpDir
 $env:CARGO_TARGET_DIR = $buildDir
 $env:CARGO_HTTP_CHECK_REVOKE = "false"
 
-$version = (Get-Content "$PSScriptRoot\src-tauri\tauri.conf.json" | ConvertFrom-Json).version
+try {
+    $version = (Get-Content "$PSScriptRoot\src-tauri\tauri.conf.json" -ErrorAction Stop | ConvertFrom-Json).version
+} catch {
+    $version = "unknown"
+}
 Write-Host "Building Yoshunko Admin v$version..." -ForegroundColor Cyan
 
 Set-Location "$PSScriptRoot\src-tauri"
 $sw = [System.Diagnostics.Stopwatch]::StartNew()
 cargo tauri build 2>&1
+$elapsed = $sw.Elapsed.TotalSeconds.ToString("N1")
 $sw.Stop()
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "Build OK! (${0:N1}s)" -f $sw.Elapsed.TotalSeconds -ForegroundColor Green
+    Write-Host "Build OK! (${elapsed}s)" -ForegroundColor Green
     if (Test-Path $exe) {
         Start-Process $exe
     } else {
         Write-Host "exe not found: $exe" -ForegroundColor Red
     }
 } else {
-    Write-Host "Build FAILED! (${0:N1}s)" -f $sw.Elapsed.TotalSeconds -ForegroundColor Red
+    Write-Host "Build FAILED! (${elapsed}s)" -ForegroundColor Red
 }
 
-Write-Host "Press any key to exit..." -ForegroundColor Gray
+Write-Host "`nPress any key to exit..." -ForegroundColor Gray
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")

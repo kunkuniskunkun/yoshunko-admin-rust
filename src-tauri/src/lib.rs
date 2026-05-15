@@ -65,6 +65,7 @@ pub fn run() {
             data_manager: std::sync::Mutex::new(dm),
             template_loader: tl,
             config_path,
+            cached_templates: std::sync::OnceLock::new(),
         })
         .invoke_handler(tauri::generate_handler![
             api::get_config,

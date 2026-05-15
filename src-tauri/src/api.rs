@@ -13,6 +13,7 @@ pub struct AppState {
     pub data_manager: Mutex<Option<DataManager>>,
     pub template_loader: TemplateLoader,
     pub config_path: String,
+    pub cached_templates: std::sync::OnceLock<Value>,
 }
 
 // ─── Validation constants ──────────────────────────────────
@@ -195,6 +196,9 @@ pub fn debug_avatar_ids(state: State<AppState>) -> Value {
 
 #[tauri::command]
 pub fn get_templates(state: State<AppState>) -> Value {
+    if let Some(cached) = state.cached_templates.get() {
+        return cached.clone();
+    }
     let tl = &state.template_loader;
     let avatars: Vec<Value> = tl.avatar_names.iter().map(|(id, name)| {
         let camp_id = tl.avatar_camp(*id);
@@ -289,7 +293,7 @@ pub fn get_templates(state: State<AppState>) -> Value {
         {"key": 31203, "name": "异常精通"},
     ]);
 
-    json!({
+    let result = json!({
         "avatars": avatars,
         "weapons": weapons,
         "profession_names": profession_names,
@@ -298,7 +302,9 @@ pub fn get_templates(state: State<AppState>) -> Value {
         "sub_stat_options": sub_stat_options,
         "stat_names": stat_names,
         "fixed_main_slots": [1,2,3],
-    })
+    });
+    let _ = state.cached_templates.set(result.clone());
+    result
 }
 
 // ─── Window Controls ────────────────────────────────────

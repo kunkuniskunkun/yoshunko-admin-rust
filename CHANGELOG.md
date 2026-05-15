@@ -4,6 +4,20 @@
 
 ---
 
+## V0.621 (2026-05-15)
+
+### 快速启动修复 — Windows API 重写
+
+**Bug 修复**
+- 修复所有快速启动业务无法正常运行：`launch_program` 和 `launch_yoshunko` 添加 `CREATE_NEW_CONSOLE` 标志，子进程获得独立控制台窗口
+- `launch_program_admin` 从 PowerShell `Start-Process -Verb RunAs` 改为直接调用 `ShellExecuteW` Win32 API（`runas` 动词），对齐 Python 版实现
+- `launch_yoshunko` 改进 WSL 路径解析：统一使用 `/` 分隔符，通过 `wsl.localhost` 定位发行版名称
+
+**依赖变更**
+- 新增 `windows-sys` 0.59（Win32 Foundation + Shell + WindowsAndMessaging）
+
+---
+
 ## V0.620 (2026-05-15)
 
 ### 性能优化 — 后端缓存 + 前端动画 + 构建优化

@@ -9,6 +9,11 @@ use std::collections::BTreeMap;
 use std::sync::Mutex;
 use tauri::State;
 
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
+#[cfg(windows)]
+const CREATE_NEW_CONSOLE: u32 = 0x00000010;
+
 pub struct AppState {
     pub data_manager: Mutex<Option<DataManager>>,
     pub template_loader: TemplateLoader,
@@ -695,6 +700,8 @@ pub fn launch_program(state: State<AppState>, key: String) -> Value {
     let cwd = p.parent().map(|d| d.to_path_buf());
     let mut cmd = std::process::Command::new(path);
     if let Some(dir) = cwd { cmd.current_dir(dir); }
+    #[cfg(windows)]
+    { cmd.creation_flags(CREATE_NEW_CONSOLE); }
     match cmd.spawn() {
         Ok(_) => json!({"ok": true}),
         Err(e) => json!({"ok": false, "error": e.to_string()}),
@@ -703,16 +710,42 @@ pub fn launch_program(state: State<AppState>, key: String) -> Value {
 
 #[tauri::command]
 pub fn launch_program_admin(path: String) -> Value {
-    // Validate path contains no shell metacharacters
-    if path.contains(|c: char| c == '\'' || c == '"' || c == ';' || c == '|' || c == '&' || c == '`') {
-        return json!({"ok": false, "error": "Invalid characters in path"});
+    let p = std::path::Path::new(&path);
+    if !p.exists() {
+        return json!({"ok": false, "error": format!("文件不存在: {}", path)});
     }
-    match std::process::Command::new("powershell")
-        .args(&["-Command", &format!("Start-Process -FilePath '{}' -Verb RunAs", path)])
-        .spawn()
+    #[cfg(windows)]
     {
-        Ok(_) => json!({"ok": true}),
-        Err(e) => json!({"ok": false, "error": e.to_string()}),
+        use std::ffi::OsStr;
+        use std::os::windows::ffi::OsStrExt;
+        use windows_sys::Win32::UI::Shell::ShellExecuteW;
+        use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+
+        let file_w: Vec<u16> = OsStr::new(&path).encode_wide().chain(Some(0)).collect();
+        let verb_w: Vec<u16> = OsStr::new("runas").encode_wide().chain(Some(0)).collect();
+        let cwd = p.parent().map(|d| {
+            let w: Vec<u16> = OsStr::new(d).encode_wide().chain(Some(0)).collect();
+            w
+        });
+        let cwd_ptr = cwd.as_ref().map(|w| w.as_ptr()).unwrap_or(std::ptr::null());
+
+        let result = unsafe {
+            ShellExecuteW(std::ptr::null_mut(), verb_w.as_ptr(), file_w.as_ptr(), std::ptr::null(), cwd_ptr, SW_SHOWNORMAL)
+        };
+        // ShellExecuteW returns a value > 32 on success
+        let result_val = result as isize;
+        if result_val > 32 {
+            json!({"ok": true})
+        } else {
+            json!({"ok": false, "error": format!("ShellExecuteW failed: code {}", result_val)})
+        }
+    }
+    #[cfg(not(windows))]
+    {
+        match std::process::Command::new("pkexec").arg(&path).spawn() {
+            Ok(_) => json!({"ok": true}),
+            Err(e) => json!({"ok": false, "error": e.to_string()}),
+        }
     }
 }
 
@@ -724,13 +757,25 @@ pub fn launch_yoshunko(state: State<AppState>) -> Value {
         .unwrap_or(json!({}));
     let state_dir = config.get("state_dir").and_then(|v| v.as_str()).unwrap_or("");
 
+    if state_dir.is_empty() {
+        return json!({"ok": false, "error": "未配置状态目录"});
+    }
+
     // Extract distro and WSL path from \\wsl.localhost\<Distro>\<path>\state
-    let parts: Vec<&str> = state_dir.split('\\').filter(|s| !s.is_empty()).collect();
-    let distro = if parts.len() >= 3 { parts[2] } else { "Ubuntu" };
-    // Build WSL path: join parts[3..] and strip trailing /state
-    let wsl_path = if parts.len() >= 4 {
-        let joined = format!("/{}", parts[3..].join("/"));
-        joined.strip_suffix("/state").unwrap_or(&joined).to_string()
+    let normalized = state_dir.replace('\\', "/");
+    let parts: Vec<&str> = normalized.split('/').filter(|s| !s.is_empty()).collect();
+    let distro = parts.iter().position(|&s| s == "wsl.localhost")
+        .and_then(|i| parts.get(i + 1))
+        .copied()
+        .unwrap_or("Ubuntu");
+    // Build WSL path: join parts after distro and strip trailing /state
+    let wsl_path = if let Some(wsl_idx) = parts.iter().position(|&s| s == "wsl.localhost") {
+        if wsl_idx + 2 < parts.len() {
+            let joined = format!("/{}", parts[(wsl_idx + 2)..].join("/"));
+            joined.strip_suffix("/state").unwrap_or(&joined).to_string()
+        } else {
+            "/root/yoshunko".to_string()
+        }
     } else {
         "/root/yoshunko".to_string()
     };
@@ -739,10 +784,11 @@ pub fn launch_yoshunko(state: State<AppState>) -> Value {
         "cd {} && (zig build run-dpsv &) && sleep 2 && zig build run-gamesv", wsl_path
     );
 
-    match std::process::Command::new("wsl")
-        .args(&["-u", "root", "-d", distro, "-e", "bash", "-c", &cmd])
-        .spawn()
-    {
+    let mut cmd_proc = std::process::Command::new("wsl");
+    cmd_proc.args(&["-u", "root", "-d", distro, "-e", "bash", "-c", &cmd]);
+    #[cfg(windows)]
+    { cmd_proc.creation_flags(CREATE_NEW_CONSOLE); }
+    match cmd_proc.spawn() {
         Ok(_) => json!({"ok": true, "distro": distro}),
         Err(e) => json!({"ok": false, "error": e.to_string()}),
     }

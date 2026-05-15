@@ -1,11 +1,35 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { darkTheme, lightTheme } from 'naive-ui'
 import { currentTheme } from '@/composables/useTheme'
 import TitleBar from '@/components/layout/TitleBar.vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import MainContent from '@/components/layout/MainContent.vue'
 import { toasts, removeToast, confirmState, closeConfirm } from '@/lib/utils'
+import { dirty, markClean } from '@/composables/useAppState'
+
+onMounted(async () => {
+  try {
+    const { getCurrentWindow } = await import('@tauri-apps/api/window')
+    const { ask } = await import('@tauri-apps/plugin-dialog')
+    const win = getCurrentWindow()
+    win.onCloseRequested(async (event) => {
+      if (dirty.value) {
+        event.preventDefault()
+        const confirmed = await ask('有未保存的更改，确定要关闭吗？', { title: '未保存的更改', kind: 'warning' })
+        if (confirmed) {
+          markClean()
+          await win.close()
+        }
+      }
+    })
+  } catch {
+    // Not in Tauri — use browser beforeunload as fallback
+    window.addEventListener('beforeunload', (e) => {
+      if (dirty.value) { e.preventDefault() }
+    })
+  }
+})
 
 const naiveTheme = computed(() => currentTheme.value === 'light' ? lightTheme : darkTheme)
 

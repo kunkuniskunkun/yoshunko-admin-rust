@@ -4,7 +4,7 @@ import type { Ref } from 'vue'
 import {
   uid, panel, avatarCache, cacheDirty, avatarGroupBy, searchQuery,
   selectedAvatarId, avatarView, templates, avatarMap,
-  markCacheDirty, markDirty,
+  markCacheDirty, markDirty, markClean,
 } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/utils'
@@ -200,6 +200,7 @@ async function saveAvatar() {
     })
     if (result.ok === false) throw new Error(result.error || '保存失败')
     toast('角色数据已保存', 'success')
+    markClean()
     markCacheDirty()
     backToGallery()
   } catch (e: unknown) {
@@ -235,6 +236,10 @@ onMounted(async () => {
 
 // 离开面板时重置为仓库视图
 watch(panel, (_, old) => { if (old === 'avatars') { avatarView.value = 'gallery'; selectedAvatarId.value = null; searchQuery.avatars = '' } })
+
+// Track unsaved changes
+watch([editLevel, editTalent, editPassive, editAwake, editWeaponUid, editSkinId], () => { if (avatarView.value === 'editor') markDirty() })
+watch(editSkills, () => { if (avatarView.value === 'editor') markDirty() }, { deep: true })
 
 onActivated(async () => {
   await refreshCache()

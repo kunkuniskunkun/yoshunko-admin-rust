@@ -4,6 +4,21 @@
 
 ---
 
+## V0.623 (2026-05-15)
+
+### 未保存提醒 + GitHub Actions CI
+
+**新功能**
+- 关闭窗口时若有未保存更改，弹出确认对话框（Tauri dialog plugin）
+- 三个编辑面板（角色/音擎/驱动盘）跟踪编辑状态，保存后自动清除
+- GitHub Actions CI：推送 `v*` tag 时自动构建 Windows 安装包并创建 Release
+
+**依赖变更**
+- 新增 `tauri-plugin-dialog` 2.x（Rust + JS）
+- 新增 `.github/workflows/build.yml`
+
+---
+
 ## V0.622 (2026-05-15)
 
 ### 快速启动面板 UX 改进

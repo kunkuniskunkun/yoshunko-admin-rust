@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onActivated, nextTick, watch } from 'vue'
 import {
   uid, panel, equipCache, cacheDirty, searchQuery,
-  selectedEquipUid, equipView, markCacheDirty, markDirty, templates,
+  selectedEquipUid, equipView, markCacheDirty, markDirty, markClean, templates,
 } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/utils'
@@ -182,6 +182,7 @@ async function saveEquip() {
     })
     if (r.ok === false) throw new Error(r.error || '保存失败')
     toast('驱动盘数据已保存', 'success')
+    markClean()
     markCacheDirty()
     backToGallery()
   } catch (e: unknown) {
@@ -395,6 +396,9 @@ onMounted(async () => {
 
 // 离开面板时重置为仓库视图
 watch(panel, (_, old) => { if (old === 'equips') { equipView.value = 'gallery'; selectedEquipUid.value = null; searchQuery.equips = '' } })
+
+// Track unsaved changes for level/star (sub-properties already tracked via change handlers)
+watch([editLevel, editStar], () => { if (equipView.value === 'editor') markDirty() })
 
 onActivated(async () => {
   await refreshCache()

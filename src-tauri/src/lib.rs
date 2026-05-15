@@ -51,6 +51,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             // Set high-resolution window icon for clear taskbar display
             let icon_bytes = include_bytes!("../icons/256x256.png");

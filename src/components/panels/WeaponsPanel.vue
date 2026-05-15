@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onActivated, nextTick, watch } from 'vue'
 import {
   uid, panel, weaponCache, cacheDirty, searchQuery,
-  selectedWeaponUid, weaponView, markCacheDirty,
+  selectedWeaponUid, weaponView, markCacheDirty, markDirty, markClean,
 } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/utils'
@@ -121,6 +121,7 @@ async function saveWeapon() {
     })
     if (r.ok === false) throw new Error(r.error || '保存失败')
     toast('音擎数据已保存', 'success')
+    markClean()
     markCacheDirty()
     backToGallery()
   } catch (e: unknown) {
@@ -156,6 +157,9 @@ onMounted(async () => {
 
 // 离开面板时重置为仓库视图
 watch(panel, (_, old) => { if (old === 'weapons') { weaponView.value = 'gallery'; selectedWeaponUid.value = null; searchQuery.weapons = '' } })
+
+// Track unsaved changes
+watch([editLevel, editRefine], () => { if (weaponView.value === 'editor') markDirty() })
 
 onActivated(async () => {
   await refreshCache()

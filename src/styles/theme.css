@@ -184,38 +184,27 @@
 /* ── Reset ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Full-height chain: html → body → #app → wrappers ── */
-html, body { height: 100%; overflow: hidden; }
-body { margin: 0; }
+/* ── Full-viewport base ── */
+html, body { height: 100%; overflow: hidden; margin: 0; }
 
-/* ── #app: root container fills viewport ── */
-#app {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-/* ── naive-ui wrapper divs: propagate height ── */
-#app > div,
-#app > div > div,
-#app > div > div > div,
-#app > div > div > div > div,
-#app > div > div > div > div > div {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
-
-/* ── Custom title bar ──────────────────────────────────── */
+/* ── Custom title bar — fixed at top ── */
 .title-bar {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: 36px; z-index: 1000;
   display: flex; align-items: center; justify-content: space-between;
-  flex: 0 0 36px; height: 36px; padding: 0 10px;
+  padding: 0 10px;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
   -webkit-app-region: drag;
   user-select: none;
+}
+
+/* ── app-body: offset for fixed title bar ── */
+.app-body {
+  margin-top: 36px;
+  height: calc(100vh - 36px);
+  display: flex;
+  overflow: hidden;
 }
 .title-bar__left {
   display: flex; flex-direction: row; align-items: center; gap: 8px;
@@ -1514,7 +1503,7 @@ body {
 }
 
 /* Utility classes */
-.app-layout { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+.app-layout { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 .setup-error { display: none; color: var(--danger); margin-bottom: 16px; text-align: left; padding: 8px 12px; background: var(--danger-bg); border-radius: 6px; white-space: pre-wrap; }
 .setup-error.visible { display: block; }
 .text-danger { color: var(--danger); }
@@ -1587,12 +1576,6 @@ body {
 .modal-leave-active { transition: opacity 0.2s; }
 .fab-enter-active { animation: modalIn 0.35s cubic-bezier(0.34,1.56,0.64,1); }
 .fab-leave-to { opacity: 0; transform: scale(0.8); }
-.app-body {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
 .sidebar-brand {
   display: flex;
   align-items: center;

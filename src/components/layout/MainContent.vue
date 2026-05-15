@@ -18,7 +18,6 @@ const ShortcutsPanel = defineAsyncComponent(() => import('@/components/panels/Sh
 
 const loading = ref(true)
 const mainRef = ref<HTMLElement | null>(null)
-let loadVersion = 0
 
 function applySlideIn() {
   nextTick(() => {
@@ -43,7 +42,7 @@ async function checkConfig() {
   loading.value = false
 }
 
-async function loadCounts(version: number) {
+async function loadCounts() {
   if (!uid.value) return
   try {
     const [av, wp, eq] = await Promise.all([
@@ -51,7 +50,6 @@ async function loadCounts(version: number) {
       api.getWeapons(uid.value),
       api.getEquips(uid.value),
     ])
-    if (version !== loadVersion) return
     avatarCache.value = av.avatars
     weaponCache.value = wp.weapons
     equipCache.value = eq.equips
@@ -68,12 +66,12 @@ onMounted(() => {
 
 watch(uid, async () => {
   if (uid.value && configured.value) {
-    const v = ++loadVersion
+    // Clear caches before fetching to prevent stale data display
     avatarCache.value = []
     weaponCache.value = []
     equipCache.value = []
     cacheDirty.value = true
-    await loadCounts(v)
+    await loadCounts()
     applySlideIn()
   }
 })

@@ -113,18 +113,15 @@ pub fn set_state_dir(state: State<AppState>, path: String) -> Value {
     let dm = DataManager::new(path);
     let config = json!({"state_dir": path, "version": "V0.700"});
     let tmp = format!("{}.tmp", state.config_path);
-    match std::fs::File::create(&tmp) {
-        Ok(mut f) => {
-            if serde_json::to_writer_pretty(&mut f, &config).is_err() {
-                let _ = std::fs::remove_file(&tmp);
-                return json!({"ok": false, "error": "Failed to write config"});
-            }
-            if std::fs::rename(&tmp, &state.config_path).is_err() {
-                let _ = std::fs::remove_file(&tmp);
-                return json!({"ok": false, "error": "Failed to save config"});
-            }
+    if let Ok(mut f) = std::fs::File::create(&tmp) {
+        if serde_json::to_writer_pretty(&mut f, &config).is_err() {
+            let _ = std::fs::remove_file(&tmp);
+            return json!({"ok": false, "error": "Failed to write config"});
         }
-        Err(e) => return json!({"ok": false, "error": format!("Failed to create config file: {}", e)}),
+        if std::fs::rename(&tmp, &state.config_path).is_err() {
+            let _ = std::fs::remove_file(&tmp);
+            return json!({"ok": false, "error": "Failed to save config"});
+        }
     }
     if let Ok(mut guard) = state.data_manager.lock() {
         *guard = Some(dm);
@@ -297,7 +294,7 @@ pub fn get_templates(state: State<AppState>) -> Value {
         {"key": 12102, "name": "攻击力%"}, {"key": 12103, "name": "攻击力"},
         {"key": 13102, "name": "防御力%"}, {"key": 13103, "name": "防御力"},
         {"key": 20103, "name": "暴击率"}, {"key": 21103, "name": "暴击伤害"},
-        {"key": 23103, "name": "穿透率"}, {"key": 23203, "name": "穿透值"},
+        {"key": 23203, "name": "穿透值"},
         {"key": 31203, "name": "异常精通"},
     ]);
 
@@ -670,18 +667,15 @@ pub fn set_launch_path(state: State<AppState>, key: String, path: String) -> Val
     }
     config_map.insert("launch".to_string(), launch);
     let tmp = format!("{}.tmp", state.config_path);
-    match std::fs::File::create(&tmp) {
-        Ok(mut f) => {
-            if serde_json::to_writer_pretty(&mut f, &config_map).is_err() {
-                let _ = std::fs::remove_file(&tmp);
-                return json!({"ok": false, "error": "Failed to write config"});
-            }
-            if std::fs::rename(&tmp, &state.config_path).is_err() {
-                let _ = std::fs::remove_file(&tmp);
-                return json!({"ok": false, "error": "Failed to save config"});
-            }
+    if let Ok(mut f) = std::fs::File::create(&tmp) {
+        if serde_json::to_writer_pretty(&mut f, &config_map).is_err() {
+            let _ = std::fs::remove_file(&tmp);
+            return json!({"ok": false, "error": "Failed to write config"});
         }
-        Err(e) => return json!({"ok": false, "error": format!("Failed to create config file: {}", e)}),
+        if std::fs::rename(&tmp, &state.config_path).is_err() {
+            let _ = std::fs::remove_file(&tmp);
+            return json!({"ok": false, "error": "Failed to save config"});
+        }
     }
     json!({"ok": true})
 }

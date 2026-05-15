@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onActivated } from 'vue'
+import { ref, onMounted } from 'vue'
 import { uid, markCacheDirty } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast, showConfirm } from '@/lib/utils'
@@ -16,28 +16,24 @@ const editAvatarId = ref(0)
 const editControlId = ref(0)
 const editGuiseId = ref(0)
 
-async function loadData() {
+onMounted(async () => {
   if (!uid.value) return
-  loading.value = true
   try {
-    const d = await api.getPlayerBasic(uid.value)
-    if (d) {
-      info.value = d
-      editNickname.value = d.nickname
-      editLevel.value = d.level
-      editExp.value = d.exp
-      editAvatarId.value = d.avatar_id
-      editControlId.value = d.control_avatar_id
-      editGuiseId.value = d.control_guise_avatar_id
+    const data = await api.getPlayerBasic(uid.value)
+    if (data) {
+      info.value = data
+      editNickname.value = data.nickname
+      editLevel.value = data.level
+      editExp.value = data.exp
+      editAvatarId.value = data.avatar_id
+      editControlId.value = data.control_avatar_id
+      editGuiseId.value = data.control_guise_avatar_id
     }
   } catch (e: unknown) {
     toast('加载失败: ' + (e instanceof Error ? e.message : ''), 'error')
   }
   loading.value = false
-}
-
-onMounted(loadData)
-onActivated(loadData)
+})
 
 async function save() {
   if (!uid.value) return
@@ -131,8 +127,9 @@ function importData() {
 
     <div v-if="loading" class="loading-wrap"><div class="spinner"></div></div>
 
-    <div v-else-if="info" class="panel-box panel-narrow">
+    <div v-else-if="info" class="settings-panel">
       <div class="panel-box__body">
+        <div class="section-title">基本信息</div>
         <div class="form-row">
           <div class="form-field">
             <label class="form-label">昵称</label>
@@ -147,6 +144,8 @@ function importData() {
           <label class="form-label">经验</label>
           <input class="form-input" type="number" v-model.number="editExp" />
         </div>
+
+        <div class="section-title">角色展示</div>
         <div class="form-row-3">
           <div class="form-field">
             <label class="form-label">展示角色 ID</label>
@@ -161,10 +160,12 @@ function importData() {
             <input class="form-input" type="number" v-model.number="editGuiseId" />
           </div>
         </div>
+
+        <div class="section-title">数据管理</div>
         <div class="btn-group">
           <button class="btn btn-primary" @click="save">保存更改</button>
-          <button class="btn btn-ghost" @click="exportData">导出</button>
-          <button class="btn btn-ghost" @click="importData">导入</button>
+          <button class="btn btn-ghost" @click="exportData">导出数据</button>
+          <button class="btn btn-ghost" @click="importData">导入数据</button>
         </div>
       </div>
     </div>

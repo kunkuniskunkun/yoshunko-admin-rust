@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onActivated } from 'vue'
+import { ref, onMounted } from 'vue'
 import { uid } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/utils'
@@ -29,9 +29,8 @@ function isPermanent(id: number): boolean {
   return id === 2 || id === 3
 }
 
-async function loadData() {
+onMounted(async () => {
   if (!uid.value) return
-  loading.value = true
   try {
     const hz = await api.getHadalZone(uid.value)
     if (hz) {
@@ -42,10 +41,7 @@ async function loadData() {
     toast('加载失败: ' + (e instanceof Error ? e.message : ''), 'error')
   }
   loading.value = false
-}
-
-onMounted(loadData)
-onActivated(loadData)
+})
 
 async function save() {
   if (!uid.value || !data.value) return

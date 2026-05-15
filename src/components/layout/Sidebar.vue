@@ -92,7 +92,7 @@ watch(equipCache, () => updateCounts())
         @click="selectPanel(item.key)"
       >
         <div class="nav-item__icon-wrap">
-          <component :is="item.icon" :size="20" />
+          <component :is="item.icon" :size="22" />
         </div>
         <span class="nav-item__label">{{ item.label }}</span>
         <span v-if="item.countKey === 'avatar'" class="nav-badge" id="avatar-count">{{ avatarCount }}</span>

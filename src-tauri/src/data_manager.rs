@@ -214,25 +214,24 @@ impl DataManager {
         // Atomic write: write to .tmp, then rename
         let tmp = path.with_extension("tmp");
         let zon_str = serialize_zon_object(data);
-        let write_ok = if let Ok(mut f) = fs::File::create(&tmp) {
+        if let Ok(mut f) = fs::File::create(&tmp) {
             if f.write_all(zon_str.as_bytes()).is_err() || f.write_all(b"\n").is_err() {
                 let _ = fs::remove_file(&tmp);
-                false
-            } else if f.sync_all().is_err() {
-                let _ = fs::remove_file(&tmp);
-                false
-            } else {
-                drop(f);
-                fs::rename(&tmp, path).is_ok()
+                return;
             }
-        } else {
-            false
-        };
-
-        if write_ok {
-            self.cache.insert(path.to_path_buf(), data.clone());
-            let _ = self.audit_log(path);
+            if f.sync_all().is_err() {
+                let _ = fs::remove_file(&tmp);
+                return;
+            }
+            drop(f);
+            let _ = fs::rename(&tmp, path);
         }
+
+        // Update cache
+        self.cache.insert(path.to_path_buf(), data.clone());
+
+        // Audit log (best-effort)
+        let _ = self.audit_log(path);
     }
 
     fn backup_zon(&self, path: &Path) -> Result<(), String> {

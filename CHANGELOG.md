@@ -6,24 +6,19 @@
 
 ## V0.627 (2026-05-15)
 
-### 全面 Bug 修复 — 前端竞态 + 后端缓存一致性 + CSS 清理
+### 式舆防卫战布局 + 技能名修复 + 驱动盘副词条修正 + 玩家信息页重构
 
-**前端 Bug 修复**
-- 修复 `loadCounts()` 竞态条件：快速切换 uid 时旧请求可能覆盖新数据，引入版本号机制丢弃过期响应
-- 修复 HadalPanel、PlayerPanel、QuickLaunchPanel 切换 uid 后数据不刷新：添加 `onActivated` 生命周期钩子
-- 修复确认按钮异步回调无 try/catch：`confirmState.onConfirm` 抛异常时对话框会卡住，添加 try/catch/finally 确保 `closeConfirm()` 始终执行
-- 修复 `ConfirmState.onConfirm` 类型不匹配：支持异步回调 `() => void | Promise<void>`
-- 移除 `utils.ts` 中未使用的 `escHtml` 函数
+**UI 改进**
+- 式舆防卫战页面：卡片改为2列并排布局，增大卡片尺寸（min-height: 120px），间距从10px增至16px
+- 导航栏图标放大8%（20→22）
+- 玩家信息页改为全覆盖样式（settings-panel），分段显示：基本信息、角色展示、数据管理
 
-**后端 Bug 修复**
-- 修复 `write_zon` 缓存一致性：文件写入失败时不再更新缓存，避免进程重启后数据"回滚"
-- 修复 `set_state_dir` 静默成功：`File::create` 失败时返回错误而非 `{"ok": true}`
-- 修复 `set_launch_path` 静默成功：同上
+**Bug 修复**
+- 修复角色编辑页技能名全部显示为"普攻"：ZON 枚举类型（如 `.common_attack`）未被正确解析为字符串，修改 `ZonValue::as_str()` 支持枚举类型
+- 修复驱动盘副词条包含"穿透率"：穿透率（23103）只能作为主属性，副属性应为穿透值（23203），已从 sub_stat_options 移除穿透率
 
-**CSS 清理**
-- 移除合并段（vue-extras.css）中 40+ 条重复/冲突的 CSS 规则
-- 保留合并段中唯一的规则（badge、kbd、stepper-input 等）
-- 消除 `.input-stepper`、`.enhance-sum`、`.form-field`、`.data-table` 等关键选择器的值冲突
+**数据说明**
+- 音擎仓库中的"未知"项：部分音擎 ID（如 13018、14004）在 weapon_names_zh.json 中已有中文名称，若仍显示为"Weapon_ID"格式，可能是用户数据中的 ID 不在模板范围内
 
 ---
 

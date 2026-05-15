@@ -29,6 +29,7 @@ impl ZonValue {
     pub fn as_str(&self) -> Option<&str> {
         match self {
             ZonValue::String(s) => Some(s),
+            ZonValue::Enum(e) => Some(&e.0),
             _ => None,
         }
     }

@@ -216,6 +216,7 @@ export interface EquipSlotInfo {
 export interface StatOption {
   key: number
   name: string
+  base_value?: number
 }
 
 export interface Templates {

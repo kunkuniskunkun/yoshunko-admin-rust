@@ -77,6 +77,7 @@ watch(uid, async () => {
 })
 
 watch(panel, () => {
+  mainRef.value?.scrollTo(0, 0)
   applySlideIn()
 })
 

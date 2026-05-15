@@ -14,19 +14,19 @@ const data = ref<HadalData | null>(null)
 const loading = ref(true)
 const entranceEdits = ref<{ id: number; zone_id: number }[]>([])
 
+const ACTIVE_ENTRANCE_IDS = [1, 3]
+
 const ENTRANCE_NAMES: Record<number, string> = {
   1: '危局强袭站',
-  2: '式舆防卫战·稳定',
   3: '式舆防卫战·剧变',
-  9: '式舆防卫战·特殊',
 }
 
 const ENTRANCE_ICONS: Record<number, string> = {
-  1: '◆', 2: '◇', 3: '◆', 9: '◇',
+  1: '◆', 3: '◆',
 }
 
 function isPermanent(id: number): boolean {
-  return id === 2 || id === 3
+  return id === 3
 }
 
 async function loadData() {
@@ -36,7 +36,7 @@ async function loadData() {
     const hz = await api.getHadalZone(uid.value)
     if (hz) {
       data.value = hz as unknown as HadalData
-      entranceEdits.value = hz.entrances.map(e => ({ ...e }))
+      entranceEdits.value = hz.entrances.filter(e => ACTIVE_ENTRANCE_IDS.includes(e.id)).map(e => ({ ...e }))
     } else {
       data.value = null
     }
@@ -65,7 +65,7 @@ async function save() {
 <template>
   <div>
     <div class="page-header">
-      <h2>式舆防卫战</h2>
+      <h2>防卫战·危局</h2>
       <span class="subtitle text-muted">修改 Zone ID 以切换期号，服务器热加载即时生效</span>
     </div>
 

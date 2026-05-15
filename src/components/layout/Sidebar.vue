@@ -14,7 +14,7 @@ const navItems = [
   { key: 'avatars', label: '角色管理', icon: Users, countKey: 'avatar' as const },
   { key: 'weapons', label: '音擎仓库', icon: CircleDot, countKey: 'weapon' as const },
   { key: 'equips', label: '驱动盘仓库', icon: Hexagon, countKey: 'equip' as const },
-  { key: 'hadal_zone', label: '式舆防卫战', icon: Triangle, countKey: null },
+  { key: 'hadal_zone', label: '防卫战·危局', icon: Triangle, countKey: null },
   { key: 'player_info', label: '玩家信息', icon: User, countKey: null },
   { key: 'quick_launch', label: '快速启动', icon: Rocket, countKey: null },
 ]

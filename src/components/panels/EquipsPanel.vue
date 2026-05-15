@@ -213,7 +213,7 @@ function onEditSubKeyChange(index: number, key: number) {
     arr[index] = null
   } else {
     const opt = subStatOptions.value.find(o => o.key === key)
-    arr[index] = { key, key_name: opt?.name || '', base_value: 0, add_value: 0 }
+    arr[index] = { key, key_name: opt?.name || '', base_value: opt?.base_value || SUB_STAT_BASE_VALUES[key] || 0, add_value: 1 }
   }
   editSubProps.value = arr
   markDirty()
@@ -282,26 +282,46 @@ function selectCreateSlot(slot: { id: number; slot: number; slot_name: string })
 function backToSuits() { createStep.value = 1 }
 function backToSlots() { createStep.value = 2 }
 
-// ZZZ 驱动盘主属性默认基础值 (Lv.0)
+// ZZZ 驱动盘主属性默认基础值 (from Python version MAIN_STAT_BASE_VALUES)
 const MAIN_STAT_BASE_VALUES: Record<number, number> = {
-  11103: 270,   // 生命值 (flat)
-  12103: 57,    // 攻击力 (flat)
-  13103: 57,    // 防御力 (flat)
-  11102: 20,    // 生命值% (×0.1%)
-  12102: 20,    // 攻击力%
-  13102: 25,    // 防御力%
-  20103: 16,    // 暴击率%
-  21103: 32,    // 暴击伤害%
-  23103: 20,    // 穿透率%
-  23203: 18,    // 穿透值
+  11103: 550,   // 生命值
+  12103: 79,    // 攻击力
+  13103: 46,    // 防御力
+  11102: 750,   // 生命值%
+  12102: 750,   // 攻击力%
+  13102: 1200,  // 防御力%
+  20103: 600,   // 暴击率
+  21103: 1200,  // 暴击伤害
+  23103: 600,   // 穿透率
+  31203: 23,    // 异常精通
+  31402: 750,   // 异常掌控
+  12202: 450,   // 冲击力
+  30502: 1500,  // 能量自动回复
+  31503: 750,   // 物理伤害加成
+  31603: 750,   // 火属性伤害加成
+  31703: 750,   // 冰属性伤害加成
+  31803: 750,   // 电属性伤害加成
+  31903: 750,   // 以太属性伤害加成
+}
+
+// 副属性基础值 (from Python version SUB_STAT_OPTIONS)
+const SUB_STAT_BASE_VALUES: Record<number, number> = {
+  11103: 112,   // 生命值
+  11102: 300,   // 生命值%
+  12103: 19,    // 攻击力
+  12102: 300,   // 攻击力%
+  13103: 15,    // 防御力
+  13102: 480,   // 防御力%
+  23203: 9,     // 穿透值
   31203: 9,     // 异常精通
-  30502: 6,     // 能量自动回复
+  21103: 480,   // 暴击伤害
+  20103: 240,   // 暴击率
 }
 
 function onMainKeyChange() {
   const opt = currentMainOptions.value.find(o => o.key === createMainKey.value)
   createMainName.value = opt?.name || ''
-  createMainBase.value = MAIN_STAT_BASE_VALUES[createMainKey.value] || 0
+  createMainBase.value = opt?.base_value || MAIN_STAT_BASE_VALUES[createMainKey.value] || 0
 }
 
 function onSubKeyChange(index: number, key: number) {
@@ -314,6 +334,8 @@ function onSubKeyChange(index: number, key: number) {
   } else {
     const opt = subStatOptions.value.find(o => o.key === key)
     prop.name = opt?.name || ''
+    prop.base = opt?.base_value || SUB_STAT_BASE_VALUES[key] || 0
+    prop.add = 1  // Default add_value = 1 (no enhancement)
   }
 }
 

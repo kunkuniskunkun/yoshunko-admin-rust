@@ -262,40 +262,53 @@ pub fn get_templates(state: State<AppState>) -> Value {
     }
 
     // Main stat options (slots 1-3 have fixed stats, 4-6 have selectable)
+    // Reference: Python version MAIN_STAT_OPTIONS
     let main_stat_options = json!({
-        "1": [{"key": 11103, "name": "生命值"}],
-        "2": [{"key": 12103, "name": "攻击力"}],
-        "3": [{"key": 13103, "name": "防御力"}],
+        "1": [{"key": 11103, "name": "生命值", "base_value": 550}],
+        "2": [{"key": 12103, "name": "攻击力", "base_value": 79}],
+        "3": [{"key": 13103, "name": "防御力", "base_value": 46}],
         "4": [
-            {"key": 11102, "name": "生命值%"}, {"key": 12102, "name": "攻击力%"},
-            {"key": 13102, "name": "防御力%"}, {"key": 20103, "name": "暴击率"},
-            {"key": 21103, "name": "暴击伤害"}, {"key": 23103, "name": "穿透率"},
-            {"key": 31203, "name": "异常精通"},
+            {"key": 11102, "name": "生命值%", "base_value": 750},
+            {"key": 12102, "name": "攻击力%", "base_value": 750},
+            {"key": 13102, "name": "防御力%", "base_value": 1200},
+            {"key": 31203, "name": "异常精通", "base_value": 23},
+            {"key": 21103, "name": "暴击伤害", "base_value": 1200},
+            {"key": 20103, "name": "暴击率", "base_value": 600},
         ],
         "5": [
-            {"key": 11102, "name": "生命值%"}, {"key": 12102, "name": "攻击力%"},
-            {"key": 13102, "name": "防御力%"}, {"key": 20103, "name": "暴击率"},
-            {"key": 21103, "name": "暴击伤害"}, {"key": 23103, "name": "穿透率"},
-            {"key": 31203, "name": "异常精通"}, {"key": 30502, "name": "能量自动回复"},
+            {"key": 11102, "name": "生命值%", "base_value": 750},
+            {"key": 12102, "name": "攻击力%", "base_value": 750},
+            {"key": 13102, "name": "防御力%", "base_value": 1200},
+            {"key": 23103, "name": "穿透率", "base_value": 600},
+            {"key": 31503, "name": "物理伤害加成", "base_value": 750},
+            {"key": 31603, "name": "火属性伤害加成", "base_value": 750},
+            {"key": 31703, "name": "冰属性伤害加成", "base_value": 750},
+            {"key": 31803, "name": "电属性伤害加成", "base_value": 750},
+            {"key": 31903, "name": "以太属性伤害加成", "base_value": 750},
         ],
         "6": [
-            {"key": 11102, "name": "生命值%"}, {"key": 12102, "name": "攻击力%"},
-            {"key": 13102, "name": "防御力%"}, {"key": 20103, "name": "暴击率"},
-            {"key": 21103, "name": "暴击伤害"}, {"key": 23103, "name": "穿透率"},
-            {"key": 23203, "name": "穿透值"}, {"key": 31203, "name": "异常精通"},
-            {"key": 31402, "name": "异常掌控"}, {"key": 31503, "name": "物理伤害加成"},
-            {"key": 31603, "name": "火属性伤害加成"}, {"key": 31703, "name": "冰属性伤害加成"},
-            {"key": 31803, "name": "电属性伤害加成"}, {"key": 31903, "name": "以太属性伤害加成"},
+            {"key": 11102, "name": "生命值%", "base_value": 750},
+            {"key": 12102, "name": "攻击力%", "base_value": 750},
+            {"key": 13102, "name": "防御力%", "base_value": 1200},
+            {"key": 31402, "name": "异常掌控", "base_value": 750},
+            {"key": 12202, "name": "冲击力", "base_value": 450},
+            {"key": 30502, "name": "能量自动回复", "base_value": 1500},
         ],
     });
 
+    // Sub stat options with base_value
+    // Reference: Python version SUB_STAT_OPTIONS
     let sub_stat_options = json!([
-        {"key": 11102, "name": "生命值%"}, {"key": 11103, "name": "生命值"},
-        {"key": 12102, "name": "攻击力%"}, {"key": 12103, "name": "攻击力"},
-        {"key": 13102, "name": "防御力%"}, {"key": 13103, "name": "防御力"},
-        {"key": 20103, "name": "暴击率"}, {"key": 21103, "name": "暴击伤害"},
-        {"key": 23203, "name": "穿透值"},
-        {"key": 31203, "name": "异常精通"},
+        {"key": 11103, "name": "生命值", "base_value": 112},
+        {"key": 11102, "name": "生命值%", "base_value": 300},
+        {"key": 12103, "name": "攻击力", "base_value": 19},
+        {"key": 12102, "name": "攻击力%", "base_value": 300},
+        {"key": 13103, "name": "防御力", "base_value": 15},
+        {"key": 13102, "name": "防御力%", "base_value": 480},
+        {"key": 23203, "name": "穿透值", "base_value": 9},
+        {"key": 31203, "name": "异常精通", "base_value": 9},
+        {"key": 21103, "name": "暴击伤害", "base_value": 480},
+        {"key": 20103, "name": "暴击率", "base_value": 240},
     ]);
 
     let result = json!({

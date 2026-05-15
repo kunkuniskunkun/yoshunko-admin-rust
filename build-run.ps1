@@ -1,6 +1,4 @@
-$exe = "D:\cargo-build\release\yoshunko-admin.exe"
-$tmpDir = "D:\cargo-tmp"
-$buildDir = "D:\cargo-build"
+$exe = "$PSScriptRoot\src-tauri\target\release\yoshunko-admin.exe"
 
 # Kill existing process to avoid "exe locked" build error
 $running = Get-Process -Name "yoshunko-admin" -ErrorAction SilentlyContinue
@@ -9,16 +7,6 @@ if ($running) {
     $running | Stop-Process -Force
     Start-Sleep -Milliseconds 500
 }
-
-# Ensure directories exist
-foreach ($d in @($tmpDir, $buildDir)) {
-    if (!(Test-Path $d)) { New-Item -ItemType Directory -Path $d -Force | Out-Null }
-}
-
-$env:TMP = $tmpDir
-$env:TEMP = $tmpDir
-$env:CARGO_TARGET_DIR = $buildDir
-$env:CARGO_HTTP_CHECK_REVOKE = "false"
 
 # Ensure npm is in PATH
 $nodePaths = @(

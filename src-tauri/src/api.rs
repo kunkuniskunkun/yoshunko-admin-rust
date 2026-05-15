@@ -237,22 +237,21 @@ pub fn get_templates(state: State<AppState>) -> Value {
         .map(|(k, v)| (k.to_string(), json!(v)))
         .collect();
 
-    // Suit groups
+    // Suit groups (S-rank only, 6 positions)
+    // ID formula: suit_prefix * 100 + 40 + position (S-rank)
     let mut suit_groups = serde_json::Map::new();
     for (suit_type, name) in &tl.suit_names {
         let en_name = tl.suit_en.get(suit_type).cloned().unwrap_or_default();
-        // Find equip IDs belonging to this suit, include id + slot + slot_name
-        let slots: Vec<Value> = tl.equip_suit_types.iter()
-            .filter(|(_, &st)| st == *suit_type)
-            .map(|(equip_id, _)| {
-                let slot = tl.equip_slot(*equip_id);
-                json!({
-                    "id": equip_id,
-                    "slot": slot,
-                    "slot_name": slot_name(slot),
-                })
-            })
-            .collect();
+        let suit_prefix = suit_type / 100;
+        let mut slots = Vec::new();
+        for pos in 1..=6 {
+            let item_id = suit_prefix * 100 + 40 + pos;  // S-rank
+            slots.push(json!({
+                "id": item_id,
+                "slot": pos,
+                "slot_name": slot_name(pos),
+            }));
+        }
         suit_groups.insert(suit_type.to_string(), json!({
             "suit_type": suit_type,
             "suit_name": name,
@@ -452,7 +451,7 @@ pub fn get_avatar(state: State<AppState>, uid: i64, avatar_id: i64) -> Value {
 }
 
 #[tauri::command]
-pub fn update_avatar(state: State<AppState>, uid: i64, avatar_id: i64, data: BTreeMap<String, ZonValue>) -> Value {
+pub fn update_avatar(state: State<AppState>, uid: i64, avatar_id: i64, mut data: BTreeMap<String, ZonValue>) -> Value {
     with_manager(&state, |dm| {
         // Validate ranges
         if let Some(v) = data.get("level").and_then(|v| v.as_i64()) {
@@ -467,7 +466,32 @@ pub fn update_avatar(state: State<AppState>, uid: i64, avatar_id: i64, data: BTr
         if let Some(v) = data.get("passive_skill_level").and_then(|v| v.as_i64()) {
             if let Err(e) = check_range(v, MIN_PASSIVE, MAX_PASSIVE, "passive_skill_level") { return json!({"ok": false, "error": e}); }
         }
-        dm.update_avatar(uid, avatar_id, &data);
+        // Ensure enum fields are ZonEnum (not String) for correct ZON serialization
+        if let Some(v) = data.get("show_weapon_type").and_then(|v| v.as_str()) {
+            let val = v.to_string();
+            data.insert("show_weapon_type".to_string(), ZonValue::Enum(crate::zon::ZonEnum(val)));
+        }
+        // Fix skill_type_level[].type to be ZonEnum
+        if let Some(ZonValue::Array(skills)) = data.get_mut("skill_type_level") {
+            for skill in skills.iter_mut() {
+                if let ZonValue::Object(obj) = skill {
+                    if let Some(v) = obj.get("type").and_then(|v| v.as_str()) {
+                        let val = v.to_string();
+                        obj.insert("type".to_string(), ZonValue::Enum(crate::zon::ZonEnum(val)));
+                    }
+                }
+            }
+        }
+        // Merge with existing data: read existing, overlay updates, write full object
+        // This matches Python version which always writes ALL fields
+        if let Some(mut existing) = dm.get_avatar(uid, avatar_id) {
+            for (k, v) in data {
+                existing.insert(k, v);
+            }
+            dm.update_avatar(uid, avatar_id, &existing);
+        } else {
+            dm.update_avatar(uid, avatar_id, &data);
+        }
         json!({"ok": true})
     })
 }
@@ -525,7 +549,7 @@ pub fn get_weapon(state: State<AppState>, uid: i64, weapon_uid: i64) -> Value {
 }
 
 #[tauri::command]
-pub fn update_weapon(state: State<AppState>, uid: i64, weapon_uid: i64, data: BTreeMap<String, ZonValue>) -> Value {
+pub fn update_weapon(state: State<AppState>, uid: i64, weapon_uid: i64, mut data: BTreeMap<String, ZonValue>) -> Value {
     with_manager(&state, |dm| {
         if let Some(v) = data.get("level").and_then(|v| v.as_i64()) {
             if let Err(e) = check_range(v, MIN_LEVEL, MAX_LEVEL, "level") { return json!({"ok": false, "error": e}); }
@@ -536,7 +560,20 @@ pub fn update_weapon(state: State<AppState>, uid: i64, weapon_uid: i64, data: BT
         if let Some(v) = data.get("refine_level").and_then(|v| v.as_i64()) {
             if let Err(e) = check_range(v, MIN_REFINE, MAX_REFINE, "refine_level") { return json!({"ok": false, "error": e}); }
         }
-        dm.update_weapon(uid, weapon_uid, &data);
+        // Merge with existing data to preserve fields not sent by frontend (id, exp, star, lock)
+        if let Some(mut existing) = dm.get_weapon(uid, weapon_uid) {
+            for (k, v) in data {
+                existing.insert(k, v);
+            }
+            // Ensure exp and lock fields exist
+            existing.entry("exp".to_string()).or_insert(ZonValue::Int(0));
+            existing.entry("lock".to_string()).or_insert(ZonValue::Bool(false));
+            dm.update_weapon(uid, weapon_uid, &existing);
+        } else {
+            data.entry("exp".to_string()).or_insert(ZonValue::Int(0));
+            data.entry("lock".to_string()).or_insert(ZonValue::Bool(false));
+            dm.update_weapon(uid, weapon_uid, &data);
+        }
         json!({"ok": true})
     })
 }
@@ -602,7 +639,19 @@ pub fn update_equip(state: State<AppState>, uid: i64, equip_uid: i64, mut data: 
             if let Err(e) = check_range(v, MIN_STAR, MAX_EQUIP_STAR, "star") { return json!({"ok": false, "error": e}); }
         }
         clean_equip_data(&mut data);
-        dm.update_equip(uid, equip_uid, &data);
+        // Merge with existing data to preserve fields not sent by frontend (id, exp, lock)
+        if let Some(mut existing) = dm.get_equip(uid, equip_uid) {
+            for (k, v) in data {
+                existing.insert(k, v);
+            }
+            existing.entry("exp".to_string()).or_insert(ZonValue::Int(0));
+            existing.entry("lock".to_string()).or_insert(ZonValue::Bool(false));
+            dm.update_equip(uid, equip_uid, &existing);
+        } else {
+            data.entry("exp".to_string()).or_insert(ZonValue::Int(0));
+            data.entry("lock".to_string()).or_insert(ZonValue::Bool(false));
+            dm.update_equip(uid, equip_uid, &data);
+        }
         json!({"ok": true})
     })
 }
@@ -617,6 +666,9 @@ pub fn create_equip(state: State<AppState>, uid: i64, mut data: BTreeMap<String,
             if let Err(e) = check_range(v, MIN_STAR, MAX_EQUIP_STAR, "star") { return json!({"ok": false, "error": e}); }
         }
         clean_equip_data(&mut data);
+        // Ensure exp and lock fields exist (server expects them)
+        data.entry("exp".to_string()).or_insert(ZonValue::Int(0));
+        data.entry("lock".to_string()).or_insert(ZonValue::Bool(false));
         match dm.create_equip(uid, &data) {
             Ok(new_uid) => json!({"ok": true, "uid": new_uid}),
             Err(e) => json!({"ok": false, "error": e}),
@@ -651,7 +703,15 @@ pub fn get_hadal_zone(state: State<AppState>, uid: i64) -> Value {
 #[tauri::command]
 pub fn update_hadal_zone(state: State<AppState>, uid: i64, data: BTreeMap<String, ZonValue>) -> Value {
     with_manager(&state, |dm| {
-        dm.update_hadal_zone(uid, &data);
+        // Merge with existing data to preserve saved_rooms not sent by frontend
+        if let Some(mut existing) = dm.get_hadal_zone(uid) {
+            for (k, v) in data {
+                existing.insert(k, v);
+            }
+            dm.update_hadal_zone(uid, &existing);
+        } else {
+            dm.update_hadal_zone(uid, &data);
+        }
         json!({"ok": true})
     })
 }

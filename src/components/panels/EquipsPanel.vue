@@ -249,10 +249,10 @@ function openCreate() {
   createMainName.value = ''
   createMainBase.value = 0
   createSubProps.value = [
-    { key: 0, name: '', base: 0, add: 0 },
-    { key: 0, name: '', base: 0, add: 0 },
-    { key: 0, name: '', base: 0, add: 0 },
-    { key: 0, name: '', base: 0, add: 0 },
+    { key: 0, name: '', base: 0, add: 1 },
+    { key: 0, name: '', base: 0, add: 1 },
+    { key: 0, name: '', base: 0, add: 1 },
+    { key: 0, name: '', base: 0, add: 1 },
   ]
 }
 
@@ -275,7 +275,7 @@ function selectCreateSlot(slot: { id: number; slot: number; slot_name: string })
   if (opts.length > 0) {
     createMainKey.value = opts[0].key
     createMainName.value = opts[0].name
-    createMainBase.value = MAIN_STAT_BASE_VALUES[opts[0].key] || 0
+    createMainBase.value = opts[0].base_value || MAIN_STAT_BASE_VALUES[opts[0].key] || 0
   }
 }
 
@@ -304,7 +304,7 @@ const MAIN_STAT_BASE_VALUES: Record<number, number> = {
   31903: 750,   // 以太属性伤害加成
 }
 
-// 副属性基础值 (from Python version SUB_STAT_OPTIONS)
+// 副属性基础值 (from Python version SUB_STAT_BASE_VALUES)
 const SUB_STAT_BASE_VALUES: Record<number, number> = {
   11103: 112,   // 生命值
   11102: 300,   // 生命值%
@@ -330,7 +330,7 @@ function onSubKeyChange(index: number, key: number) {
   if (key === 0) {
     prop.name = ''
     prop.base = 0
-    prop.add = 0
+    prop.add = 1  // Keep add=1 to avoid negative enhance sum
   } else {
     const opt = subStatOptions.value.find(o => o.key === key)
     prop.name = opt?.name || ''

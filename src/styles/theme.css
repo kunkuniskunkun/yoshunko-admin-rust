@@ -1465,7 +1465,7 @@ body {
   --danger-bg: rgba(232,120,120,0.08);
 }
 
-[data-theme="dark"] .sidebar-logo__icon { background: transparent; filter: invert(1); }
+[data-theme="dark"] .sidebar-logo__icon { background: transparent; filter: none; }
 
 [data-theme="dark"] .suit-chip {
   --suit-0: #52d888; --suit-1: #e87878; --suit-2: #72c0e0;
@@ -1698,7 +1698,6 @@ kbd {
 .rank-dots { display: inline-flex; gap: 3px; }
 .rank-dot.active { background: var(--accent); }
 .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.entrance-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 12px; margin-bottom: 16px; }
 .avatar-card__footer { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
 .card-subtitle { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
 .card-tag { font-size: 10px; padding: 2px 6px; background: var(--bg-elevated); border-radius: var(--radius-xs); color: var(--text-dim); }

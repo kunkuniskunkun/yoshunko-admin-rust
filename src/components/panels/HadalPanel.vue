@@ -29,6 +29,10 @@ function isPermanent(id: number): boolean {
   return id === 3
 }
 
+function openUrl(url: string) {
+  window.open(url, '_blank')
+}
+
 async function loadData() {
   if (!uid.value) return
   loading.value = true
@@ -68,8 +72,8 @@ async function save() {
       <h2>防卫战·危局</h2>
       <span class="subtitle text-muted">修改 Zone ID 以切换期号，服务器热加载即时生效</span>
       <div class="hadal-links">
-        <a class="hadal-link" @click.prevent="window.open('https://zzz.nanoka.cc/boss', '_blank')">CH Zone ID</a>
-        <a class="hadal-link" @click.prevent="window.open('https://www.buhflipexplode.org/home/', '_blank')">EN Zone ID</a>
+        <a class="hadal-link" @click.prevent="openUrl('https://zzz.nanoka.cc/boss')">CH Zone ID</a>
+        <a class="hadal-link" @click.prevent="openUrl('https://www.buhflipexplode.org/home/')">EN Zone ID</a>
       </div>
     </div>
 

@@ -106,6 +106,15 @@ impl DataManager {
         self.write_zon(&path, data);
     }
 
+    pub fn delete_weapon(&mut self, uid: i64, weapon_uid: i64) -> Result<(), String> {
+        let path = self.player_path(uid, "weapon", &weapon_uid.to_string());
+        if path.exists() {
+            fs::remove_file(&path).map_err(|e| e.to_string())?;
+        }
+        self.cache.remove(&path);
+        Ok(())
+    }
+
     pub fn copy_weapon(&mut self, uid: i64, weapon_uid: i64) -> Result<i64, String> {
         let src_path = self.player_path(uid, "weapon", &weapon_uid.to_string());
         let data = self.read_zon_obj(&src_path).ok_or("武器不存在")?;

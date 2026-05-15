@@ -41,6 +41,8 @@ export const api = {
   getWeapon: (uid: number, weaponUid: number) => invoke<WeaponDetail | null>('get_weapon', { uid, weaponUid }),
   updateWeapon: (uid: number, weaponUid: number, data: WeaponUpdate) =>
     invoke<{ ok: boolean; error?: string }>('update_weapon', { uid, weaponUid, data }),
+  deleteWeapon: (uid: number, weaponUid: number) =>
+    invoke<{ ok: boolean; error?: string }>('delete_weapon', { uid, weaponUid }),
   copyWeapon: (uid: number, weaponUid: number) =>
     invoke<{ ok: boolean; uid?: number; error?: string }>('copy_weapon', { uid, weaponUid }),
 

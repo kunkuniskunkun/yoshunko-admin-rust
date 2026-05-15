@@ -145,6 +145,20 @@ async function copyWeapon() {
   }
 }
 
+async function deleteWeapon() {
+  if (!uid.value || !selectedWeaponUid.value) return
+  const wuid = selectedWeaponUid.value
+  try {
+    const r = await api.deleteWeapon(uid.value, wuid)
+    if (r.ok === false) throw new Error(r.error || '删除失败')
+    weaponCache.value = weaponCache.value.filter(w => w.uid !== wuid)
+    toast('音擎已删除', 'success')
+    backToGallery()
+  } catch (e: unknown) {
+    toast(e instanceof Error ? e.message : '删除失败', 'error')
+  }
+}
+
 async function refreshCache() {
   if (!uid.value) return
   if (weaponCache.value.length && !cacheDirty.value) {
@@ -219,6 +233,7 @@ onActivated(async () => {
       </div>
     </div>
     <div class="editor-page__actions" v-if="editorData">
+      <button class="btn btn-danger" @click="deleteWeapon">删除</button>
       <button class="btn btn-ghost" @click="copyWeapon">复制</button>
       <button class="btn btn-primary" @click="saveWeapon">保存更改</button>
     </div>

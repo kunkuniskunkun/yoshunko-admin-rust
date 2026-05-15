@@ -88,6 +88,7 @@ pub fn run() {
             api::get_weapons,
             api::get_weapon,
             api::update_weapon,
+            api::delete_weapon,
             api::copy_weapon,
             api::get_equips,
             api::get_equip,

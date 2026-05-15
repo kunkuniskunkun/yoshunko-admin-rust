@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onActivated, onDeactivated } from 'vue'
+import { ref, watch, onMounted, onActivated, onDeactivated } from 'vue'
 import { panel, avatarCache, weaponCache, equipCache, cacheDirty } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast, showConfirm } from '@/lib/utils'
@@ -87,7 +87,9 @@ async function openLogDir() {
   try { await api.openLogDir() } catch { toast('无法打开日志目录', 'error') }
 }
 
-onDeactivated(() => { stopPolling() })
+onDeactivated(() => { stopPolling(); showLogViewer.value = false })
+
+watch(panel, (val) => { if (val !== 'settings') { stopPolling(); showLogViewer.value = false } })
 
 // ─── Config ──────────────────────────────────────────
 const config = ref<Config | null>(null)

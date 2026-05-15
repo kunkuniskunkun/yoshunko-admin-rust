@@ -827,7 +827,7 @@ pub fn launch_program(state: State<AppState>, key: String) -> Value {
 }
 
 #[tauri::command]
-pub fn launch_program_admin(path: String) -> Value {
+pub fn launch_program_admin(state: State<AppState>, path: String) -> Value {
     let p = std::path::Path::new(&path);
     if !p.exists() {
         return json!({"ok": false, "error": format!("文件不存在: {}", path)});
@@ -853,6 +853,12 @@ pub fn launch_program_admin(path: String) -> Value {
         // ShellExecuteW returns a value > 32 on success
         let result_val = result as isize;
         if result_val > 32 {
+            // Try to find the game process and store its PID
+            if let Some(pid) = find_process_pid("ZenlessZoneZeroBeta.exe") {
+                if let Ok(mut procs) = state.running_processes.lock() {
+                    procs.insert("client".to_string(), pid);
+                }
+            }
             json!({"ok": true})
         } else {
             json!({"ok": false, "error": format!("ShellExecuteW failed: code {}", result_val)})
@@ -925,6 +931,30 @@ pub fn launch_yoshunko(state: State<AppState>) -> Value {
     }
 }
 
+/// Find a process PID by image name using tasklist. Returns None if not found.
+#[cfg(windows)]
+fn find_process_pid(name: &str) -> Option<u32> {
+    let output = std::process::Command::new("tasklist")
+        .args(&["/FI", &format!("IMAGENAME eq {}", name), "/FO", "CSV", "/NH"])
+        .output()
+        .ok()?;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    for line in stdout.lines() {
+        let line = line.trim();
+        if line.starts_with('"') {
+            // CSV format: "name","pid",...
+            let parts: Vec<&str> = line.split(',').collect();
+            if parts.len() >= 2 {
+                let pid_str = parts[1].trim_matches('"');
+                if let Ok(pid) = pid_str.parse::<u32>() {
+                    return Some(pid);
+                }
+            }
+        }
+    }
+    None
+}
+
 // ─── Process Management ─────────────────────────────────
 
 #[tauri::command]
@@ -945,12 +975,15 @@ pub fn stop_process(state: State<AppState>, key: String) -> Value {
     if let Some(pid) = pid {
         #[cfg(windows)]
         {
-            use std::process::Command;
-            let _ = Command::new("taskkill").args(&["/PID", &pid.to_string(), "/F", "/T"]).output();
+            let _ = std::process::Command::new("taskkill")
+                .args(&["/PID", &pid.to_string(), "/F", "/T"])
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::null())
+                .spawn();
         }
         #[cfg(not(windows))]
         {
-            let _ = std::process::Command::new("kill").arg(pid.to_string()).output();
+            let _ = std::process::Command::new("kill").arg(pid.to_string()).spawn();
         }
         if let Ok(mut procs) = state.running_processes.lock() {
             procs.remove(&key);

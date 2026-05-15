@@ -122,12 +122,28 @@ async function launch(key: string) {
 async function stop(key: string) {
   try {
     const r = await api.stopProcess(key)
-    if (r.ok) { toast('已停止', 'success'); refreshRunning() }
+    if (r.ok) { toast('已停止', 'success') }
     else toast(r.error || '停止失败', 'error')
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '停止失败', 'error')
   }
+  // Refresh immediately, then again after 1s to catch cleanup
+  refreshRunning()
+  setTimeout(refreshRunning, 1000)
 }
+
+async function stopAll() {
+  const keys = Object.keys(runningProcs.value)
+  if (!keys.length) { toast('没有运行中的进程', 'info'); return }
+  for (const key of keys) {
+    try { await api.stopProcess(key) } catch {}
+  }
+  toast('已停止全部', 'success')
+  refreshRunning()
+  setTimeout(refreshRunning, 1000)
+}
+
+const anyRunning = computed(() => Object.keys(runningProcs.value).length > 0)
 
 async function launchAll() {
   for (const item of launchItems) {
@@ -188,10 +204,17 @@ async function launchAll() {
       </div>
     </div>
 
-    <!-- Launch All FAB -->
+    <!-- Launch/Stop All FAB -->
     <Transition name="fab">
       <button
-        v-if="allConfigured"
+        v-if="anyRunning"
+        class="btn btn-danger launch-all-fab"
+        @click="stopAll"
+      >
+        全部停止
+      </button>
+      <button
+        v-else-if="allConfigured"
         class="btn btn-success launch-all-fab"
         @click="launchAll"
       >

@@ -153,6 +153,7 @@ async function deleteWeapon() {
     if (r.ok === false) throw new Error(r.error || '删除失败')
     weaponCache.value = weaponCache.value.filter(w => w.uid !== wuid)
     toast('音擎已删除', 'success')
+    markClean()
     backToGallery()
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '删除失败', 'error')

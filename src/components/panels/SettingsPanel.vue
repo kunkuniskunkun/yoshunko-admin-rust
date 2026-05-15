@@ -30,7 +30,9 @@ async function loadLog(reset = false) {
       logContent.value += r.content
       logOffset.value = r.offset
     }
-  } catch {}
+  } catch {
+    toast('读取日志失败', 'error')
+  }
   logLoading.value = false
 }
 
@@ -125,7 +127,7 @@ function goToShortcuts() {
         </div>
         <pre class="log-viewer">{{ logContent || '（暂无日志）' }}</pre>
         <div class="btn-group" style="margin-top:6px;margin-bottom:16px">
-          <button class="btn btn-ghost btn-sm" @click="loadLog(false)" :disabled="logLoading">刷新</button>
+          <button class="btn btn-ghost btn-sm" @click="loadLog(true)" :disabled="logLoading">刷新</button>
           <button class="btn btn-ghost btn-sm" @click="openLogDir">打开日志文件夹</button>
         </div>
 

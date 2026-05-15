@@ -56,7 +56,11 @@ impl LogManager {
             Ok(m) => m.len(),
             Err(_) => return (String::new(), 0),
         };
-        if offset >= file_len {
+        if offset > file_len {
+            // Log was rotated/truncated — reset to beginning
+            return (String::new(), 0);
+        }
+        if offset == file_len {
             return (String::new(), offset);
         }
         if file.seek(SeekFrom::Start(offset)).is_err() {

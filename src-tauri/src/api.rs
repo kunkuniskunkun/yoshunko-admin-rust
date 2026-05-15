@@ -646,7 +646,7 @@ pub fn get_launch_config(state: State<AppState>) -> Value {
         .ok()
         .and_then(|s| serde_json::from_str(&s).ok())
         .unwrap_or(json!({}));
-    json!(config.get("launch").cloned().unwrap_or(json!({})))
+    json!({"config": config.get("launch").cloned().unwrap_or(json!({}))})
 }
 
 #[tauri::command]
@@ -676,8 +676,26 @@ pub fn set_launch_path(state: State<AppState>, key: String, path: String) -> Val
 }
 
 #[tauri::command]
-pub fn launch_program(path: String) -> Value {
-    match std::process::Command::new(&path).spawn() {
+pub fn launch_program(state: State<AppState>, key: String) -> Value {
+    let config: serde_json::Value = std::fs::read_to_string(&state.config_path)
+        .ok()
+        .and_then(|s| serde_json::from_str(&s).ok())
+        .unwrap_or(json!({}));
+    let path = config.get("launch")
+        .and_then(|l| l.get(&key))
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    if path.is_empty() {
+        return json!({"ok": false, "error": format!("路径未配置: {}", key)});
+    }
+    let p = std::path::Path::new(path);
+    if !p.exists() {
+        return json!({"ok": false, "error": format!("文件不存在: {}", path)});
+    }
+    let cwd = p.parent().map(|d| d.to_path_buf());
+    let mut cmd = std::process::Command::new(path);
+    if let Some(dir) = cwd { cmd.current_dir(dir); }
+    match cmd.spawn() {
         Ok(_) => json!({"ok": true}),
         Err(e) => json!({"ok": false, "error": e.to_string()}),
     }
@@ -700,22 +718,25 @@ pub fn launch_program_admin(path: String) -> Value {
 
 #[tauri::command]
 pub fn launch_yoshunko(state: State<AppState>) -> Value {
-    // Extract WSL distro from state_dir path
     let config: serde_json::Value = std::fs::read_to_string(&state.config_path)
         .ok()
         .and_then(|s| serde_json::from_str(&s).ok())
         .unwrap_or(json!({}));
     let state_dir = config.get("state_dir").and_then(|v| v.as_str()).unwrap_or("");
 
-    // Try to extract distro name from path like \\wsl.localhost\UbuntuZZZ\...
-    let distro = if state_dir.contains("wsl.localhost") {
-        state_dir.split('\\').filter(|s| !s.is_empty()).nth(2).unwrap_or("Ubuntu")
+    // Extract distro and WSL path from \\wsl.localhost\<Distro>\<path>\state
+    let parts: Vec<&str> = state_dir.split('\\').filter(|s| !s.is_empty()).collect();
+    let distro = if parts.len() >= 3 { parts[2] } else { "Ubuntu" };
+    // Build WSL path: join parts[3..] and strip trailing /state
+    let wsl_path = if parts.len() >= 4 {
+        let joined = format!("/{}", parts[3..].join("/"));
+        joined.strip_suffix("/state").unwrap_or(&joined).to_string()
     } else {
-        "Ubuntu"
+        "/root/yoshunko".to_string()
     };
 
     let cmd = format!(
-        "cd /root/yoshunko && (zig build run-dpsv &) && sleep 2 && zig build run-gamesv"
+        "cd {} && (zig build run-dpsv &) && sleep 2 && zig build run-gamesv", wsl_path
     );
 
     match std::process::Command::new("wsl")

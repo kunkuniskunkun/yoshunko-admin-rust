@@ -236,9 +236,9 @@ onMounted(async () => {
 // 离开面板时重置为仓库视图
 watch(panel, (_, old) => { if (old === 'avatars') { avatarView.value = 'gallery'; selectedAvatarId.value = null; searchQuery.avatars = '' } })
 
-onActivated(() => {
-  applyStaggeredAnimation()
-  refreshCache()
+onActivated(async () => {
+  await refreshCache()
+  nextTick(() => applyStaggeredAnimation())
 })
 
 watch(filteredAvatars, () => {

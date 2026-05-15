@@ -396,9 +396,9 @@ onMounted(async () => {
 // 离开面板时重置为仓库视图
 watch(panel, (_, old) => { if (old === 'equips') { equipView.value = 'gallery'; selectedEquipUid.value = null; searchQuery.equips = '' } })
 
-onActivated(() => {
-  applyStaggeredAnimation()
-  refreshCache()
+onActivated(async () => {
+  await refreshCache()
+  nextTick(() => applyStaggeredAnimation())
 })
 </script>
 
@@ -439,7 +439,7 @@ onActivated(() => {
       <!-- Sub stats -->
       <div class="section-title">副属性 · {{ editSubProps.filter(p => p).length }} 条</div>
       <div class="prop-header">
-        <span>#</span><span>属性</span><span>基础值</span><span>强化次数</span>
+        <span>#</span><span>属性</span><span>强化次数</span>
       </div>
       <div v-for="(prop, i) in editSubProps" :key="i" class="prop-row">
         <span class="prop-index">{{ i + 1 }}</span>
@@ -452,14 +452,6 @@ onActivated(() => {
             {{ opt.name }}
           </option>
         </select>
-        <input
-          class="form-input prop-value-readonly"
-          type="number"
-          :value="prop?.base_value || 0"
-          @input="onEditSubBaseChange(i, Number(($event.target as HTMLInputElement).value))"
-          :disabled="!prop"
-          placeholder="0"
-        >
         <div class="input-stepper">
           <button class="stepper-btn" @click="onEditSubAddChange(i, Math.max(0, (prop?.add_value || 0) - 1))" :disabled="!prop">−</button>
           <input class="stepper-input" type="number" :value="prop?.add_value || 0" min="0" max="20"
@@ -566,7 +558,7 @@ onActivated(() => {
 
             <div class="section-title">副属性 · 4 条 <span class="text-sm text-muted">（追加强化 0-4）</span></div>
             <div class="prop-header">
-              <span>#</span><span>属性</span><span>基础值</span><span>强化次数</span>
+              <span>#</span><span>属性</span><span>强化次数</span>
             </div>
             <div v-for="(prop, i) in createSubProps" :key="i" class="prop-row">
               <span class="prop-index">{{ i + 1 }}</span>
@@ -580,13 +572,6 @@ onActivated(() => {
                   {{ opt.name }}
                 </option>
               </select>
-              <input
-                class="form-input prop-value-readonly"
-                type="number"
-                v-model.number="prop.base"
-                placeholder="0"
-                :disabled="prop.key === 0"
-              >
               <div class="input-stepper">
                 <button class="stepper-btn" @click="prop.add = Math.max(0, prop.add - 1)" :disabled="prop.key === 0">−</button>
                 <input class="stepper-input" type="number" v-model.number="prop.add" min="0" max="4" :disabled="prop.key === 0">

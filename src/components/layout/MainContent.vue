@@ -66,6 +66,11 @@ onMounted(() => {
 
 watch(uid, async () => {
   if (uid.value && configured.value) {
+    // Clear caches before fetching to prevent stale data display
+    avatarCache.value = []
+    weaponCache.value = []
+    equipCache.value = []
+    cacheDirty.value = true
     await loadCounts()
     applySlideIn()
   }

@@ -1729,8 +1729,8 @@ kbd {
 .fab-leave-to { opacity: 0; transform: scale(0.8); }
 
 /* Log viewer */
-.log-viewer-overlay { position: fixed; inset: 0; z-index: 100; background: var(--bg-main, #f8f8f8); display: flex; flex-direction: column; }
-.log-viewer-panel { display: flex; flex-direction: column; height: 100%; padding: 16px 20px; }
+.log-viewer-overlay { position: fixed; inset: 0; z-index: 100; background: var(--bg-main, #f8f8f8); display: flex; flex-direction: column; overflow: hidden; }
+.log-viewer-panel { display: flex; flex-direction: column; height: 100%; padding: 16px 20px; overflow: hidden; }
 .log-viewer-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .log-viewer-header h3 { margin: 0; font-size: 16px; }
 .log-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
@@ -1755,3 +1755,4 @@ kbd {
   min-height: 200px;
 }
 .log-viewer-footer { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.launch-card__running { font-size: 11px; color: #2bad00; font-weight: 600; margin-top: 2px; }

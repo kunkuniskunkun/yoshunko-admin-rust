@@ -21,6 +21,7 @@ pub struct AppState {
     pub config_path: String,
     pub cached_templates: std::sync::OnceLock<Value>,
     pub log_manager: crate::log_manager::LogManager,
+    pub running_processes: Mutex<std::collections::HashMap<String, u32>>,
 }
 
 // ─── Validation constants ──────────────────────────────────
@@ -815,7 +816,12 @@ pub fn launch_program(state: State<AppState>, key: String) -> Value {
     #[cfg(windows)]
     { cmd.creation_flags(CREATE_NO_WINDOW); }
     match cmd.spawn() {
-        Ok(_) => json!({"ok": true}),
+        Ok(child) => {
+            if let Ok(mut procs) = state.running_processes.lock() {
+                procs.insert(key, child.id());
+            }
+            json!({"ok": true})
+        }
         Err(e) => json!({"ok": false, "error": e.to_string()}),
     }
 }
@@ -909,8 +915,49 @@ pub fn launch_yoshunko(state: State<AppState>) -> Value {
     #[cfg(windows)]
     { cmd_proc.creation_flags(CREATE_NO_WINDOW); }
     match cmd_proc.spawn() {
-        Ok(_) => json!({"ok": true, "distro": distro}),
+        Ok(child) => {
+            if let Ok(mut procs) = state.running_processes.lock() {
+                procs.insert("yoshunko".to_string(), child.id());
+            }
+            json!({"ok": true, "distro": distro})
+        }
         Err(e) => json!({"ok": false, "error": e.to_string()}),
+    }
+}
+
+// ─── Process Management ─────────────────────────────────
+
+#[tauri::command]
+pub fn get_running_processes(state: State<AppState>) -> Value {
+    let procs = state.running_processes.lock().unwrap_or_else(|e| e.into_inner());
+    let map: serde_json::Map<String, Value> = procs.iter()
+        .map(|(k, &pid)| (k.clone(), json!(pid)))
+        .collect();
+    json!({"processes": map})
+}
+
+#[tauri::command]
+pub fn stop_process(state: State<AppState>, key: String) -> Value {
+    let pid = {
+        let procs = state.running_processes.lock().unwrap_or_else(|e| e.into_inner());
+        procs.get(&key).copied()
+    };
+    if let Some(pid) = pid {
+        #[cfg(windows)]
+        {
+            use std::process::Command;
+            let _ = Command::new("taskkill").args(&["/PID", &pid.to_string(), "/F", "/T"]).output();
+        }
+        #[cfg(not(windows))]
+        {
+            let _ = std::process::Command::new("kill").arg(pid.to_string()).output();
+        }
+        if let Ok(mut procs) = state.running_processes.lock() {
+            procs.remove(&key);
+        }
+        json!({"ok": true})
+    } else {
+        json!({"ok": false, "error": "进程未运行"})
     }
 }
 

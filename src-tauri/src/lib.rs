@@ -69,6 +69,7 @@ pub fn run() {
             template_loader: tl,
             config_path,
             log_manager: lm,
+            running_processes: std::sync::Mutex::new(std::collections::HashMap::new()),
             cached_templates: std::sync::OnceLock::new(),
         })
         .invoke_handler(tauri::generate_handler![
@@ -106,6 +107,8 @@ pub fn run() {
             api::launch_program,
             api::launch_program_admin,
             api::launch_yoshunko,
+            api::get_running_processes,
+            api::stop_process,
             api::list_logs,
             api::read_log,
             api::get_log_dir,

@@ -70,6 +70,8 @@ export const api = {
   launchProgram: (key: string) => invoke<{ ok: boolean; error?: string }>('launch_program', { key }),
   launchProgramAdmin: (path: string) => invoke<{ ok: boolean; error?: string }>('launch_program_admin', { path }),
   launchYoshunko: () => invoke<{ ok: boolean; error?: string }>('launch_yoshunko'),
+  getRunningProcesses: () => invoke<{ processes: Record<string, number> }>('get_running_processes'),
+  stopProcess: (key: string) => invoke<{ ok: boolean; error?: string }>('stop_process', { key }),
 
   // Logs
   listLogs: (key: string) =>

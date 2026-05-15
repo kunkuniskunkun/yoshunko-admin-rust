@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onActivated } from 'vue'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/utils'
 
@@ -20,6 +20,18 @@ const launchItems: LaunchItem[] = [
 const launchConfig = ref<Record<string, string>>({})
 const editingKey = ref<string | null>(null)
 const editPath = ref('')
+const runningProcs = ref<Record<string, number>>({})
+
+async function refreshRunning() {
+  try {
+    const r = await api.getRunningProcesses()
+    runningProcs.value = r.processes || {}
+  } catch {}
+}
+
+function isRunning(key: string) {
+  return key in runningProcs.value
+}
 
 const configuredCount = computed(() => {
   return launchItems.filter(item => {
@@ -42,7 +54,10 @@ onMounted(async () => {
       launchConfig.value = cfg.launch_config || {}
     } catch {}
   }
+  refreshRunning()
 })
+
+onActivated(() => { refreshRunning() })
 
 function startEdit(key: string) {
   editingKey.value = key
@@ -98,8 +113,19 @@ async function launch(key: string) {
       if (r.ok) toast('已启动', 'success')
       else toast(r.error || '启动失败', 'error')
     }
+    setTimeout(refreshRunning, 500)
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '启动失败', 'error')
+  }
+}
+
+async function stop(key: string) {
+  try {
+    const r = await api.stopProcess(key)
+    if (r.ok) { toast('已停止', 'success'); refreshRunning() }
+    else toast(r.error || '停止失败', 'error')
+  } catch (e: unknown) {
+    toast(e instanceof Error ? e.message : '停止失败', 'error')
   }
 }
 
@@ -133,6 +159,7 @@ async function launchAll() {
             <span v-else-if="launchConfig[item.key]" class="badge badge--configured">已配置</span>
           </div>
           <div class="launch-card__desc">{{ item.description }}</div>
+          <div v-if="isRunning(item.key)" class="launch-card__running">运行中</div>
           <div v-if="launchConfig[item.key] && editingKey !== item.key" class="launch-card__path text-sm text-muted">
             {{ launchConfig[item.key] }}
           </div>
@@ -152,7 +179,8 @@ async function launchAll() {
 
         <!-- Actions -->
         <div v-else class="launch-card__actions">
-          <button class="btn btn-primary" @click="launch(item.key)">启动</button>
+          <button v-if="isRunning(item.key)" class="btn btn-danger" @click="stop(item.key)">停止</button>
+          <button v-else class="btn btn-primary" @click="launch(item.key)">启动</button>
           <button v-if="!item.isAuto" class="btn btn-ghost" @click="startEdit(item.key)">
             配置
           </button>

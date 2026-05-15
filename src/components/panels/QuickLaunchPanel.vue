@@ -46,7 +46,7 @@ onMounted(async () => {
 
 function startEdit(key: string) {
   editingKey.value = key
-  editPath.value = launchConfig.value[key] || ''
+  editPath.value = (launchConfig.value[key] || '').replace(/^["']|["']$/g, '')
 }
 
 function cancelEdit() {
@@ -55,16 +55,18 @@ function cancelEdit() {
 }
 
 async function savePath(key: string) {
+  const cleaned = editPath.value.trim().replace(/^["']|["']$/g, '')
+  if (!cleaned) { toast('路径不能为空', 'error'); return }
   try {
-    const r = await api.setLaunchPath(key, editPath.value)
+    const r = await api.setLaunchPath(key, cleaned)
     if (r.ok) {
-      launchConfig.value[key] = editPath.value
+      launchConfig.value[key] = cleaned
       toast('路径已保存', 'success')
     } else {
       toast(r.error || '保存失败', 'error')
     }
   } catch (e: unknown) {
-    launchConfig.value[key] = editPath.value
+    launchConfig.value[key] = cleaned
     toast('路径已保存（本地）', 'info')
   }
   editingKey.value = null
@@ -152,7 +154,7 @@ async function launchAll() {
         <div v-else class="launch-card__actions">
           <button class="btn btn-primary" @click="launch(item.key)">启动</button>
           <button v-if="!item.isAuto" class="btn btn-ghost" @click="startEdit(item.key)">
-            {{ launchConfig[item.key] ? '编辑' : '配置' }}
+            配置
           </button>
         </div>
       </div>

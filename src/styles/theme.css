@@ -1342,13 +1342,14 @@ body {
 .launch-card {
   display: flex; align-items: center; gap: 14px;
   background: var(--bg-card); border: 1px solid var(--border-subtle);
-  border-left: 3px solid var(--border); border-radius: var(--radius); padding: 16px 20px;
+  border-left: 3px solid var(--danger); border-radius: var(--radius); padding: 16px 20px;
   transition: all var(--transition-fast);
   animation: suitPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 .launch-card--ready { border-left-color: var(--success); }
 .launch-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-xs); }
-.launch-card__dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: var(--border); transition: background var(--transition-fast); }
+.launch-card__dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: var(--danger); transition: background var(--transition-fast); }
+.launch-card__dot.active { background: var(--success); }
 .launch-card__dot--on { background: var(--success); }
 .launch-card__body { flex: 1; min-width: 0; }
 .launch-card__header { display: flex; align-items: center; gap: 8px; }

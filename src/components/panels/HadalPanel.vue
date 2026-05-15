@@ -71,10 +71,6 @@ async function save() {
     <div class="page-header">
       <h2>防卫战·危局</h2>
       <span class="subtitle text-muted">修改 Zone ID 以切换期号，服务器热加载即时生效</span>
-      <div class="hadal-links">
-        <a class="hadal-link" @click.prevent="openUrl('https://zzz.nanoka.cc/boss')">CH Zone ID</a>
-        <a class="hadal-link" @click.prevent="openUrl('https://www.buhflipexplode.org/home/')">EN Zone ID</a>
-      </div>
     </div>
 
     <div v-if="loading" class="loading-wrap"><div class="spinner"></div></div>
@@ -95,6 +91,12 @@ async function save() {
                 <input class="form-input" type="number" v-model.number="entranceEdits[i].zone_id" />
               </div>
             </div>
+          </div>
+
+          <div class="hadal-links">
+            <span class="hadal-links-label">最新 ZONE ID 查看链接 ↓ ↓ ↓</span>
+            <a class="hadal-link" @click.prevent="openUrl('https://zzz.nanoka.cc/boss')">CH: https://zzz.nanoka.cc/boss</a>
+            <a class="hadal-link" @click.prevent="openUrl('https://www.buhflipexplode.org/home/')">En: https://www.buhflipexplode.org/home/</a>
           </div>
 
           <div class="btn-group" style="margin-top: 16px;">

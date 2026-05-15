@@ -68,7 +68,7 @@ const subStatOptions = computed(() => {
 const isSlotFixed = computed(() => createSlot.value >= 1 && createSlot.value <= 3)
 
 const createEnhanceSum = computed(() => {
-  return createSubProps.value.reduce((s, p) => s + (p.key > 0 ? p.add : 0), 0)
+  return createSubProps.value.reduce((s, p) => s + (p.key > 0 ? p.add - 1 : 0), 0)
 })
 
 const filteredEquips = computed(() => {
@@ -457,11 +457,11 @@ onActivated(async () => {
           </option>
         </select>
         <div class="input-stepper">
-          <button class="stepper-btn" @click="onEditSubAddChange(i, Math.max(0, (prop?.add_value || 0) - 1))" :disabled="!prop">−</button>
-          <input class="stepper-input" type="number" :value="prop?.add_value || 0" min="0" max="20"
-            @input="onEditSubAddChange(i, Number(($event.target as HTMLInputElement).value))"
+          <button class="stepper-btn" @click="onEditSubAddChange(i, Math.max(1, (prop?.add_value || 1) - 1))" :disabled="!prop">−</button>
+          <input class="stepper-input" type="number" :value="(prop?.add_value || 1) - 1" min="0" max="19"
+            @input="onEditSubAddChange(i, Number(($event.target as HTMLInputElement).value) + 1)"
             :disabled="!prop">
-          <button class="stepper-btn" @click="onEditSubAddChange(i, (prop?.add_value || 0) + 1)" :disabled="!prop">+</button>
+          <button class="stepper-btn" @click="onEditSubAddChange(i, (prop?.add_value || 1) + 1)" :disabled="!prop">+</button>
         </div>
       </div>
       <div class="enhance-sum" :class="{
@@ -577,8 +577,10 @@ onActivated(async () => {
                 </option>
               </select>
               <div class="input-stepper">
-                <button class="stepper-btn" @click="prop.add = Math.max(0, prop.add - 1)" :disabled="prop.key === 0">−</button>
-                <input class="stepper-input" type="number" v-model.number="prop.add" min="0" max="4" :disabled="prop.key === 0">
+                <button class="stepper-btn" @click="prop.add = Math.max(1, prop.add - 1)" :disabled="prop.key === 0">−</button>
+                <input class="stepper-input" type="number" :value="prop.add - 1" min="0" max="3"
+                  @input="prop.add = Number(($event.target as HTMLInputElement).value) + 1"
+                  :disabled="prop.key === 0">
                 <button class="stepper-btn" @click="prop.add = Math.min(4, prop.add + 1)" :disabled="prop.key === 0">+</button>
               </div>
             </div>

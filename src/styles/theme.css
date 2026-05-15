@@ -197,6 +197,13 @@ body > div:first-child > div:first-child > div:first-child > div:first-child > d
   min-height: 0;
 }
 
+/* ── #app: root container must fill viewport ── */
+#app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 /* ── Custom title bar ──────────────────────────────────── */
 .title-bar {
   display: flex; align-items: center; justify-content: space-between;

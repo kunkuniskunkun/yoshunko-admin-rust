@@ -70,4 +70,10 @@ export const api = {
   launchProgram: (key: string) => invoke<{ ok: boolean; error?: string }>('launch_program', { key }),
   launchProgramAdmin: (path: string) => invoke<{ ok: boolean; error?: string }>('launch_program_admin', { path }),
   launchYoshunko: () => invoke<{ ok: boolean; error?: string }>('launch_yoshunko'),
+
+  // Logs
+  readLog: (key: string, offset: number) =>
+    invoke<{ content: string; offset: number }>('read_log', { key, offset }),
+  getLogDir: () => invoke<{ path: string }>('get_log_dir'),
+  openLogDir: () => invoke<{ ok: boolean }>('open_log_dir'),
 }

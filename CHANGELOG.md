@@ -4,6 +4,30 @@
 
 ---
 
+## V0.631 (2026-05-15)
+
+### 运行日志记录 + 音擎删除 + 复制功能
+
+**新功能**
+- 运行日志记录：HoyoSDK/Yoshunko/KCPSHIM/Client 启动后 stdout/stderr 自动写入 `exe_dir/logs/` 目录
+- Settings 面板新增"运行日志"区域：4 个标签页切换查看，支持增量刷新和打开日志文件夹
+- 日志按 5MB 大小轮转，保留最近 3 个备份，每行带时间戳
+- 音擎编辑页新增"删除"按钮
+- 音擎/驱动盘编辑页新增"复制"按钮
+
+**后端改动**
+- 新增 `log_manager.rs`：日志文件管理（创建、轮转、增量读取）
+- `launch_program` / `launch_yoshunko` 去掉 `CREATE_NEW_CONSOLE`，stdout/stderr 重定向到日志文件
+- 新增 `read_log` / `get_log_dir` / `open_log_dir` / `delete_weapon` / `copy_weapon` / `copy_equip` 命令
+- `next_uid` 改为优先读取 `next` 计数文件，未命中则回退到目录扫描
+
+**Bug 修复**
+- 修复保存角色/音擎/驱动盘后仓库卡片数据不更新：保存后立即 refreshCache() 再切回仓库
+- 修复快速切换仓库时并发 API 请求导致卡顿：添加 refreshing 防重入锁
+- 修复创建驱动盘强化次数多 1：去掉提交时的多余 +1
+
+---
+
 ## V0.630 (2026-05-15)
 
 ### 数据同步修复 — 写入格式对齐 Python 版

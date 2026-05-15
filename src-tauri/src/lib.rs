@@ -1,5 +1,6 @@
 mod api;
 mod data_manager;
+mod log_manager;
 mod template_loader;
 mod zon;
 
@@ -48,6 +49,7 @@ pub fn run() {
     } else { None };
 
     let tl = TemplateLoader::new(data_dir);
+    let lm = log_manager::LogManager::new(&exe_dir);
 
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
@@ -66,6 +68,7 @@ pub fn run() {
             data_manager: std::sync::Mutex::new(dm),
             template_loader: tl,
             config_path,
+            log_manager: lm,
             cached_templates: std::sync::OnceLock::new(),
         })
         .invoke_handler(tauri::generate_handler![
@@ -103,6 +106,9 @@ pub fn run() {
             api::launch_program,
             api::launch_program_admin,
             api::launch_yoshunko,
+            api::read_log,
+            api::get_log_dir,
+            api::open_log_dir,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

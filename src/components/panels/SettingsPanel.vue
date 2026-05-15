@@ -1,10 +1,52 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onActivated, watch, nextTick } from 'vue'
 import { panel, avatarCache, weaponCache, equipCache, cacheDirty } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast, showConfirm } from '@/lib/utils'
 import { currentTheme, setTheme } from '@/composables/useTheme'
 import type { Config } from '@/lib/types'
+
+// ─── Logs ────────────────────────────────────────────
+const logTabs = [
+  { key: 'hoyosdk', name: 'HoyoSDK' },
+  { key: 'yoshunko', name: 'Yoshunko' },
+  { key: 'kcpshim', name: 'KCPSHIM' },
+  { key: 'client', name: 'Client' },
+]
+const activeLogTab = ref('hoyosdk')
+const logContent = ref('')
+const logOffset = ref(0)
+const logLoading = ref(false)
+
+async function loadLog(reset = false) {
+  if (reset) {
+    logContent.value = ''
+    logOffset.value = 0
+  }
+  logLoading.value = true
+  try {
+    const r = await api.readLog(activeLogTab.value, logOffset.value)
+    if (r.content) {
+      logContent.value += r.content
+      logOffset.value = r.offset
+    }
+  } catch {}
+  logLoading.value = false
+}
+
+async function openLogDir() {
+  try {
+    await api.openLogDir()
+  } catch {
+    toast('无法打开日志目录', 'error')
+  }
+}
+
+watch(activeLogTab, () => loadLog(true))
+
+onActivated(() => {
+  nextTick(() => loadLog(true))
+})
 
 const config = ref<Config | null>(null)
 const version = ref('')
@@ -74,10 +116,24 @@ function goToShortcuts() {
           </div>
         </div>
 
+        <!-- Logs -->
+        <div class="section-title">运行日志</div>
+        <div class="log-tabs">
+          <button v-for="tab in logTabs" :key="tab.key" class="btn btn-sm"
+            :class="activeLogTab === tab.key ? 'btn-primary' : 'btn-ghost'"
+            @click="activeLogTab = tab.key">{{ tab.name }}</button>
+        </div>
+        <pre class="log-viewer">{{ logContent || '（暂无日志）' }}</pre>
+        <div class="btn-group" style="margin-top:6px;margin-bottom:16px">
+          <button class="btn btn-ghost btn-sm" @click="loadLog(false)" :disabled="logLoading">刷新</button>
+          <button class="btn btn-ghost btn-sm" @click="openLogDir">打开日志文件夹</button>
+        </div>
+
         <!-- Shortcuts -->
         <div class="section-title">键盘快捷键</div>
         <p class="form-hint">Ctrl+S 保存 · Ctrl+F 搜索 · Ctrl+Z 撤销 · ESC 关闭 · 1-6 切换面板 · ↑↓ 调整数值</p>
         <button class="btn btn-ghost" style="margin-top:4px;margin-bottom:16px" @click="goToShortcuts">查看全部快捷键 →</button>
+
 
         <!-- About -->
         <div class="section-title">关于</div>

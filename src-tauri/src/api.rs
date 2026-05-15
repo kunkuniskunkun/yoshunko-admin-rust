@@ -9,16 +9,13 @@ use std::collections::BTreeMap;
 use std::sync::Mutex;
 use tauri::State;
 
-#[cfg(windows)]
-use std::os::windows::process::CommandExt;
-#[cfg(windows)]
-const CREATE_NEW_CONSOLE: u32 = 0x00000010;
 
 pub struct AppState {
     pub data_manager: Mutex<Option<DataManager>>,
     pub template_loader: TemplateLoader,
     pub config_path: String,
     pub cached_templates: std::sync::OnceLock<Value>,
+    pub log_manager: crate::log_manager::LogManager,
 }
 
 // ─── Validation constants ──────────────────────────────────
@@ -800,11 +797,20 @@ pub fn launch_program(state: State<AppState>, key: String) -> Value {
     if !p.exists() {
         return json!({"ok": false, "error": format!("文件不存在: {}", path)});
     }
+    let lm = &state.log_manager;
+    lm.rotate_log(&key);
+    let log_path = lm.log_path(&key);
     let cwd = p.parent().map(|d| d.to_path_buf());
     let mut cmd = std::process::Command::new(path);
     if let Some(dir) = cwd { cmd.current_dir(dir); }
-    #[cfg(windows)]
-    { cmd.creation_flags(CREATE_NEW_CONSOLE); }
+    if let (Ok(f_out), Ok(f_err)) = (
+        std::fs::OpenOptions::new().create(true).append(true).open(&log_path),
+        std::fs::OpenOptions::new().create(true).append(true).open(&log_path),
+    ) {
+        use std::process::Stdio;
+        cmd.stdout(Stdio::from(f_out));
+        cmd.stderr(Stdio::from(f_err));
+    }
     match cmd.spawn() {
         Ok(_) => json!({"ok": true}),
         Err(e) => json!({"ok": false, "error": e.to_string()}),
@@ -887,14 +893,51 @@ pub fn launch_yoshunko(state: State<AppState>) -> Value {
         "cd {} && (zig build run-dpsv &) && sleep 2 && zig build run-gamesv", wsl_path
     );
 
+    let lm = &state.log_manager;
+    lm.rotate_log("yoshunko");
+    let log_path = lm.log_path("yoshunko");
+
     let mut cmd_proc = std::process::Command::new("wsl");
     cmd_proc.args(&["-u", "root", "-d", distro, "-e", "bash", "-c", &cmd]);
-    #[cfg(windows)]
-    { cmd_proc.creation_flags(CREATE_NEW_CONSOLE); }
+    if let (Ok(f_out), Ok(f_err)) = (
+        std::fs::OpenOptions::new().create(true).append(true).open(&log_path),
+        std::fs::OpenOptions::new().create(true).append(true).open(&log_path),
+    ) {
+        use std::process::Stdio;
+        cmd_proc.stdout(Stdio::from(f_out));
+        cmd_proc.stderr(Stdio::from(f_err));
+    }
     match cmd_proc.spawn() {
         Ok(_) => json!({"ok": true, "distro": distro}),
         Err(e) => json!({"ok": false, "error": e.to_string()}),
     }
+}
+
+// ─── Log ───────────────────────────────────────────────
+
+#[tauri::command]
+pub fn read_log(state: State<AppState>, key: String, offset: u64) -> Value {
+    let (content, new_offset) = state.log_manager.read_log(&key, offset);
+    json!({"content": content, "offset": new_offset})
+}
+
+#[tauri::command]
+pub fn get_log_dir(state: State<AppState>) -> Value {
+    json!({"path": state.log_manager.log_dir().to_string_lossy().to_string()})
+}
+
+#[tauri::command]
+pub fn open_log_dir(state: State<AppState>) -> Value {
+    let dir = state.log_manager.log_dir();
+    #[cfg(windows)]
+    {
+        let _ = std::process::Command::new("explorer").arg(dir).spawn();
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = std::process::Command::new("xdg-open").arg(dir).spawn();
+    }
+    json!({"ok": true})
 }
 
 // ─── Zon helpers ────────────────────────────────────────

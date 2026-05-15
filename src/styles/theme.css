@@ -1727,3 +1727,22 @@ kbd {
 .fab-enter-active { animation: modalIn 0.35s cubic-bezier(0.34,1.56,0.64,1); }
 .fab-leave-active { transition: opacity 0.2s, transform 0.2s; }
 .fab-leave-to { opacity: 0; transform: scale(0.8); }
+
+/* Log viewer */
+.log-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+.log-tabs .btn-sm { font-size: 12px; padding: 3px 10px; }
+.log-viewer {
+  background: var(--bg-input, #f5f5f5);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: var(--radius-sm, 4px);
+  padding: 10px 12px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  max-height: 320px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--text-primary, #333);
+  margin: 0;
+}

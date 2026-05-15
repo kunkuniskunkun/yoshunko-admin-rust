@@ -2,27 +2,13 @@
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { api } from '@/lib/api'
 import { ref, onMounted } from 'vue'
-import { dirty, markClean } from '@/composables/useAppState'
 
 const appWindow = getCurrentWindow()
 const version = ref('---')
 
 function minimize() { appWindow.minimize() }
 function toggleMax() { appWindow.toggleMaximize() }
-
-async function close() {
-  if (dirty.value) {
-    try {
-      const { ask } = await import('@tauri-apps/plugin-dialog')
-      const confirmed = await ask('有未保存的更改，确定要关闭吗？', { title: '未保存的更改', kind: 'warning' })
-      if (!confirmed) return
-    } catch {
-      // Dialog failed — allow close anyway
-    }
-  }
-  markClean()
-  await appWindow.close()
-}
+function close() { appWindow.close() }
 
 onMounted(async () => {
   try {

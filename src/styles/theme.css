@@ -184,24 +184,28 @@
 /* ── Reset ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── naive-ui wrapper divs: participate in body's flex layout ── */
-body > div:first-child,
-body > div:first-child > div:first-child,
-body > div:first-child > div:first-child > div:first-child,
-body > div:first-child > div:first-child > div:first-child > div:first-child,
-body > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child,
-body > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child > div:first-child {
+/* ── Full-height chain: html → body → #app → wrappers ── */
+html, body { height: 100%; overflow: hidden; }
+body { margin: 0; }
+
+/* ── #app: root container fills viewport ── */
+#app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* ── naive-ui wrapper divs: propagate height ── */
+#app > div,
+#app > div > div,
+#app > div > div > div,
+#app > div > div > div > div,
+#app > div > div > div > div > div {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
-}
-
-/* ── #app: root container must fill viewport ── */
-#app {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
 }
 
 /* ── Custom title bar ──────────────────────────────────── */

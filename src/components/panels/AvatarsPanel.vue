@@ -202,6 +202,7 @@ async function saveAvatar() {
     toast('角色数据已保存', 'success')
     markClean()
     markCacheDirty()
+    await refreshCache()
     backToGallery()
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '保存失败', 'error')

@@ -95,6 +95,11 @@ const groupedEquips = computed(() => {
     if (!groups.has(key)) groups.set(key, [])
     groups.get(key)!.push(eq)
   }
+  // Assign global stagger index across all groups
+  let idx = 0
+  for (const [, items] of groups) {
+    for (const eq of items) { (eq as any)._i = idx++ }
+  }
   return groups
 })
 
@@ -157,7 +162,7 @@ function backToGallery() {
   equipView.value = 'gallery'
   selectedEquipUid.value = null
   editorData.value = null
-  nextTick(() => applyStaggeredAnimation('.equip-card'))
+  nextTick(() => applyStaggeredAnimation())
 }
 
 function getEnhanceSum(): number {
@@ -384,7 +389,7 @@ onMounted(async () => {
     loadEditor(selectedEquipUid.value)
   }
   if (equipView.value === 'gallery') {
-    applyStaggeredAnimation('.equip-card')
+    applyStaggeredAnimation()
   }
 })
 
@@ -392,7 +397,7 @@ onMounted(async () => {
 watch(panel, (_, old) => { if (old === 'equips') { equipView.value = 'gallery'; selectedEquipUid.value = null; searchQuery.equips = '' } })
 
 onActivated(() => {
-  applyStaggeredAnimation('.equip-card')
+  applyStaggeredAnimation()
   refreshCache()
 })
 </script>
@@ -626,8 +631,9 @@ onActivated(() => {
           <div
             v-for="eq in items"
             :key="eq.uid"
-            class="game-card equip-card"
+            class="game-card equip-card staggered-anim"
             :class="suitColorClass(eq.suit_name)"
+            :style="{ '--i': (eq as any)._i }"
             tabindex="0" role="button"
             @click="selectEquip(eq.uid, $event)"
           >

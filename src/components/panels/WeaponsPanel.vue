@@ -51,6 +51,11 @@ const groupedWeapons = computed(() => {
   for (const [k, v] of groups) {
     if (!sorted.has(k)) sorted.set(k, v)
   }
+  // Assign global stagger index across all groups
+  let idx = 0
+  for (const [, weapons] of sorted) {
+    for (const w of weapons) { (w as any)._i = idx++ }
+  }
   return sorted
 })
 
@@ -104,7 +109,7 @@ function backToGallery() {
   weaponView.value = 'gallery'
   selectedWeaponUid.value = null
   editorData.value = null
-  nextTick(() => applyStaggeredAnimation('.avatar-gallery__card'))
+  nextTick(() => applyStaggeredAnimation())
 }
 
 async function saveWeapon() {
@@ -145,7 +150,7 @@ onMounted(async () => {
     loadEditor(selectedWeaponUid.value)
   }
   if (weaponView.value === 'gallery') {
-    applyStaggeredAnimation('.avatar-gallery__card')
+    applyStaggeredAnimation()
   }
 })
 
@@ -153,7 +158,7 @@ onMounted(async () => {
 watch(panel, (_, old) => { if (old === 'weapons') { weaponView.value = 'gallery'; selectedWeaponUid.value = null; searchQuery.weapons = '' } })
 
 onActivated(() => {
-  applyStaggeredAnimation('.avatar-gallery__card')
+  applyStaggeredAnimation()
   refreshCache()
 })
 </script>
@@ -213,8 +218,9 @@ onActivated(() => {
           <div
             v-for="w in weapons"
             :key="w.uid"
-            class="game-card avatar-gallery__card"
+            class="game-card avatar-gallery__card staggered-anim"
             :class="rarityClass(w.id) === 's' ? 'avatar-gallery__card--s' : rarityClass(w.id) === 'a' ? 'avatar-gallery__card--a' : ''"
+            :style="{ '--i': (w as any)._i }"
             tabindex="0" role="button"
             @click="selectWeapon(w.uid, $event)"
           >

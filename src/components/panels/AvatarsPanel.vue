@@ -76,21 +76,28 @@ const groupedAvatars = computed(() => {
     avatars.sort((a, b) => a.avatar_id - b.avatar_id)
   }
   // Sort groups
+  let sorted: Map<string, AvatarListItem[]>
   if (avatarGroupBy.value === 'profession') {
-    const sorted = new Map<string, AvatarListItem[]>()
+    sorted = new Map<string, AvatarListItem[]>()
     for (const p of PROFESSION_ORDER) {
       if (groups.has(p)) sorted.set(p, groups.get(p)!)
     }
     for (const [k, v] of groups) {
       if (!sorted.has(k)) sorted.set(k, v)
     }
-    return sorted
+  } else {
+    sorted = new Map([...groups.entries()].sort((a, b) => {
+      const tA = avatarMap.value.get(a[1][0]?.avatar_id ?? 0)
+      const tB = avatarMap.value.get(b[1][0]?.avatar_id ?? 0)
+      return (tA?.camp_id ?? 0) - (tB?.camp_id ?? 0)
+    }))
   }
-  return new Map([...groups.entries()].sort((a, b) => {
-    const tA = avatarMap.value.get(a[1][0]?.avatar_id ?? 0)
-    const tB = avatarMap.value.get(b[1][0]?.avatar_id ?? 0)
-    return (tA?.camp_id ?? 0) - (tB?.camp_id ?? 0)
-  }))
+  // Assign global stagger index across all groups
+  let idx = 0
+  for (const [, avatars] of sorted) {
+    for (const a of avatars) { (a as any)._i = idx++ }
+  }
+  return sorted
 })
 
 function rarityLabel(rarity: string): string {
@@ -125,7 +132,7 @@ function backToGallery() {
   avatarView.value = 'gallery'
   selectedAvatarId.value = null
   editorData.value = null
-  nextTick(() => applyStaggeredAnimation('.avatar-gallery__card'))
+  nextTick(() => applyStaggeredAnimation())
 }
 
 async function loadEditor(aid: number) {
@@ -222,7 +229,7 @@ onMounted(async () => {
     loadEditor(selectedAvatarId.value)
   }
   if (avatarView.value === 'gallery') {
-    applyStaggeredAnimation('.avatar-gallery__card')
+    applyStaggeredAnimation()
   }
 })
 
@@ -230,13 +237,13 @@ onMounted(async () => {
 watch(panel, (_, old) => { if (old === 'avatars') { avatarView.value = 'gallery'; selectedAvatarId.value = null; searchQuery.avatars = '' } })
 
 onActivated(() => {
-  applyStaggeredAnimation('.avatar-gallery__card')
+  applyStaggeredAnimation()
   refreshCache()
 })
 
 watch(filteredAvatars, () => {
   if (avatarView.value === 'gallery') {
-    applyStaggeredAnimation('.avatar-gallery__card')
+    applyStaggeredAnimation()
   }
 })
 </script>
@@ -344,8 +351,9 @@ watch(filteredAvatars, () => {
           <div
             v-for="a in avatars"
             :key="a.avatar_id"
-            class="game-card avatar-gallery__card"
+            class="game-card avatar-gallery__card staggered-anim"
             :class="rarityClass(a.rarity)"
+            :style="{ '--i': (a as any)._i }"
             tabindex="0"
             role="button"
             @click="selectAvatar(a.avatar_id, $event)"

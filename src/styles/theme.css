@@ -1491,6 +1491,20 @@ body {
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* Staggered card enter animation (CSS-driven, compositor thread) */
+.staggered-anim {
+  animation: cardEnter 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(var(--i, 0) * 38ms);
+}
+.no-animate,
+.no-animate * {
+  animation: none !important;
+}
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* Animation off support */
 [data-animations="off"],
 [data-animations="off"] *,

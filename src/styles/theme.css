@@ -200,7 +200,7 @@ body > div:first-child > div:first-child > div:first-child > div:first-child > d
 /* ── Custom title bar ──────────────────────────────────── */
 .title-bar {
   display: flex; align-items: center; justify-content: space-between;
-  height: 36px; padding: 0 10px; flex-shrink: 0;
+  flex: 0 0 36px; height: 36px; padding: 0 10px;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
   -webkit-app-region: drag;
@@ -1503,7 +1503,7 @@ body {
 }
 
 /* Utility classes */
-.app-layout { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+.app-layout { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
 .setup-error { display: none; color: var(--danger); margin-bottom: 16px; text-align: left; padding: 8px 12px; background: var(--danger-bg); border-radius: 6px; white-space: pre-wrap; }
 .setup-error.visible { display: block; }
 .text-danger { color: var(--danger); }

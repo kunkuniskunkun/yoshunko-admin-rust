@@ -21,11 +21,11 @@ npx vue-tsc --noEmit
 # Build frontend only
 npm run build
 
-# Build full release (uses custom CARGO_TARGET_DIR=D:\cargo-build)
+# Build full release (outputs to src-tauri/target/release/)
 # PowerShell:
 ./build-run.ps1
 # Or manually:
-npm run build && cargo tauri build
+npm run build && cd src-tauri && cargo tauri build
 ```
 
 All Rust commands run from `src-tauri/`. Cargo workspace is not used.
@@ -78,7 +78,7 @@ No database. ZON files stored at `{state_dir}/player/{uid}/`:
 
 ## Versioning Rules
 
-- **当前版本**: v0.626-r
+- **当前版本**: v0.627-r
 - **版本号格式**: `主版本.次版本.修订号`（如 `0.615.0`），显示为 `v0.615-r`
 - **递增规则**: 每次针对底层代码（Rust 后端、核心逻辑、数据结构、IPC 接口等）的修改需递增修订号
 - **满30进1**: 修订号满30则次版本+1，修订号归0（如 `0.629` → `0.700`）

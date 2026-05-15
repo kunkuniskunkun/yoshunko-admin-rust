@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onActivated } from 'vue'
 import { uid, markCacheDirty } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast, showConfirm } from '@/lib/utils'
@@ -16,24 +16,28 @@ const editAvatarId = ref(0)
 const editControlId = ref(0)
 const editGuiseId = ref(0)
 
-onMounted(async () => {
+async function loadData() {
   if (!uid.value) return
+  loading.value = true
   try {
-    const data = await api.getPlayerBasic(uid.value)
-    if (data) {
-      info.value = data
-      editNickname.value = data.nickname
-      editLevel.value = data.level
-      editExp.value = data.exp
-      editAvatarId.value = data.avatar_id
-      editControlId.value = data.control_avatar_id
-      editGuiseId.value = data.control_guise_avatar_id
+    const d = await api.getPlayerBasic(uid.value)
+    if (d) {
+      info.value = d
+      editNickname.value = d.nickname
+      editLevel.value = d.level
+      editExp.value = d.exp
+      editAvatarId.value = d.avatar_id
+      editControlId.value = d.control_avatar_id
+      editGuiseId.value = d.control_guise_avatar_id
     }
   } catch (e: unknown) {
     toast('加载失败: ' + (e instanceof Error ? e.message : ''), 'error')
   }
   loading.value = false
-})
+}
+
+onMounted(loadData)
+onActivated(loadData)
 
 async function save() {
   if (!uid.value) return

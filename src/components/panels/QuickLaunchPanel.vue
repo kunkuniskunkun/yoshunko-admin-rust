@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onActivated } from 'vue'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/utils'
 
@@ -32,7 +32,7 @@ const allConfigured = computed(() => {
   return launchItems.filter(i => !i.isAuto).every(i => !!launchConfig.value[i.key])
 })
 
-onMounted(async () => {
+async function loadConfig() {
   try {
     const r = await api.getLaunchConfig()
     launchConfig.value = r.config || {}
@@ -42,7 +42,10 @@ onMounted(async () => {
       launchConfig.value = cfg.launch_config || {}
     } catch {}
   }
-})
+}
+
+onMounted(loadConfig)
+onActivated(loadConfig)
 
 function startEdit(key: string) {
   editingKey.value = key

@@ -4,6 +4,29 @@
 
 ---
 
+## V0.627 (2026-05-15)
+
+### 全面 Bug 修复 — 前端竞态 + 后端缓存一致性 + CSS 清理
+
+**前端 Bug 修复**
+- 修复 `loadCounts()` 竞态条件：快速切换 uid 时旧请求可能覆盖新数据，引入版本号机制丢弃过期响应
+- 修复 HadalPanel、PlayerPanel、QuickLaunchPanel 切换 uid 后数据不刷新：添加 `onActivated` 生命周期钩子
+- 修复确认按钮异步回调无 try/catch：`confirmState.onConfirm` 抛异常时对话框会卡住，添加 try/catch/finally 确保 `closeConfirm()` 始终执行
+- 修复 `ConfirmState.onConfirm` 类型不匹配：支持异步回调 `() => void | Promise<void>`
+- 移除 `utils.ts` 中未使用的 `escHtml` 函数
+
+**后端 Bug 修复**
+- 修复 `write_zon` 缓存一致性：文件写入失败时不再更新缓存，避免进程重启后数据"回滚"
+- 修复 `set_state_dir` 静默成功：`File::create` 失败时返回错误而非 `{"ok": true}`
+- 修复 `set_launch_path` 静默成功：同上
+
+**CSS 清理**
+- 移除合并段（vue-extras.css）中 40+ 条重复/冲突的 CSS 规则
+- 保留合并段中唯一的规则（badge、kbd、stepper-input 等）
+- 消除 `.input-stepper`、`.enhance-sum`、`.form-field`、`.data-table` 等关键选择器的值冲突
+
+---
+
 ## V0.626 (2026-05-15)
 
 ### 关闭按钮修复 + 副属性显示调整 + Toast 位置优化

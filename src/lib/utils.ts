@@ -33,7 +33,7 @@ export function removeToast(id: number) {
 export interface ConfirmState {
   visible: boolean
   message: string
-  onConfirm: (() => void) | null
+  onConfirm: (() => void | Promise<void>) | null
 }
 
 export const confirmState = ref<ConfirmState>({
@@ -42,7 +42,7 @@ export const confirmState = ref<ConfirmState>({
   onConfirm: null,
 })
 
-export function showConfirm(message: string, onConfirm: () => void) {
+export function showConfirm(message: string, onConfirm: () => void | Promise<void>) {
   confirmState.value = { visible: true, message, onConfirm }
 }
 

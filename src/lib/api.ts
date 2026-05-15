@@ -41,6 +41,8 @@ export const api = {
   getWeapon: (uid: number, weaponUid: number) => invoke<WeaponDetail | null>('get_weapon', { uid, weaponUid }),
   updateWeapon: (uid: number, weaponUid: number, data: WeaponUpdate) =>
     invoke<{ ok: boolean; error?: string }>('update_weapon', { uid, weaponUid, data }),
+  copyWeapon: (uid: number, weaponUid: number) =>
+    invoke<{ ok: boolean; uid?: number; error?: string }>('copy_weapon', { uid, weaponUid }),
 
   // Equips
   getEquips: (uid: number) => invoke<{ equips: EquipListItem[] }>('get_equips', { uid }),
@@ -51,6 +53,8 @@ export const api = {
     invoke<{ ok: boolean; uid?: number; error?: string }>('create_equip', { uid, data }),
   deleteEquip: (uid: number, equipUid: number) =>
     invoke<{ ok: boolean; error?: string }>('delete_equip', { uid, equipUid }),
+  copyEquip: (uid: number, equipUid: number) =>
+    invoke<{ ok: boolean; uid?: number; error?: string }>('copy_equip', { uid, equipUid }),
 
   // Hadal Zone
   getHadalZone: (uid: number) => invoke<HadalZone | null>('get_hadal_zone', { uid }),

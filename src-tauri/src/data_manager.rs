@@ -106,6 +106,16 @@ impl DataManager {
         self.write_zon(&path, data);
     }
 
+    pub fn copy_weapon(&mut self, uid: i64, weapon_uid: i64) -> Result<i64, String> {
+        let src_path = self.player_path(uid, "weapon", &weapon_uid.to_string());
+        let data = self.read_zon_obj(&src_path).ok_or("武器不存在")?;
+        let weapon_dir = self.player_dir.join(uid.to_string()).join("weapon");
+        let new_uid = self.next_uid(&weapon_dir);
+        let dst_path = weapon_dir.join(new_uid.to_string());
+        self.write_zon(&dst_path, &data);
+        Ok(new_uid)
+    }
+
     // ─── Equips ───────────────────────────────────────────
 
     pub fn list_equips(&self, uid: i64) -> Vec<i64> {
@@ -121,6 +131,16 @@ impl DataManager {
     pub fn update_equip(&mut self, uid: i64, equip_uid: i64, data: &BTreeMap<String, ZonValue>) {
         let path = self.player_path(uid, "equip", &equip_uid.to_string());
         self.write_zon(&path, data);
+    }
+
+    pub fn copy_equip(&mut self, uid: i64, equip_uid: i64) -> Result<i64, String> {
+        let src_path = self.player_path(uid, "equip", &equip_uid.to_string());
+        let data = self.read_zon_obj(&src_path).ok_or("驱动盘不存在")?;
+        let equip_dir = self.player_dir.join(uid.to_string()).join("equip");
+        let new_uid = self.next_uid(&equip_dir);
+        let dst_path = equip_dir.join(new_uid.to_string());
+        self.write_zon(&dst_path, &data);
+        Ok(new_uid)
     }
 
     pub fn delete_equip(&mut self, uid: i64, equip_uid: i64) -> Result<(), String> {

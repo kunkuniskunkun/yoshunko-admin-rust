@@ -207,6 +207,20 @@ async function deleteEquip() {
   }
 }
 
+async function copyEquip() {
+  if (!uid.value || !selectedEquipUid.value) return
+  try {
+    const r = await api.copyEquip(uid.value, selectedEquipUid.value)
+    if (r.ok === false) throw new Error(r.error || '复制失败')
+    toast(`驱动盘已复制为 #${r.uid}`, 'success')
+    markCacheDirty()
+    await refreshCache()
+    backToGallery()
+  } catch (e: unknown) {
+    toast(e instanceof Error ? e.message : '复制失败', 'error')
+  }
+}
+
 // ─── 编辑器副属性操作 ──────────────────────────────
 
 function onEditSubKeyChange(index: number, key: number) {
@@ -501,6 +515,7 @@ onActivated(async () => {
 
     <div class="editor-page__actions editor-fab-group" v-if="editorData">
       <button class="btn btn-danger" @click="deleteEquip">删除</button>
+      <button class="btn btn-ghost" @click="copyEquip">复制</button>
       <button class="btn btn-primary" @click="saveEquip">保存更改</button>
     </div>
   </div>

@@ -131,6 +131,20 @@ async function saveWeapon() {
   }
 }
 
+async function copyWeapon() {
+  if (!uid.value || !selectedWeaponUid.value) return
+  try {
+    const r = await api.copyWeapon(uid.value, selectedWeaponUid.value)
+    if (r.ok === false) throw new Error(r.error || '复制失败')
+    toast(`音擎已复制为 #${r.uid}`, 'success')
+    markCacheDirty()
+    await refreshCache()
+    backToGallery()
+  } catch (e: unknown) {
+    toast(e instanceof Error ? e.message : '复制失败', 'error')
+  }
+}
+
 async function refreshCache() {
   if (!uid.value) return
   if (weaponCache.value.length && !cacheDirty.value) {
@@ -205,6 +219,7 @@ onActivated(async () => {
       </div>
     </div>
     <div class="editor-page__actions" v-if="editorData">
+      <button class="btn btn-ghost" @click="copyWeapon">复制</button>
       <button class="btn btn-primary" @click="saveWeapon">保存更改</button>
     </div>
   </div>

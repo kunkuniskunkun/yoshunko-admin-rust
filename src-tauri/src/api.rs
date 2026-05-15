@@ -578,6 +578,16 @@ pub fn update_weapon(state: State<AppState>, uid: i64, weapon_uid: i64, mut data
     })
 }
 
+#[tauri::command]
+pub fn copy_weapon(state: State<AppState>, uid: i64, weapon_uid: i64) -> Value {
+    with_manager(&state, |dm| {
+        match dm.copy_weapon(uid, weapon_uid) {
+            Ok(new_uid) => json!({"ok": true, "uid": new_uid}),
+            Err(e) => json!({"ok": false, "error": e}),
+        }
+    })
+}
+
 // ─── Equips ─────────────────────────────────────────────
 
 #[tauri::command]
@@ -681,6 +691,16 @@ pub fn delete_equip(state: State<AppState>, uid: i64, equip_uid: i64) -> Value {
     with_manager(&state, |dm| {
         match dm.delete_equip(uid, equip_uid) {
             Ok(()) => json!({"ok": true}),
+            Err(e) => json!({"ok": false, "error": e}),
+        }
+    })
+}
+
+#[tauri::command]
+pub fn copy_equip(state: State<AppState>, uid: i64, equip_uid: i64) -> Value {
+    with_manager(&state, |dm| {
+        match dm.copy_equip(uid, equip_uid) {
+            Ok(new_uid) => json!({"ok": true, "uid": new_uid}),
             Err(e) => json!({"ok": false, "error": e}),
         }
     })

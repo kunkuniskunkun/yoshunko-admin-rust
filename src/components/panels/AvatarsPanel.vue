@@ -16,6 +16,7 @@ import SkeletonGrid from '@/components/shared/SkeletonGrid.vue'
 import { applyStaggeredAnimation, applyEditorSlideIn } from '@/composables/useStaggeredAnimation'
 
 const loading = ref(true)
+const refreshing = ref(false)
 const editorData = ref<AvatarDetail | null>(null)
 const editorLoading = ref(false)
 
@@ -215,6 +216,8 @@ async function refreshCache() {
     loading.value = false
     return
   }
+  if (refreshing.value) return
+  refreshing.value = true
   try {
     const data = await api.getAvatars(uid.value)
     avatarCache.value = data.avatars
@@ -222,6 +225,7 @@ async function refreshCache() {
   } catch (e: unknown) {
     toast('加载角色失败: ' + (e instanceof Error ? e.message : ''), 'error')
   }
+  refreshing.value = false
   loading.value = false
 }
 

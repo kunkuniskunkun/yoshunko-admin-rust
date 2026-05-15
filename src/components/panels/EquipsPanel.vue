@@ -14,6 +14,7 @@ import SkeletonGrid from '@/components/shared/SkeletonGrid.vue'
 import { applyStaggeredAnimation, applyEditorSlideIn } from '@/composables/useStaggeredAnimation'
 
 const loading = ref(true)
+const refreshing = ref(false)
 const editorData = ref<EquipDetail | null>(null)
 const editorLoading = ref(false)
 
@@ -397,6 +398,8 @@ async function refreshCache() {
     loading.value = false
     return
   }
+  if (refreshing.value) return
+  refreshing.value = true
   try {
     const data = await api.getEquips(uid.value)
     equipCache.value = data.equips
@@ -404,6 +407,7 @@ async function refreshCache() {
   } catch (e: unknown) {
     toast('加载驱动盘失败: ' + (e instanceof Error ? e.message : ''), 'error')
   }
+  refreshing.value = false
   loading.value = false
 }
 

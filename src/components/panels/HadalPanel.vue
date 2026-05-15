@@ -67,6 +67,10 @@ async function save() {
     <div class="page-header">
       <h2>防卫战·危局</h2>
       <span class="subtitle text-muted">修改 Zone ID 以切换期号，服务器热加载即时生效</span>
+      <div class="hadal-links">
+        <a class="hadal-link" @click.prevent="window.open('https://zzz.nanoka.cc/boss', '_blank')">CH Zone ID</a>
+        <a class="hadal-link" @click.prevent="window.open('https://www.buhflipexplode.org/home/', '_blank')">EN Zone ID</a>
+      </div>
     </div>
 
     <div v-if="loading" class="loading-wrap"><div class="spinner"></div></div>

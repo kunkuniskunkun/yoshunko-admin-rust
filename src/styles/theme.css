@@ -858,6 +858,14 @@ body {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-bg);
 }
+.hadal-links { display: flex; gap: 8px; margin-top: 6px; }
+.hadal-link {
+  font-size: 12px; color: var(--accent); cursor: pointer;
+  padding: 2px 8px; border-radius: var(--radius-xs);
+  border: 1px solid var(--accent); opacity: 0.7;
+  transition: opacity var(--transition-fast), background var(--transition-fast);
+}
+.hadal-link:hover { opacity: 1; background: var(--accent-bg); }
 
 /* ═══════════════════════════════════════════════════════
    Modal

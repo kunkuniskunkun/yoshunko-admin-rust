@@ -4,6 +4,18 @@
 
 ---
 
+## V0.702 (2026-05-15)
+
+### 进程检测修复 + 日志面板定位修复
+
+**Bug 修复**
+- 修复日志面板左侧溢出被导航栏覆盖：`left` 改为 `var(--sidebar-width)` 适配不同断点
+- 修复 Client 启动后检测不到进程：延迟 3 秒再查找 `ZenlessZoneZeroBeta.exe`，用后台线程避免阻塞
+- 修复单个停止按钮无效：停止时同时按 PID 和进程名（`taskkill /IM`）杀进程，处理 stale PID
+- `get_running_processes` 自动清理已退出的 stale PID
+
+---
+
 ## V0.701 (2026-05-15)
 
 ### 进程管理优化 + 日志查看器修复

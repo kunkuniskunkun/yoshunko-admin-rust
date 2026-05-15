@@ -69,7 +69,7 @@ pub fn run() {
             template_loader: tl,
             config_path,
             log_manager: lm,
-            running_processes: std::sync::Mutex::new(std::collections::HashMap::new()),
+            running_processes: std::sync::Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),
             cached_templates: std::sync::OnceLock::new(),
         })
         .invoke_handler(tauri::generate_handler![

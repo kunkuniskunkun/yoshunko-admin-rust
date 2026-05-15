@@ -21,7 +21,7 @@ pub struct AppState {
     pub config_path: String,
     pub cached_templates: std::sync::OnceLock<Value>,
     pub log_manager: crate::log_manager::LogManager,
-    pub running_processes: Mutex<std::collections::HashMap<String, u32>>,
+    pub running_processes: std::sync::Arc<Mutex<std::collections::HashMap<String, u32>>>,
 }
 
 // ─── Validation constants ──────────────────────────────────
@@ -853,12 +853,16 @@ pub fn launch_program_admin(state: State<AppState>, path: String) -> Value {
         // ShellExecuteW returns a value > 32 on success
         let result_val = result as isize;
         if result_val > 32 {
-            // Try to find the game process and store its PID
-            if let Some(pid) = find_process_pid("ZenlessZoneZeroBeta.exe") {
-                if let Ok(mut procs) = state.running_processes.lock() {
-                    procs.insert("client".to_string(), pid);
+            // Spawn a background thread to detect the game process after delay
+            let procs = std::sync::Arc::clone(&state.running_processes);
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_secs(3));
+                if let Some(pid) = find_process_pid("ZenlessZoneZeroBeta.exe") {
+                    if let Ok(mut p) = procs.lock() {
+                        p.insert("client".to_string(), pid);
+                    }
                 }
-            }
+            });
             json!({"ok": true})
         } else {
             json!({"ok": false, "error": format!("ShellExecuteW failed: code {}", result_val)})
@@ -957,9 +961,24 @@ fn find_process_pid(name: &str) -> Option<u32> {
 
 // ─── Process Management ─────────────────────────────────
 
+/// Check if a process with the given PID is still running.
+#[cfg(windows)]
+fn is_process_alive(pid: u32) -> bool {
+    std::process::Command::new("tasklist")
+        .args(&["/FI", &format!("PID eq {}", pid), "/FO", "CSV", "/NH"])
+        .output()
+        .map(|o| {
+            let stdout = String::from_utf8_lossy(&o.stdout);
+            stdout.lines().any(|l| l.trim().starts_with('"'))
+        })
+        .unwrap_or(false)
+}
+
 #[tauri::command]
 pub fn get_running_processes(state: State<AppState>) -> Value {
-    let procs = state.running_processes.lock().unwrap_or_else(|e| e.into_inner());
+    let mut procs = state.running_processes.lock().unwrap_or_else(|e| e.into_inner());
+    // Remove stale PIDs
+    procs.retain(|_, pid| is_process_alive(*pid));
     let map: serde_json::Map<String, Value> = procs.iter()
         .map(|(k, &pid)| (k.clone(), json!(pid)))
         .collect();
@@ -972,26 +991,39 @@ pub fn stop_process(state: State<AppState>, key: String) -> Value {
         let procs = state.running_processes.lock().unwrap_or_else(|e| e.into_inner());
         procs.get(&key).copied()
     };
-    if let Some(pid) = pid {
-        #[cfg(windows)]
-        {
+    #[cfg(windows)]
+    {
+        // Kill by PID if known
+        if let Some(pid) = pid {
             let _ = std::process::Command::new("taskkill")
                 .args(&["/PID", &pid.to_string(), "/F", "/T"])
                 .stdout(std::process::Stdio::null())
                 .stderr(std::process::Stdio::null())
                 .spawn();
         }
-        #[cfg(not(windows))]
-        {
+        // Also kill by name as fallback (handles stale PIDs and child processes)
+        let exe_name = match key.as_str() {
+            "client" => Some("ZenlessZoneZeroBeta.exe"),
+            _ => None,
+        };
+        if let Some(name) = exe_name {
+            let _ = std::process::Command::new("taskkill")
+                .args(&["/IM", name, "/F", "/T"])
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::null())
+                .spawn();
+        }
+    }
+    #[cfg(not(windows))]
+    {
+        if let Some(pid) = pid {
             let _ = std::process::Command::new("kill").arg(pid.to_string()).spawn();
         }
-        if let Ok(mut procs) = state.running_processes.lock() {
-            procs.remove(&key);
-        }
-        json!({"ok": true})
-    } else {
-        json!({"ok": false, "error": "进程未运行"})
     }
+    if let Ok(mut procs) = state.running_processes.lock() {
+        procs.remove(&key);
+    }
+    json!({"ok": true})
 }
 
 // ─── Log ───────────────────────────────────────────────

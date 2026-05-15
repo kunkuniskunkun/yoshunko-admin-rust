@@ -1729,7 +1729,7 @@ kbd {
 .fab-leave-to { opacity: 0; transform: scale(0.8); }
 
 /* Log viewer */
-.log-viewer-overlay { position: fixed; top: 36px; left: 49px; right: 0; bottom: 0; z-index: 100; background: var(--bg-main); display: flex; flex-direction: column; overflow: hidden; }
+.log-viewer-overlay { position: fixed; top: 36px; left: var(--sidebar-width); right: 0; bottom: 0; z-index: 100; background: var(--bg-main); display: flex; flex-direction: column; overflow: hidden; }
 .log-viewer-panel { display: flex; flex-direction: column; height: 100%; padding: 16px 20px; overflow: hidden; }
 .log-viewer-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .log-viewer-header h3 { margin: 0; font-size: 16px; }

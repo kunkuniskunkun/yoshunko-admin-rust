@@ -38,13 +38,13 @@ fn check_range(value: i64, min: i64, max: i64, name: &str) -> Result<(), String>
     }
 }
 
-// Helper: call f with DataManager reference, return error JSON on failure
+// Helper: call f with mutable DataManager reference, return error JSON on failure
 fn with_manager<F>(state: &AppState, f: F) -> Value
 where
-    F: FnOnce(&DataManager) -> Value,
+    F: FnOnce(&mut DataManager) -> Value,
 {
     match state.data_manager.lock() {
-        Ok(guard) => match guard.as_ref() {
+        Ok(mut guard) => match guard.as_mut() {
             Some(dm) => f(dm),
             None => json!({"ok": false, "error": "状态目录未配置"}),
         },

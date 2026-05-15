@@ -344,6 +344,20 @@ pub fn serialize_zon(value: &ZonValue) -> String {
     serialize_zon_with_indent(value, 0)
 }
 
+/// Serialize a BTreeMap as a ZON Object directly, avoiding clone.
+pub fn serialize_zon_object(obj: &BTreeMap<String, ZonValue>) -> String {
+    if obj.is_empty() {
+        ".{}".into()
+    } else {
+        let pad = "";
+        let inner_pad = "    ";
+        let fields: Vec<String> = obj.iter().map(|(k, v)| {
+            format!("{}.{} = {},", inner_pad, k, serialize_zon_with_indent(v, 1))
+        }).collect();
+        format!(".{{\n{}\n{}}}", fields.join("\n"), pad)
+    }
+}
+
 fn serialize_zon_with_indent(value: &ZonValue, indent: usize) -> String {
     let pad = "    ".repeat(indent);
     let inner_pad = "    ".repeat(indent + 1);

@@ -1,8 +1,8 @@
 // Data Manager — ZON file I/O with atomic writes, backups, and audit logging
 // Equivalent to Python data_manager.py
 
-use crate::zon::{parse_zon, serialize_zon, ZonValue};
-use std::collections::BTreeMap;
+use crate::zon::{parse_zon, serialize_zon_object, ZonValue};
+use std::collections::{BTreeMap, HashMap};
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -12,6 +12,7 @@ pub struct DataManager {
     #[allow(dead_code)]
     pub state_dir: String,
     player_dir: PathBuf,
+    cache: HashMap<PathBuf, BTreeMap<String, ZonValue>>,
 }
 
 impl DataManager {
@@ -20,6 +21,7 @@ impl DataManager {
         DataManager {
             state_dir: state_dir.to_string(),
             player_dir,
+            cache: HashMap::new(),
         }
     }
 
@@ -60,12 +62,12 @@ impl DataManager {
 
     // ─── Basic Info ───────────────────────────────────────
 
-    pub fn get_basic_info(&self, uid: i64) -> Option<BTreeMap<String, ZonValue>> {
+    pub fn get_basic_info(&mut self, uid: i64) -> Option<BTreeMap<String, ZonValue>> {
         let path = self.player_path(uid, "info", "");
         self.read_zon_obj(&path)
     }
 
-    pub fn update_basic_info(&self, uid: i64, data: &BTreeMap<String, ZonValue>) {
+    pub fn update_basic_info(&mut self, uid: i64, data: &BTreeMap<String, ZonValue>) {
         let path = self.player_path(uid, "info", "");
         self.write_zon(&path, data);
     }
@@ -77,12 +79,12 @@ impl DataManager {
         self.list_dir(&dir)
     }
 
-    pub fn get_avatar(&self, uid: i64, avatar_id: i64) -> Option<BTreeMap<String, ZonValue>> {
+    pub fn get_avatar(&mut self, uid: i64, avatar_id: i64) -> Option<BTreeMap<String, ZonValue>> {
         let path = self.player_path(uid, "avatar", &avatar_id.to_string());
         self.read_zon_obj(&path)
     }
 
-    pub fn update_avatar(&self, uid: i64, avatar_id: i64, data: &BTreeMap<String, ZonValue>) {
+    pub fn update_avatar(&mut self, uid: i64, avatar_id: i64, data: &BTreeMap<String, ZonValue>) {
         let path = self.player_path(uid, "avatar", &avatar_id.to_string());
         self.write_zon(&path, data);
     }
@@ -94,12 +96,12 @@ impl DataManager {
         self.list_dir(&dir)
     }
 
-    pub fn get_weapon(&self, uid: i64, weapon_uid: i64) -> Option<BTreeMap<String, ZonValue>> {
+    pub fn get_weapon(&mut self, uid: i64, weapon_uid: i64) -> Option<BTreeMap<String, ZonValue>> {
         let path = self.player_path(uid, "weapon", &weapon_uid.to_string());
         self.read_zon_obj(&path)
     }
 
-    pub fn update_weapon(&self, uid: i64, weapon_uid: i64, data: &BTreeMap<String, ZonValue>) {
+    pub fn update_weapon(&mut self, uid: i64, weapon_uid: i64, data: &BTreeMap<String, ZonValue>) {
         let path = self.player_path(uid, "weapon", &weapon_uid.to_string());
         self.write_zon(&path, data);
     }
@@ -111,25 +113,26 @@ impl DataManager {
         self.list_dir(&dir)
     }
 
-    pub fn get_equip(&self, uid: i64, equip_uid: i64) -> Option<BTreeMap<String, ZonValue>> {
+    pub fn get_equip(&mut self, uid: i64, equip_uid: i64) -> Option<BTreeMap<String, ZonValue>> {
         let path = self.player_path(uid, "equip", &equip_uid.to_string());
         self.read_zon_obj(&path)
     }
 
-    pub fn update_equip(&self, uid: i64, equip_uid: i64, data: &BTreeMap<String, ZonValue>) {
+    pub fn update_equip(&mut self, uid: i64, equip_uid: i64, data: &BTreeMap<String, ZonValue>) {
         let path = self.player_path(uid, "equip", &equip_uid.to_string());
         self.write_zon(&path, data);
     }
 
-    pub fn delete_equip(&self, uid: i64, equip_uid: i64) -> Result<(), String> {
+    pub fn delete_equip(&mut self, uid: i64, equip_uid: i64) -> Result<(), String> {
         let path = self.player_path(uid, "equip", &equip_uid.to_string());
         if path.exists() {
             fs::remove_file(&path).map_err(|e| e.to_string())?;
         }
+        self.cache.remove(&path);
         Ok(())
     }
 
-    pub fn create_equip(&self, uid: i64, data: &BTreeMap<String, ZonValue>) -> Result<i64, String> {
+    pub fn create_equip(&mut self, uid: i64, data: &BTreeMap<String, ZonValue>) -> Result<i64, String> {
         let equip_dir = self.player_dir.join(uid.to_string()).join("equip");
         fs::create_dir_all(&equip_dir).map_err(|e| format!("Cannot create equip dir: {}", e))?;
         let new_uid = self.next_uid(&equip_dir);
@@ -154,12 +157,12 @@ impl DataManager {
 
     // ─── Hadal Zone ───────────────────────────────────────
 
-    pub fn get_hadal_zone(&self, uid: i64) -> Option<BTreeMap<String, ZonValue>> {
+    pub fn get_hadal_zone(&mut self, uid: i64) -> Option<BTreeMap<String, ZonValue>> {
         let path = self.player_player_path(uid, "hadal_zone", "info");
         self.read_zon_obj(&path)
     }
 
-    pub fn update_hadal_zone(&self, uid: i64, data: &BTreeMap<String, ZonValue>) {
+    pub fn update_hadal_zone(&mut self, uid: i64, data: &BTreeMap<String, ZonValue>) {
         let path = self.player_player_path(uid, "hadal_zone", "info");
         self.write_zon(&path, data);
     }
@@ -186,14 +189,20 @@ impl DataManager {
         }
     }
 
-    fn read_zon_obj(&self, path: &Path) -> Option<BTreeMap<String, ZonValue>> {
+    fn read_zon_obj(&mut self, path: &Path) -> Option<BTreeMap<String, ZonValue>> {
+        if let Some(cached) = self.cache.get(path) {
+            return Some(cached.clone());
+        }
         match self.read_zon(path)? {
-            ZonValue::Object(obj) => Some(obj),
+            ZonValue::Object(obj) => {
+                self.cache.insert(path.to_path_buf(), obj.clone());
+                Some(obj)
+            }
             _ => None,
         }
     }
 
-    fn write_zon(&self, path: &Path, data: &BTreeMap<String, ZonValue>) {
+    fn write_zon(&mut self, path: &Path, data: &BTreeMap<String, ZonValue>) {
         // Backup (best-effort)
         let _ = self.backup_zon(path);
 
@@ -204,7 +213,7 @@ impl DataManager {
 
         // Atomic write: write to .tmp, then rename
         let tmp = path.with_extension("tmp");
-        let zon_str = serialize_zon(&ZonValue::Object(data.clone()));
+        let zon_str = serialize_zon_object(data);
         if let Ok(mut f) = fs::File::create(&tmp) {
             if f.write_all(zon_str.as_bytes()).is_err() || f.write_all(b"\n").is_err() {
                 let _ = fs::remove_file(&tmp);
@@ -217,6 +226,9 @@ impl DataManager {
             drop(f);
             let _ = fs::rename(&tmp, path);
         }
+
+        // Update cache
+        self.cache.insert(path.to_path_buf(), data.clone());
 
         // Audit log (best-effort)
         let _ = self.audit_log(path);

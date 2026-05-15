@@ -856,10 +856,15 @@ pub fn launch_program_admin(state: State<AppState>, path: String) -> Value {
             // Spawn a background thread to detect the game process after delay
             let procs = std::sync::Arc::clone(&state.running_processes);
             std::thread::spawn(move || {
-                std::thread::sleep(std::time::Duration::from_secs(3));
-                if let Some(pid) = find_process_pid("ZenlessZoneZeroBeta.exe") {
-                    if let Ok(mut p) = procs.lock() {
-                        p.insert("client".to_string(), pid);
+                // Poll for up to 10 seconds
+                for _ in 0..10 {
+                    std::thread::sleep(std::time::Duration::from_secs(1));
+                    if is_process_running("ZenlessZoneZeroBeta.exe") {
+                        // Use a sentinel PID (1) to mark "running by name"
+                        if let Ok(mut p) = procs.lock() {
+                            p.insert("client".to_string(), 1);
+                        }
+                        return;
                     }
                 }
             });
@@ -935,50 +940,38 @@ pub fn launch_yoshunko(state: State<AppState>) -> Value {
     }
 }
 
-/// Find a process PID by image name using tasklist. Returns None if not found.
+/// Check if a process with the given name is running.
 #[cfg(windows)]
-fn find_process_pid(name: &str) -> Option<u32> {
-    let output = std::process::Command::new("tasklist")
-        .args(&["/FI", &format!("IMAGENAME eq {}", name), "/FO", "CSV", "/NH"])
-        .output()
-        .ok()?;
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    for line in stdout.lines() {
-        let line = line.trim();
-        if line.starts_with('"') {
-            // CSV format: "name","pid",...
-            let parts: Vec<&str> = line.split(',').collect();
-            if parts.len() >= 2 {
-                let pid_str = parts[1].trim_matches('"');
-                if let Ok(pid) = pid_str.parse::<u32>() {
-                    return Some(pid);
-                }
-            }
-        }
-    }
-    None
-}
-
-// ─── Process Management ─────────────────────────────────
-
-/// Check if a process with the given PID is still running.
-#[cfg(windows)]
-fn is_process_alive(pid: u32) -> bool {
+fn is_process_running(name: &str) -> bool {
     std::process::Command::new("tasklist")
-        .args(&["/FI", &format!("PID eq {}", pid), "/FO", "CSV", "/NH"])
+        .args(&["/FI", &format!("IMAGENAME eq {}", name), "/NH"])
         .output()
         .map(|o| {
             let stdout = String::from_utf8_lossy(&o.stdout);
-            stdout.lines().any(|l| l.trim().starts_with('"'))
+            stdout.to_lowercase().contains(&name.to_lowercase())
         })
         .unwrap_or(false)
 }
 
+// ─── Process Management ─────────────────────────────────
+
 #[tauri::command]
 pub fn get_running_processes(state: State<AppState>) -> Value {
     let mut procs = state.running_processes.lock().unwrap_or_else(|e| e.into_inner());
-    // Remove stale PIDs
-    procs.retain(|_, pid| is_process_alive(*pid));
+    // Verify processes are still alive
+    procs.retain(|_key, pid| {
+        if *pid == 1 {
+            // Sentinel: check by process name
+            is_process_running("ZenlessZoneZeroBeta.exe")
+        } else {
+            // Check by PID
+            std::process::Command::new("tasklist")
+                .args(&["/FI", &format!("PID eq {}", pid), "/NH"])
+                .output()
+                .map(|o| String::from_utf8_lossy(&o.stdout).contains(&pid.to_string()))
+                .unwrap_or(false)
+        }
+    });
     let map: serde_json::Map<String, Value> = procs.iter()
         .map(|(k, &pid)| (k.clone(), json!(pid)))
         .collect();
@@ -993,22 +986,16 @@ pub fn stop_process(state: State<AppState>, key: String) -> Value {
     };
     #[cfg(windows)]
     {
-        // Kill by PID if known
-        if let Some(pid) = pid {
+        if key == "client" {
+            // Kill by process name (covers all instances)
             let _ = std::process::Command::new("taskkill")
-                .args(&["/PID", &pid.to_string(), "/F", "/T"])
+                .args(&["/IM", "ZenlessZoneZeroBeta.exe", "/F", "/T"])
                 .stdout(std::process::Stdio::null())
                 .stderr(std::process::Stdio::null())
                 .spawn();
-        }
-        // Also kill by name as fallback (handles stale PIDs and child processes)
-        let exe_name = match key.as_str() {
-            "client" => Some("ZenlessZoneZeroBeta.exe"),
-            _ => None,
-        };
-        if let Some(name) = exe_name {
+        } else if let Some(pid) = pid {
             let _ = std::process::Command::new("taskkill")
-                .args(&["/IM", name, "/F", "/T"])
+                .args(&["/PID", &pid.to_string(), "/F", "/T"])
                 .stdout(std::process::Stdio::null())
                 .stderr(std::process::Stdio::null())
                 .spawn();

@@ -14,27 +14,33 @@ const logTabs = [
 ]
 const showLogViewer = ref(false)
 const activeLogTab = ref('hoyosdk')
-const logFiles = ref<{ filename: string; display_name: string; size: number }[]>([])
 const selectedLogFile = ref('')
 const logContent = ref('')
 const logOffset = ref(0)
 const logLoading = ref(false)
 let pollTimer: ReturnType<typeof setInterval> | null = null
 
-async function loadLogList() {
+async function loadLatestLog() {
   try {
     const r = await api.listLogs(activeLogTab.value)
-    logFiles.value = r.logs || []
-    if (logFiles.value.length && !selectedLogFile.value) {
-      selectedLogFile.value = logFiles.value[logFiles.value.length - 1].filename
-      await loadLogContent(true)
+    const files = r.logs || []
+    if (files.length) {
+      const latest = files[files.length - 1].filename
+      if (latest !== selectedLogFile.value) {
+        selectedLogFile.value = latest
+        logContent.value = ''
+        logOffset.value = 0
+      }
+      await loadLogContent()
+    } else {
+      selectedLogFile.value = ''
+      logContent.value = ''
     }
   } catch {}
 }
 
-async function loadLogContent(reset = false) {
+async function loadLogContent() {
   if (!selectedLogFile.value) { logContent.value = ''; return }
-  if (reset) { logContent.value = ''; logOffset.value = 0 }
   logLoading.value = true
   try {
     const r = await api.readLog(selectedLogFile.value, logOffset.value)
@@ -48,14 +54,9 @@ async function loadLogContent(reset = false) {
   logLoading.value = false
 }
 
-function selectLogFile(filename: string) {
-  selectedLogFile.value = filename
-  loadLogContent(true)
-}
-
 function openLogViewer() {
   showLogViewer.value = true
-  loadLogList()
+  loadLatestLog()
   startPolling()
 }
 
@@ -66,9 +67,7 @@ function closeLogViewer() {
 
 function startPolling() {
   stopPolling()
-  pollTimer = setInterval(() => {
-    if (selectedLogFile.value) loadLogContent(false)
-  }, 3000)
+  pollTimer = setInterval(() => { loadLogContent() }, 3000)
 }
 
 function stopPolling() {
@@ -80,7 +79,7 @@ async function switchLogTab(key: string) {
   selectedLogFile.value = ''
   logContent.value = ''
   logOffset.value = 0
-  await loadLogList()
+  await loadLatestLog()
 }
 
 async function openLogDir() {
@@ -135,20 +134,13 @@ function goToShortcuts() {
         <div class="log-tabs">
           <button v-for="tab in logTabs" :key="tab.key" class="btn btn-sm"
             :class="activeLogTab === tab.key ? 'btn-primary' : 'btn-ghost'"
+            style="transition: none;"
             @click="switchLogTab(tab.key)">{{ tab.name }}</button>
         </div>
-        <div class="log-file-list">
-          <span class="log-file-label">日志文件：</span>
-          <button v-for="f in logFiles" :key="f.filename" class="btn btn-sm"
-            :class="selectedLogFile === f.filename ? 'btn-primary' : 'btn-ghost'"
-            @click="selectLogFile(f.filename)">{{ f.display_name }}</button>
-          <span v-if="!logFiles.length" class="text-muted text-xs">暂无日志</span>
-        </div>
-        <pre class="log-content">{{ logContent || '（暂无内容）' }}</pre>
+        <pre class="log-content">{{ logContent || '（暂无日志）' }}</pre>
         <div class="log-viewer-footer">
-          <button class="btn btn-ghost btn-sm" @click="loadLogContent(true)" :disabled="logLoading">刷新</button>
           <button class="btn btn-ghost btn-sm" @click="openLogDir">打开日志文件夹</button>
-          <span class="text-muted text-xs" style="margin-left:auto">每 3 秒自动刷新</span>
+          <span class="text-muted text-xs" style="margin-left:auto">自动刷新 · {{ selectedLogFile || '暂无日志文件' }}</span>
         </div>
       </div>
     </div>

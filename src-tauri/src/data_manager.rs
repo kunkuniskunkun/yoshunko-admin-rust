@@ -162,17 +162,49 @@ impl DataManager {
     }
 
     fn next_uid(&self, dir: &Path) -> i64 {
+        // Read counter from "next" file if it exists
+        let next_file = dir.join("next");
+        if let Ok(content) = fs::read_to_string(&next_file) {
+            if let Ok(val) = content.trim().parse::<i64>() {
+                if val > 0 {
+                    // Update counter: write val+1 atomically
+                    let tmp = next_file.with_extension("tmp");
+                    if let Ok(mut f) = fs::File::create(&tmp) {
+                        use std::io::Write;
+                        let _ = write!(f, "{}", val + 1);
+                        let _ = f.sync_all();
+                        drop(f);
+                        let _ = fs::rename(&tmp, &next_file);
+                    }
+                    return val;
+                }
+            }
+        }
+        // Fallback: scan directory for max ID
         let mut max_id = 0i64;
         if let Ok(entries) = fs::read_dir(dir) {
             for entry in entries.flatten() {
                 if let Ok(name) = entry.file_name().into_string() {
+                    if name == "next" || name.ends_with(".tmp") {
+                        continue;
+                    }
                     if let Ok(id) = name.parse::<i64>() {
                         max_id = max_id.max(id);
                     }
                 }
             }
         }
-        max_id.saturating_add(1)
+        let new_uid = max_id.saturating_add(1);
+        // Write counter file
+        let tmp = next_file.with_extension("tmp");
+        if let Ok(mut f) = fs::File::create(&tmp) {
+            use std::io::Write;
+            let _ = write!(f, "{}", new_uid + 1);
+            let _ = f.sync_all();
+            drop(f);
+            let _ = fs::rename(&tmp, &next_file);
+        }
+        new_uid
     }
 
     // ─── Hadal Zone ───────────────────────────────────────

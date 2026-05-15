@@ -1090,12 +1090,12 @@ body {
 
 /* Prop rows */
 .prop-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
-.prop-row .input-stepper { flex: 3; }
-.prop-header { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 4px; }
+.prop-row .input-stepper { flex: 4; justify-content: flex-start; }
+.prop-header { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 4px; }
 .prop-header span { font-size: 10px; text-transform: uppercase; color: var(--text-dim); font-weight: 600; letter-spacing: 0.5px; }
 .prop-header span:first-child { width: 24px; flex-shrink: 0; }
-.prop-header span:nth-child(2) { flex: 2; }
-.prop-header span:nth-child(3) { flex: 3; }
+.prop-header span:nth-child(2) { flex: 3; }
+.prop-header span:nth-child(3) { flex: 4; }
 .prop-header span:nth-child(4) { flex: 1; }
 
 .star-rating { display: inline-flex; gap: 1px; }
@@ -1533,7 +1533,7 @@ body {
 .empty-state__action { margin-top: var(--space-4); }
 
 /* Utility classes */
-.form-select--flex2 { flex: 2; }
+.form-select--flex2 { flex: 3; }
 .prop-value-readonly { flex: 1; text-align: center; }
 .prop-value-stepper { width: 40px; text-align: center; }
 .prop-add-label { font-size: 12px; width: 40px; text-align: center; }

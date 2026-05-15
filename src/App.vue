@@ -16,8 +16,14 @@ onMounted(async () => {
     win.onCloseRequested(async (event) => {
       if (dirty.value) {
         event.preventDefault()
-        const confirmed = await ask('有未保存的更改，确定要关闭吗？', { title: '未保存的更改', kind: 'warning' })
-        if (confirmed) {
+        try {
+          const confirmed = await ask('有未保存的更改，确定要关闭吗？', { title: '未保存的更改', kind: 'warning' })
+          if (confirmed) {
+            markClean()
+            await win.close()
+          }
+        } catch {
+          // Dialog failed — allow close anyway
           markClean()
           await win.close()
         }

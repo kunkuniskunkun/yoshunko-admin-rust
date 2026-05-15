@@ -4,6 +4,18 @@
 
 ---
 
+## V0.625 (2026-05-15)
+
+### 关闭按钮修复 + 副属性列对齐
+
+**Bug 修复**
+- 修复标题栏关闭按钮（X）无法关闭程序：dialog 插件缺少 capabilities 权限导致 `ask()` 抛异常，`preventDefault()` 后窗口永远无法关闭。添加 `dialog:default` + `dialog:allow-ask` 权限，并加 try-catch 兜底
+
+**UI 改进**
+- 副属性"属性"列加宽（flex: 3）、"强化次数"列对齐（flex: 4），header 与 row gap 统一为 8px
+
+---
+
 ## V0.624 (2026-05-15)
 
 ### 副属性编辑器布局 + 面板切换滚动修复

@@ -6,25 +6,38 @@
 
 ## V0.700 (2026-05-15)
 
-### 运行日志记录 + 音擎删除 + 复制功能
+### 运行日志系统 + 音擎删除/复制 + 数据同步全面修复
 
-**新功能**
-- 运行日志记录：HoyoSDK/Yoshunko/KCPSHIM/Client 启动后 stdout/stderr 自动写入 `exe_dir/logs/` 目录
-- Settings 面板新增"运行日志"区域：4 个标签页切换查看，支持增量刷新和打开日志文件夹
-- 日志按 5MB 大小轮转，保留最近 3 个备份，每行带时间戳
+**新功能 — 运行日志**
+- 每次启动生成独立日志文件（`{key}_{时间戳}.log`），保留最近 10 次，可回溯查看每次运行
+- 启动进程用 `CREATE_NO_WINDOW` 隐藏控制台窗口，stdout/stderr 全部进日志文件
+- Settings 面板点"查看运行日志"进入独立全屏视图：3 个标签页（HoyoSDK/Yoshunko/KCPSHIM），每个可选具体日志文件
+- 实时尾随模式：每 3 秒自动轮询刷新，新内容追加显示
+- Client（`ShellExecuteW` 管理员启动）暂不支持日志捕获
+
+**新功能 — 音擎/驱动盘操作**
 - 音擎编辑页新增"删除"按钮
-- 音擎/驱动盘编辑页新增"复制"按钮
+- 音擎/驱动盘编辑页新增"复制"按钮，复制后自动刷新仓库
 
 **后端改动**
-- 新增 `log_manager.rs`：日志文件管理（创建、轮转、增量读取）
-- `launch_program` / `launch_yoshunko` 去掉 `CREATE_NEW_CONSOLE`，stdout/stderr 重定向到日志文件
-- 新增 `read_log` / `get_log_dir` / `open_log_dir` / `delete_weapon` / `copy_weapon` / `copy_equip` 命令
-- `next_uid` 改为优先读取 `next` 计数文件，未命中则回退到目录扫描
+- 新增 `log_manager.rs`：独立日志文件管理（时间戳命名、文件列表、增量读取、自动清理旧文件）
+- `launch_program` / `launch_yoshunko` 用 `CREATE_NO_WINDOW` 替代 `CREATE_NEW_CONSOLE`，输出重定向到日志
+- 新增 `list_logs` / `read_log` / `get_log_dir` / `open_log_dir` 命令
+- 新增 `delete_weapon` / `copy_weapon` / `copy_equip` 命令
+- `next_uid` 优先读取 `next` 计数文件，未命中则回退到目录扫描
+- 更新角色/音擎/驱动盘/式舆防卫战采用"先读后合并再写入"策略，不再丢失未发送字段
+- `show_weapon_type` 和 `skill_type_level[].type` 自动转为 ZonEnum
+- 创建/更新驱动盘和音擎自动补全 `exp`/`lock` 默认值
 
 **Bug 修复**
-- 修复保存角色/音擎/驱动盘后仓库卡片数据不更新：保存后立即 refreshCache() 再切回仓库
+- 修复所有修改无法同步到游戏：后端合并现有数据后再写入
+- 修复保存角色/音擎/驱动盘后仓库卡片数据不更新：保存后立即 refreshCache()
 - 修复快速切换仓库时并发 API 请求导致卡顿：添加 refreshing 防重入锁
 - 修复创建驱动盘强化次数多 1：去掉提交时的多余 +1
+- 修复 `read_log` 轮转后 offset 卡死：offset 超出文件长度时重置为 0
+- 修复音擎删除后 dirty 标记未清除
+- 修复日志刷新按钮只做增量读取：改为全量重载
+- 修复 3 个损坏的音擎文件（uid 83/89/93）和 1 个损坏的驱动盘文件（uid 3）
 
 ---
 

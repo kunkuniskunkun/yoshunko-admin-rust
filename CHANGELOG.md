@@ -4,6 +4,26 @@
 
 ---
 
+## V0.620 (2026-05-15)
+
+### 性能优化 — 后端缓存 + 前端动画 + 构建优化
+
+**后端优化**
+- DataManager 新增内存缓存层：`read_zon_obj` 先查 HashMap 缓存，命中直接返回；`write_zon` 写入后同步更新缓存；`delete_equip` 后清除缓存条目
+- 消除 `write_zon` 中的 `data.clone()`：新增 `serialize_zon_object` 直接序列化 `&BTreeMap`，避免每次保存时完整克隆数据树
+- `get_templates` 结果缓存到 `OnceLock`：模板数据运行期间不变，首次计算后存入，后续调用直接返回
+- `with_manager` 改为传递 `&mut DataManager` 以支持缓存写入
+
+**前端优化**
+- 交错动画从 JS RAF 改为纯 CSS `animation-delay`：删除 `useStaggeredAnimation` 中的 `setTimeout` + 强制回流 + `requestAnimationFrame` 逻辑，改用 CSS `@keyframes cardEnter` + `.staggered-anim` 类，浏览器合成器线程处理动画
+- 修复 Sidebar watcher 的无效 `deep: true`：`shallowRef` 只跟踪 `.value` 引用替换，`deep: true` 是多余的深度遍历
+- Vite `manualChunks` 配置：分离 `pinyin-data` (11KB) 和 `naive-ui` (337KB) 为独立 chunk，不常变的内容可长期缓存
+
+**布局修复**
+- 修复标题栏占满半屏：`position: fixed` + `calc(100vh - 36px)` 绕开 naive-ui wrapper div 的 flex 高度链问题
+
+---
+
 ## V0.619 (2026-05-15)
 
 ### 关键布局修复 — 滚动 + 侧边栏 + 驱动盘编辑器

@@ -853,21 +853,10 @@ pub fn launch_program_admin(state: State<AppState>, path: String) -> Value {
         // ShellExecuteW returns a value > 32 on success
         let result_val = result as isize;
         if result_val > 32 {
-            // Spawn a background thread to detect the game process after delay
-            let procs = std::sync::Arc::clone(&state.running_processes);
-            std::thread::spawn(move || {
-                // Poll for up to 10 seconds
-                for _ in 0..10 {
-                    std::thread::sleep(std::time::Duration::from_secs(1));
-                    if is_process_running("ZenlessZoneZeroBeta.exe") {
-                        // Use a sentinel PID (1) to mark "running by name"
-                        if let Ok(mut p) = procs.lock() {
-                            p.insert("client".to_string(), 1);
-                        }
-                        return;
-                    }
-                }
-            });
+            // Mark as running immediately (admin process may not be visible to us)
+            if let Ok(mut procs) = state.running_processes.lock() {
+                procs.insert("client".to_string(), 1);
+            }
             json!({"ok": true})
         } else {
             json!({"ok": false, "error": format!("ShellExecuteW failed: code {}", result_val)})
@@ -958,13 +947,12 @@ fn is_process_running(name: &str) -> bool {
 #[tauri::command]
 pub fn get_running_processes(state: State<AppState>) -> Value {
     let mut procs = state.running_processes.lock().unwrap_or_else(|e| e.into_inner());
-    // Verify processes are still alive
-    procs.retain(|_key, pid| {
+    // Verify processes are still alive (skip client which uses sentinel PID)
+    procs.retain(|key, pid| {
         if *pid == 1 {
-            // Sentinel: check by process name
-            is_process_running("ZenlessZoneZeroBeta.exe")
+            // Client sentinel: assume running until explicitly stopped
+            key == "client"
         } else {
-            // Check by PID
             std::process::Command::new("tasklist")
                 .args(&["/FI", &format!("PID eq {}", pid), "/NH"])
                 .output()
@@ -987,12 +975,18 @@ pub fn stop_process(state: State<AppState>, key: String) -> Value {
     #[cfg(windows)]
     {
         if key == "client" {
-            // Kill by process name (covers all instances)
-            let _ = std::process::Command::new("taskkill")
-                .args(&["/IM", "ZenlessZoneZeroBeta.exe", "/F", "/T"])
-                .stdout(std::process::Stdio::null())
-                .stderr(std::process::Stdio::null())
-                .spawn();
+            // Game runs as admin — use ShellExecuteW(runas) to kill it
+            use std::ffi::OsStr;
+            use std::os::windows::ffi::OsStrExt;
+            use windows_sys::Win32::UI::Shell::ShellExecuteW;
+            use windows_sys::Win32::UI::WindowsAndMessaging::SW_HIDE;
+
+            let file_w: Vec<u16> = OsStr::new("taskkill").encode_wide().chain(Some(0)).collect();
+            let verb_w: Vec<u16> = OsStr::new("runas").encode_wide().chain(Some(0)).collect();
+            let args_w: Vec<u16> = OsStr::new("/IM ZenlessZoneZeroBeta.exe /F /T").encode_wide().chain(Some(0)).collect();
+            unsafe {
+                ShellExecuteW(std::ptr::null_mut(), verb_w.as_ptr(), file_w.as_ptr(), args_w.as_ptr(), std::ptr::null(), SW_HIDE);
+            }
         } else if let Some(pid) = pid {
             let _ = std::process::Command::new("taskkill")
                 .args(&["/PID", &pid.to_string(), "/F", "/T"])

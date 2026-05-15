@@ -6,12 +6,12 @@
 
 ## V0.703 (2026-05-15)
 
-### Client 进程检测修复 + 日志面板简化
+### Client 进程管理修复 + 日志面板简化
 
 **Bug 修复**
-- 修复 Client 启动后始终检测不到进程：改用按进程名检测（`tasklist` 直接匹配），不再依赖 CSV 解析
-- Client 停止改用 `taskkill /IM ZenlessZoneZeroBeta.exe /F` 直接按名杀进程
-- 启动 Client 后轮询 10 秒（每秒一次）直到检测到进程
+- 修复 Client 启动后检测不到进程：管理员进程对普通用户不可见，改为启动成功后直接标记为运行中
+- 修复 Client 无法停止：游戏以管理员权限运行，停止改用 `ShellExecuteW(runas)` 调用 `taskkill`，获得管理员权限杀进程
+- `get_running_processes` 对 Client 使用哨兵 PID，不再尝试检测（管理员进程不可见）
 
 **UI 简化**
 - 日志面板去掉文件列表，自动显示最新日志文件

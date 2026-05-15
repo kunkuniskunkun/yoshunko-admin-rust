@@ -22,6 +22,11 @@
 **布局修复**
 - 修复标题栏占满半屏：`position: fixed` + `calc(100vh - 36px)` 绕开 naive-ui wrapper div 的 flex 高度链问题
 
+**Bug 修复**
+- 修复快速启动全部业务不可用：`launch_program` 改为后端根据 key 查找路径并设置 cwd；`get_launch_config` 返回值包装 `{"config": ...}` 匹配前端；`launch_yoshunko` 从 `state_dir` 提取 WSL 路径不再硬编码；修复 `kcpsim` → `kcpshim` 拼写
+- 修复角色/音擎仓库偶尔不显示卡片：uid 切换时先清空缓存防止旧数据短路；`onActivated` 先 `await refreshCache()` 再 `nextTick` 触发动画
+- 删除驱动盘副属性编辑中的"基础值"列，仅保留属性选择和强化次数
+
 ---
 
 ## V0.619 (2026-05-15)

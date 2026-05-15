@@ -56,9 +56,9 @@ watch(configured, (val) => {
 })
 
 // 自动监听缓存变化，更新导航栏计数
-watch(avatarCache, () => updateCounts(), { deep: true })
-watch(weaponCache, () => updateCounts(), { deep: true })
-watch(equipCache, () => updateCounts(), { deep: true })
+watch(avatarCache, () => updateCounts())
+watch(weaponCache, () => updateCounts())
+watch(equipCache, () => updateCounts())
 </script>
 
 <template>

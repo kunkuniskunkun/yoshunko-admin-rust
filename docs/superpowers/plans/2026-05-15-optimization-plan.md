@@ -1,8 +1,8 @@
-# Yoshunko Admin Rust 版 — 深度优化建议（二次修订版）
+# Yoshunko Admin Rust 版 — 深度优化建议（三次修订版）
 
 > 基于对项目全部源码的逐行审阅，每条建议均经源码交叉验证。
-> 日期：2026-05-15 · 当前版本：V0.629
-> 二次修订说明：修正修订版中 7 处事实错误，新增「需求契合度」标注，补充遗漏问题
+> 日期：2026-05-15 · 当前版本：V0.630
+> 三次修订说明：基于 V0.630 代码变更全面复核，修正 5 处过时声明，新增 3 项已修复问题标注，补充新发现
 
 ---
 
@@ -79,12 +79,14 @@
 
 **优先级**：中 · **风险**：🟡 低风险 · **契合**：🔵 高契合 · **验证**：✅
 
-**现状**（已验证）：
-- `update_player_basic` 接受 `BTreeMap<String, ZonValue>` 并直接传给 `dm.update_basic_info`，无字段白名单（[api.rs:376-390](file:///d:/3.0.1/tools/yoshunko-admin-rust/src-tauri/src/api.rs#L376)）
-- `nickname` 后端无任何验证（无长度限制、无非空检查、无字符过滤），前端有 `!editNickname.value.trim()` 非空检查但无 maxlength（[PlayerPanel.vue:136](file:///d:/3.0.1/tools/yoshunko-admin-rust/src/components/panels/PlayerPanel.vue#L136)）
+**现状**（已验证，V0.630 更新）：
+- `update_player_basic` 接受 `BTreeMap<String, ZonValue>` 并直接传给 `dm.update_basic_info`，无字段白名单（[api.rs:375-389](file:///d:/3.0.1/tools/yoshunko-admin-rust/src-tauri/src/api.rs#L375)）
+- ✅ **V0.630 已改进**：新增验证常量（`MIN_LEVEL`/`MAX_LEVEL`/`MIN_STAR`/`MAX_STAR`/`MIN_REFINE`/`MAX_REFINE`/`MIN_RANK`/`MAX_RANK`/`MIN_PASSIVE`/`MAX_PASSIVE`/`MIN_EQUIP_LEVEL`/`MAX_EQUIP_LEVEL`/`MAX_EQUIP_STAR`）和 `check_range` 函数（[api.rs:25-45](file:///d:/3.0.1/tools/yoshunko-admin-rust/src-tauri/src/api.rs#L25)），avatar/weapon/equip 的 level/star/rank/refine/passive 等字段已有范围验证
+- `nickname` 后端仍无任何验证（无长度限制、无非空检查、无字符过滤），前端有 `!editNickname.value.trim()` 非空检查但无 maxlength（[PlayerPanel.vue:136](file:///d:/3.0.1/tools/yoshunko-admin-rust/src/components/panels/PlayerPanel.vue#L136)）
 - `set_state_dir` 只检查 `player/` 子目录存在，不验证路径是否含 `..` 或是否为绝对路径（[api.rs:104-130](file:///d:/3.0.1/tools/yoshunko-admin-rust/src-tauri/src/api.rs#L104)）
 - `create_equip` / `update_equip` 的 `properties` 数组无长度限制
-- `update_player_basic` 中 `exp` 和 `avatar_id` 的验证错误消息为英文（`"exp must be >= 0"`, `"avatar_id must be >= 0"`），与其他中文错误消息不一致
+- `update_player_basic` 中 `exp` 和 `avatar_id` 的验证错误消息仍为英文（`"exp must be >= 0"`, `"avatar_id must be >= 0"`），与其他中文错误消息不一致
+- ✅ **V0.630 已改进**：`update_avatar`/`update_weapon`/`update_equip`/`update_hadal_zone` 现在有 merge-with-existing 逻辑（先读取现有数据，覆盖更新字段，写入完整对象），避免了前端未发送的字段被丢失
 
 **问题**：
 - 前端可传入任意 key 写入 ZON 文件，可能写入游戏不识别的字段
@@ -97,25 +99,26 @@
 - `set_state_dir` 验证路径不含 `..` 且为绝对路径 → 🟢 无风险 · 🔵 高契合
 - `properties` 数组长度限制 → 🟡 需确认游戏实际允许的最大长度 · 🔵 高契合
 - 统一英文错误消息为中文 → 🟢 无风险 · 🔵 高契合
+- ~~update 命令未保留未发送字段~~ → ✅ V0.630 已通过 merge-with-existing 修复
 
 ### 1.4 配置文件写入竞态
 
 **优先级**：高 · **风险**：🟢 无风险 · **契合**：🔵 高契合 · **验证**：✅
 
-**现状**（已验证）：
-- `set_state_dir`（[api.rs:104-130](file:///d:/3.0.1/tools/yoshunko-admin-rust/src-tauri/src/api.rs#L104)）和 `set_launch_path`（[api.rs:671-694](file:///d:/3.0.1/tools/yoshunko-admin-rust/src-tauri/src/api.rs#L671)）各自独立读取 → 修改 → 写入 `config.json`
-- `get_launch_config`（[api.rs:662-668](file:///d:/3.0.1/tools/yoshunko-admin-rust/src-tauri/src/api.rs#L662)）读取时不加锁
+**现状**（已验证，V0.630 更新）：
+- `set_state_dir`（[api.rs:104-130](file:///d:/3.0.1/tools/yoshunko-admin-rust/src-tauri/src/api.rs#L104)）和 `set_launch_path`（[api.rs:731-754](file:///d:/3.0.1/tools/yoshunko-admin-rust/src-tauri/src/api.rs#L731)）各自独立读取 → 修改 → 写入 `config.json`
+- `get_launch_config`（[api.rs:722-728](file:///d:/3.0.1/tools/yoshunko-admin-rust/src-tauri/src/api.rs#L722)）读取时不加锁
 
 **问题**：
 - 理论上并发调用可能丢失修改，但实际上这两个操作都是用户手动触发，不会并发
-- ⚠️ **确认 Bug**：`set_state_dir` 会覆盖整个 config（只写 `state_dir` 和 `version`），如果之前有 `launch` 配置会被丢失
-- ⚠️ **版本硬编码**：`get_config`（[api.rs:75](file:///d:/3.0.1/tools/yoshunko-admin-rust/src-tauri/src/api.rs#L75)）和 `set_state_dir`（[api.rs:114](file:///d:/3.0.1/tools/yoshunko-admin-rust/src-tauri/src/api.rs#L114)）均硬编码 `"version": "V0.700"`，与实际应用版本 V0.629（来自 `tauri.conf.json`）不一致，版本升级时需手动同步两处
+- ⚠️ **确认 Bug（仍存在）**：`set_state_dir` 会覆盖整个 config（只写 `state_dir` 和 `version`），如果之前有 `launch` 配置会被丢失
+- ⚠️ **版本硬编码（部分修复）**：✅ V0.630 新增 `get_version` 命令（[api.rs:82-101](file:///d:/3.0.1/tools/yoshunko-admin-rust/src-tauri/src/api.rs#L82)）从 `tauri.conf.json` 动态读取版本号。但 `get_config`（[api.rs:75](file:///d:/3.0.1/tools/yoshunko-admin-rust/src-tauri/src/api.rs#L75)）和 `set_state_dir`（[api.rs:114](file:///d:/3.0.1/tools/yoshunko-admin-rust/src-tauri/src/api.rs#L114)）仍硬编码 `"V0.700"`，与实际版本 V0.630 不一致
 
 **建议**：
 - `set_state_dir` 应保留现有 config 中的 `launch` 字段 → 🟡 修复现有 bug · 🔵 高契合
 - `set_state_dir` 应读取现有 config 并只更新 `state_dir` 字段 → 🟢 无风险 · 🔵 高契合
 - 统一配置读写到带锁的 `ConfigManager` → 🟢 无风险 · ⚪ 低契合：当前无并发场景，优先级低
-- 版本号从 `tauri.conf.json` 或常量读取，避免硬编码 → 🟢 无风险 · 🔵 高契合
+- ✅ `get_version` 已动态读取版本号，`get_config` 和 `set_state_dir` 中的硬编码 `"V0.700"` 应改为调用 `get_version` 的格式化逻辑 → 🟢 无风险 · 🔵 高契合
 
 ### 1.5 审计日志改进
 
@@ -505,14 +508,14 @@
 
 | 编号 | 项目 | 风险 | 契合度 | 说明 |
 |------|------|------|--------|------|
-| 1.4 | set_state_dir 保留 launch 配置 + 版本号去硬编码 | 🟡 | 🔵 | 确认 Bug，数据丢失风险 |
-| 2.4 | HadalPanel/PlayerPanel onActivated | 🟡 | 🔵 | 确认 Bug，uid 切换后数据不刷新 |
+| 1.4 | set_state_dir 保留 launch 配置 + 版本号去硬编码 | 🟡 | 🔵 | 确认 Bug（仍存在），数据丢失风险 |
+| 2.4 | HadalPanel/PlayerPanel onActivated | 🟡 | 🔵 | 确认 Bug（仍存在），uid 切换后数据不刷新 |
 | 5.2 | 路径遍历防护 | 🟢 | 🔵 | 纯增量验证逻辑 |
 | 5.3 | 输入长度限制 + nickname 非空 | 🟢 | 🔵 | 纯增量 |
 | 1.2 | ZON 递归深度限制 | 🟢 | 🔵 | 纯增量防护 |
 | 2.3 | 硬编码 ID 提取为常量 | 🟢 | 🔵 | 纯重构 |
 | 7.1 | 实现 Ctrl+F | 🟢 | 🔵 | ShortcutsPanel 已声明但未实现 |
-| 4.3 | 后端错误消息统一中文 | 🟢 | 🔵 | 纯文本替换 |
+| 4.3 | 后端错误消息统一中文 | 🟢 | 🔵 | 纯文本替换（含 `exp must be >= 0` 等） |
 | 1.5 | 审计日志 join("..") 改 parent() | 🟢 | 🔵 | 纯重构 |
 
 ### 阶段二：体验改善与功能补全（2-3 天）
@@ -533,6 +536,14 @@
 | 3.1 | theme.css 拆分 | 🔴 | ⚪ | CSS 级联顺序敏感，1729 行对当前规模可管理 |
 | 2.2 | `(item as any)._i` 类型安全 | 🟡 | 🟡 | 模板和 computed 修改 |
 | 4.4 | 撤销栈实际接入 | 🟡 | 🟡 | 需设计快照策略 |
+
+### V0.630 已修复的问题
+
+| 编号 | 原问题 | 修复方式 |
+|------|--------|----------|
+| 1.3 | 后端无输入范围验证 | 新增 `check_range` + 13 个验证常量 |
+| 1.3 | update 命令未保留未发送字段 | 新增 merge-with-existing 逻辑 |
+| 1.4 | 版本号完全硬编码 | 新增 `get_version` 命令动态读取（`get_config`/`set_state_dir` 仍硬编码） |
 
 ### 暂不建议实施
 
@@ -570,15 +581,25 @@
 | 附录B | Vue 组件 20 个 | 实际 21 个 | Glob 确认 |
 | 1.4 | 未提及版本硬编码问题 | `get_config` 和 `set_state_dir` 硬编码 `"V0.700"`，与实际版本 V0.629 不一致 | api.rs:75 和 api.rs:114 |
 
+### 三次修订修正（5 处）
+
+| 编号 | 二次修订声明 | 修正后 | 依据 |
+|------|-------------|--------|------|
+| 全文 | 版本 V0.629 | V0.630 | tauri.conf.json `0.630.0` |
+| 1.3 | 后端无验证常量 | V0.630 新增 `check_range` + 13 个验证常量 | api.rs:25-45 |
+| 1.3 | update 命令未保留未发送字段 | V0.630 已通过 merge-with-existing 修复 | api.rs:485/563/642/706 |
+| 1.4 | 版本号完全硬编码 | V0.630 新增 `get_version` 动态读取，但 `get_config`/`set_state_dir` 仍硬编码 | api.rs:82-101 |
+| 附录B | api.rs 916 行 / IPC 命令 31 | api.rs 977 行 / IPC 命令 32 | PowerShell 计数 / lib.rs 注册列表 |
+
 ## 附录 B：代码度量
 
 | 指标 | 数值 | 验证方式 |
 |------|------|----------|
 | Rust 源文件 | 6 | LS 确认（含 main.rs 6 行入口） |
-| Rust 总行数 | ~1,932 | api.rs 916 + data_manager.rs 289 + zon.rs 393 + template_loader.rs 222 + lib.rs 106 + main.rs 6 |
+| Rust 总行数 | ~1,993 | api.rs 977 + data_manager.rs 289 + zon.rs 393 + template_loader.rs 222 + lib.rs 106 + main.rs 6 |
 | Vue 组件 | 21 | Glob 确认 |
 | CSS 总行数 | 1,729 | PowerShell 计数 |
-| IPC 命令数 | 31 | lib.rs 注册列表 |
+| IPC 命令数 | 32 | lib.rs 注册列表（V0.630 新增 `get_version`） |
 | 未使用 CSS 变量 | 3 | `--transition-bounce`、`--z-sticky`、`--z-dropdown` |
 | 硬编码魔数 | 2 处 | avatar_id 2071/2121、weapon id 12000-12999 |
-| 硬编码版本号 | 2 处 | `get_config` 和 `set_state_dir` 中的 `"V0.700"` |
+| 硬编码版本号 | 2 处 | `get_config` 和 `set_state_dir` 中的 `"V0.700"`（`get_version` 已动态读取） |

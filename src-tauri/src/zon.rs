@@ -219,14 +219,17 @@ pub fn parse_zon(text: &str) -> Result<ZonValue, String> {
     parser.parse_value()
 }
 
+const MAX_DEPTH: usize = 64;
+
 struct ZonParser {
     tokens: Vec<(Token, usize)>,
     pos: usize,
+    depth: usize,
 }
 
 impl ZonParser {
     fn new(tokens: Vec<(Token, usize)>) -> Self {
-        ZonParser { tokens, pos: 0 }
+        ZonParser { tokens, pos: 0, depth: 0 }
     }
 
     fn peek(&self) -> Option<&Token> {
@@ -271,16 +274,18 @@ impl ZonParser {
     }
 
     fn parse_brace(&mut self) -> Result<ZonValue, String> {
+        if self.depth >= MAX_DEPTH {
+            return Err(format!("嵌套深度超过限制 ({})", MAX_DEPTH));
+        }
+        self.depth += 1;
         self.advance(); // skip {
-        match self.peek() {
+        let result = match self.peek() {
             Some(Token::RBrace) => {
                 self.advance();
-                return Ok(ZonValue::Object(BTreeMap::new()));
+                Ok(ZonValue::Object(BTreeMap::new()))
             }
-            Some(Token::LBrace) => return self.parse_array(),
+            Some(Token::LBrace) => self.parse_array(),
             Some(Token::DotId(_)) => {
-                // Check if next token after DotId looks like a struct key (= value)
-                // or just an enum value in an array
                 let saved_pos = self.pos;
                 self.advance();
                 let is_struct = match self.peek() {
@@ -288,15 +293,17 @@ impl ZonParser {
                     | Some(Token::Int(_)) | Some(Token::Bool(_)) | Some(Token::Null) => true,
                     Some(Token::RBrace) | None => false,
                 };
-                self.pos = saved_pos; // restore position
+                self.pos = saved_pos;
                 if is_struct {
-                    return self.parse_struct();
+                    self.parse_struct()
                 } else {
-                    return self.parse_array();
+                    self.parse_array()
                 }
             }
-            _ => return self.parse_array(),
-        }
+            _ => self.parse_array(),
+        };
+        self.depth -= 1;
+        result
     }
 
     fn parse_array(&mut self) -> Result<ZonValue, String> {

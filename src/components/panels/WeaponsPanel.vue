@@ -22,8 +22,11 @@ const editRefine = ref(1)
 
 const PROFESSION_ORDER = ['强攻', '击破', '异常', '支援', '防护', '命破']
 
+const NPC_WEAPON_ID_MIN = 12000 // NPC 音擎 ID 范围起始
+const NPC_WEAPON_ID_MAX = 12999 // NPC 音擎 ID 范围结束
+
 const filteredWeapons = computed(() => {
-  let list = weaponCache.value.filter(w => w.id < 12000 || w.id > 12999)
+  let list = weaponCache.value.filter(w => w.id < NPC_WEAPON_ID_MIN || w.id > NPC_WEAPON_ID_MAX)
   list.sort((a, b) => b.uid - a.uid)
   const q = searchQuery.weapons.toLowerCase()
   if (q) {

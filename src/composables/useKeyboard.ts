@@ -48,6 +48,14 @@ export function useKeyboard(opts: {
       if (snap) snap.restore()
       return
     }
+
+    // Ctrl+F: focus search input
+    if (e.ctrlKey && e.key === 'f') {
+      e.preventDefault()
+      const input = document.querySelector('.search-input') as HTMLInputElement | null
+      if (input) { input.focus(); input.select() }
+      return
+    }
   }
 
   onMounted(() => document.addEventListener('keydown', handler))

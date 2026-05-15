@@ -40,8 +40,10 @@ const SKILL_NAMES: Record<string, string> = {
   core_skill: '核心被动',
 }
 
+const EXCLUDED_AVATAR_IDS = [2071, 2121] // NPC 角色，不可编辑
+
 const filteredAvatars = computed(() => {
-  let list = avatarCache.value.filter(a => a.avatar_id !== 2071 && a.avatar_id !== 2121)
+  let list = avatarCache.value.filter(a => !EXCLUDED_AVATAR_IDS.includes(a.avatar_id))
   const q = searchQuery.avatars.toLowerCase()
   if (q) {
     list = list.filter(a => {

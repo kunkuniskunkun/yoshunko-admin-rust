@@ -331,18 +331,18 @@ impl DataManager {
         use chrono::Local;
         use std::io::Write;
 
-        let audit_dir = self.player_dir.join("..").join("audit.log");
+        let audit_path = self.player_dir.parent().unwrap_or(&self.player_dir).join("audit.log");
         let ts = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         let entry = format!("[{}] WRITE {} {}\n", ts, path.display(), Local::now().format("%z"));
 
         // Rotate if > 1MB
-        if let Ok(meta) = fs::metadata(&audit_dir) {
+        if let Ok(meta) = fs::metadata(&audit_path) {
             if meta.len() > 1_000_000 {
-                let _ = fs::rename(&audit_dir, audit_dir.with_extension("log.old"));
+                let _ = fs::rename(&audit_path, audit_path.with_extension("log.old"));
             }
         }
 
-        if let Ok(mut f) = fs::OpenOptions::new().create(true).append(true).open(&audit_dir) {
+        if let Ok(mut f) = fs::OpenOptions::new().create(true).append(true).open(&audit_path) {
             let _ = f.write_all(entry.as_bytes());
         }
         Ok(())

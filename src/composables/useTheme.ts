@@ -32,7 +32,7 @@ export function setTheme(target: 'light' | 'dark') {
   const overlay = document.createElement('div')
   overlay.className = 'theme-fade-overlay'
   overlay.style.background = oldBg
-  overlay.style.opacity = '0.92'
+  overlay.style.opacity = '1'
   document.body.appendChild(overlay)
 
   // overlay 出现后再切换主题
@@ -43,10 +43,10 @@ export function setTheme(target: 'light' | 'dark') {
       try { localStorage.setItem('yos-theme', target) } catch {}
 
       // overlay 渐隐
-      overlay.style.transition = 'opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1)'
+      overlay.style.transition = 'opacity 0.75s cubic-bezier(0.4, 0, 0.2, 1)'
       overlay.style.opacity = '0'
       overlay.addEventListener('transitionend', () => overlay.remove())
-      setTimeout(() => { if (overlay.parentNode) overlay.remove() }, 750)
+      setTimeout(() => { if (overlay.parentNode) overlay.remove() }, 850)
     })
   })
 }

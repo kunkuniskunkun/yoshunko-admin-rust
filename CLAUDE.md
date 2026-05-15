@@ -50,7 +50,7 @@ Key pattern: `AppState` holds `Option<DataManager>` and `TemplateLoader`. Comman
 |---|---|
 | `composables/useAppState.ts` | Core state singleton — uid, panel, templates, caches, dirty tracking, undo stack (max 20), computed avatarMap/weaponMap |
 | `composables/useTheme.ts` | Light/dark theme with localStorage persistence |
-| `composables/useKeyboard.ts` | Global shortcuts (1-7 panel switch, Ctrl+S save, Ctrl+Z undo, ESC back) |
+| `composables/useKeyboard.ts` | Global shortcuts (1-7 panel switch, Ctrl+S save, Ctrl+Z undo, Ctrl+F search, ESC back) |
 | `lib/api.ts` | Typed wrappers around `@tauri-apps/api/core` invoke() for all 31 commands |
 | `lib/types.ts` | TypeScript interfaces matching Rust backend JSON responses |
 | `components/layout/` | TitleBar (frameless window controls), Sidebar (nav + player select), MainContent (panel router with lazy loading) |
@@ -78,7 +78,7 @@ No database. ZON files stored at `{state_dir}/player/{uid}/`:
 
 ## Versioning Rules
 
-- **当前版本**: v0.703-r
+- **当前版本**: v0.704-r
 - **版本号格式**: `主版本.次版本.修订号`（如 `0.615.0`），显示为 `v0.615-r`
 - **递增规则**: 每次针对底层代码（Rust 后端、核心逻辑、数据结构、IPC 接口等）的修改需递增修订号
 - **满30进1**: 修订号满30则次版本+1，修订号归0（如 `0.629` → `0.700`）

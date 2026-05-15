@@ -4,6 +4,30 @@
 
 ---
 
+## V0.704 (2026-05-15)
+
+### Bug 修复 + 代码健壮性改进
+
+**Bug 修复**
+- 修复 `set_state_dir` 覆盖整个 config.json 导致 `launch` 配置丢失：改为读取现有配置后只更新 `state_dir` 和 `version` 字段
+- 修复 `get_config` 和 `set_state_dir` 硬编码版本号 `"V0.700"`：提取 `format_version()` 函数，统一从 `tauri.conf.json` 动态读取
+- 修复 HadalPanel 切 uid 后再切回显示旧玩家数据：添加 `onActivated` 和 `watch(uid)` 重新加载
+- 修复 PlayerPanel 切 uid 后再切回显示旧玩家数据：添加 `onActivated` 和 `watch(uid)` 重新加载
+- 修复主题切换时部分元素瞬间切换无动画：overlay 透明度从 0.92 改为 1.0，完全遮挡底层颜色变化；动画时长调整为 0.75s
+
+**代码健壮性**
+- ZON 解析器添加递归深度限制（max_depth=64），防止恶意嵌入导致栈溢出
+- `set_state_dir` 添加路径遍历校验，拒绝包含 `..` 的路径
+- 后端错误消息统一为中文（`check_range`、`set_state_dir`、`set_launch_path`、`update_player_basic`）
+- 审计日志路径 `join("..")` 改为 `parent()`，变量名 `audit_dir` 改为 `audit_path`
+
+**前端改进**
+- 实现 Ctrl+F 聚焦当前面板搜索框（ShortcutsPanel 已声明但此前未实现）
+- 硬编码过滤 ID 提取为命名常量：`EXCLUDED_AVATAR_IDS`（2071/2121 NPC 角色）、`NPC_WEAPON_ID_MIN/MAX`（12000-12999 NPC 音擎）
+- 删除未使用的 CSS 变量：`--transition-bounce`、`--z-sticky`、`--z-dropdown`
+
+---
+
 ## V0.703 (2026-05-15)
 
 ### Client 进程管理修复 + 日志面板简化

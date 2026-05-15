@@ -41,9 +41,28 @@ const MAX_EQUIP_STAR: i64 = 5;
 
 fn check_range(value: i64, min: i64, max: i64, name: &str) -> Result<(), String> {
     if value < min || value > max {
-        Err(format!("{} must be between {} and {}, got {}", name, min, max, value))
+        Err(format!("{} 必须在 {} 到 {} 之间，当前值: {}", name, min, max, value))
     } else {
         Ok(())
+    }
+}
+
+fn format_version() -> String {
+    let config_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tauri.conf.json");
+    let version = std::fs::read_to_string(&config_path)
+        .ok()
+        .and_then(|s| {
+            let v: serde_json::Value = serde_json::from_str(&s).ok()?;
+            v.get("version")?.as_str().map(|s| s.to_string())
+        })
+        .unwrap_or_else(|| "0.0.0".to_string());
+    let parts: Vec<&str> = version.split('.').collect();
+    if parts.len() >= 2 {
+        let major = parts[0];
+        let minor = parts[1].parse::<u32>().unwrap_or(0);
+        format!("V{}.{:03}", major, minor)
+    } else {
+        format!("V{}", version)
     }
 }
 
@@ -75,7 +94,7 @@ pub fn get_config(state: State<AppState>) -> Value {
     json!({
         "configured": dm_configured,
         "state_dir": state_dir,
-        "version": "V0.700",
+        "version": format_version(),
         "config_exists": std::fs::metadata(&state.config_path).is_ok(),
         "launch_config": launch_config
     })
@@ -83,24 +102,7 @@ pub fn get_config(state: State<AppState>) -> Value {
 
 #[tauri::command]
 pub fn get_version() -> Value {
-    let config_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tauri.conf.json");
-    let version = std::fs::read_to_string(&config_path)
-        .ok()
-        .and_then(|s| {
-            let v: serde_json::Value = serde_json::from_str(&s).ok()?;
-            v.get("version")?.as_str().map(|s| s.to_string())
-        })
-        .unwrap_or_else(|| "0.0.0".to_string());
-    // Format as "Vx.yyy" — e.g. "0.615.0" → "V0.615"
-    let parts: Vec<&str> = version.split('.').collect();
-    let formatted = if parts.len() >= 2 {
-        let major = parts[0];
-        let minor = parts[1].parse::<u32>().unwrap_or(0);
-        format!("V{}.{:03}", major, minor)
-    } else {
-        format!("V{}", version)
-    };
-    json!({"version": formatted})
+    json!({"version": format_version()})
 }
 
 #[tauri::command]
@@ -109,21 +111,30 @@ pub fn set_state_dir(state: State<AppState>, path: String) -> Value {
     if path.is_empty() {
         return json!({"ok": false, "error": "路径不能为空"});
     }
+    if path.contains("..") {
+        return json!({"ok": false, "error": "路径不能包含 .."});
+    }
     let player_dir = std::path::Path::new(path).join("player");
     if !player_dir.is_dir() {
         return json!({"ok": false, "error": format!("目录下未找到 player/ 子目录: {}", path)});
     }
     let dm = DataManager::new(path);
-    let config = json!({"state_dir": path, "version": "V0.700"});
+    // Read existing config to preserve launch fields
+    let mut config_map: serde_json::Map<String, serde_json::Value> = std::fs::read_to_string(&state.config_path)
+        .ok()
+        .and_then(|s| serde_json::from_str(&s).ok())
+        .unwrap_or_default();
+    config_map.insert("state_dir".to_string(), json!(path));
+    config_map.insert("version".to_string(), json!(format_version()));
     let tmp = format!("{}.tmp", state.config_path);
     if let Ok(mut f) = std::fs::File::create(&tmp) {
-        if serde_json::to_writer_pretty(&mut f, &config).is_err() {
+        if serde_json::to_writer_pretty(&mut f, &config_map).is_err() {
             let _ = std::fs::remove_file(&tmp);
-            return json!({"ok": false, "error": "Failed to write config"});
+            return json!({"ok": false, "error": "写入配置失败"});
         }
         if std::fs::rename(&tmp, &state.config_path).is_err() {
             let _ = std::fs::remove_file(&tmp);
-            return json!({"ok": false, "error": "Failed to save config"});
+            return json!({"ok": false, "error": "保存配置失败"});
         }
     }
     if let Ok(mut guard) = state.data_manager.lock() {
@@ -381,10 +392,10 @@ pub fn update_player_basic(state: State<AppState>, uid: i64, data: BTreeMap<Stri
             if let Err(e) = check_range(v, MIN_LEVEL, MAX_LEVEL, "level") { return json!({"ok": false, "error": e}); }
         }
         if let Some(v) = data.get("exp").and_then(|v| v.as_i64()) {
-            if v < 0 { return json!({"ok": false, "error": "exp must be >= 0"}); }
+            if v < 0 { return json!({"ok": false, "error": "经验值不能为负数"}); }
         }
         if let Some(v) = data.get("avatar_id").and_then(|v| v.as_i64()) {
-            if v < 0 { return json!({"ok": false, "error": "avatar_id must be >= 0"}); }
+            if v < 0 { return json!({"ok": false, "error": "角色 ID 不能为负数"}); }
         }
         dm.update_basic_info(uid, &data);
         json!({"ok": true})
@@ -776,11 +787,11 @@ pub fn set_launch_path(state: State<AppState>, key: String, path: String) -> Val
     if let Ok(mut f) = std::fs::File::create(&tmp) {
         if serde_json::to_writer_pretty(&mut f, &config_map).is_err() {
             let _ = std::fs::remove_file(&tmp);
-            return json!({"ok": false, "error": "Failed to write config"});
+            return json!({"ok": false, "error": "写入配置失败"});
         }
         if std::fs::rename(&tmp, &state.config_path).is_err() {
             let _ = std::fs::remove_file(&tmp);
-            return json!({"ok": false, "error": "Failed to save config"});
+            return json!({"ok": false, "error": "保存配置失败"});
         }
     }
     json!({"ok": true})

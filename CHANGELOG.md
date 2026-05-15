@@ -15,6 +15,11 @@
 - 实时尾随模式：每 3 秒自动轮询刷新，新内容追加显示
 - Client（`ShellExecuteW` 管理员启动）暂不支持日志捕获
 
+**新功能 — 进程管理**
+- 快速启动面板显示运行状态：运行中的进程标绿"运行中"，按钮变为"停止"
+- 停止按钮用 `taskkill` 杀进程树（含子进程），可随时关闭隐式运行的服务
+- 切到快速启动面板时自动刷新运行状态
+
 **新功能 — 音擎/驱动盘操作**
 - 音擎编辑页新增"删除"按钮
 - 音擎/驱动盘编辑页新增"复制"按钮，复制后自动刷新仓库
@@ -23,6 +28,7 @@
 - 新增 `log_manager.rs`：独立日志文件管理（时间戳命名、文件列表、增量读取、自动清理旧文件）
 - `launch_program` / `launch_yoshunko` 用 `CREATE_NO_WINDOW` 替代 `CREATE_NEW_CONSOLE`，输出重定向到日志
 - 新增 `list_logs` / `read_log` / `get_log_dir` / `open_log_dir` 命令
+- 新增 `get_running_processes` / `stop_process` 命令，AppState 存储已启动进程 PID
 - 新增 `delete_weapon` / `copy_weapon` / `copy_equip` 命令
 - `next_uid` 优先读取 `next` 计数文件，未命中则回退到目录扫描
 - 更新角色/音擎/驱动盘/式舆防卫战采用"先读后合并再写入"策略，不再丢失未发送字段
@@ -37,6 +43,7 @@
 - 修复 `read_log` 轮转后 offset 卡死：offset 超出文件长度时重置为 0
 - 修复音擎删除后 dirty 标记未清除
 - 修复日志刷新按钮只做增量读取：改为全量重载
+- 修复日志查看器溢出导致底部按钮被遮挡
 - 修复 3 个损坏的音擎文件（uid 83/89/93）和 1 个损坏的驱动盘文件（uid 3）
 
 ---

@@ -1729,9 +1729,17 @@ kbd {
 .fab-leave-to { opacity: 0; transform: scale(0.8); }
 
 /* Log viewer */
-.log-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+.log-viewer-overlay { position: fixed; inset: 0; z-index: 100; background: var(--bg-main, #f8f8f8); display: flex; flex-direction: column; }
+.log-viewer-panel { display: flex; flex-direction: column; height: 100%; padding: 16px 20px; }
+.log-viewer-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.log-viewer-header h3 { margin: 0; font-size: 16px; }
+.log-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
 .log-tabs .btn-sm { font-size: 12px; padding: 3px 10px; }
-.log-viewer {
+.log-file-list { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.log-file-label { font-size: 12px; color: var(--text-dim, #999); }
+.log-file-list .btn-sm { font-size: 11px; padding: 2px 8px; }
+.log-content {
+  flex: 1;
   background: var(--bg-input, #f5f5f5);
   border: 1px solid var(--border-color, #e0e0e0);
   border-radius: var(--radius-sm, 4px);
@@ -1739,10 +1747,11 @@ kbd {
   font-family: 'Consolas', 'Courier New', monospace;
   font-size: 12px;
   line-height: 1.5;
-  max-height: 320px;
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-all;
   color: var(--text-primary, #333);
   margin: 0;
+  min-height: 200px;
 }
+.log-viewer-footer { display: flex; align-items: center; gap: 8px; margin-top: 10px; }

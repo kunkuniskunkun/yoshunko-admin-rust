@@ -72,8 +72,10 @@ export const api = {
   launchYoshunko: () => invoke<{ ok: boolean; error?: string }>('launch_yoshunko'),
 
   // Logs
-  readLog: (key: string, offset: number) =>
-    invoke<{ content: string; offset: number }>('read_log', { key, offset }),
+  listLogs: (key: string) =>
+    invoke<{ logs: { filename: string; display_name: string; size: number }[] }>('list_logs', { key }),
+  readLog: (filename: string, offset: number) =>
+    invoke<{ content: string; offset: number }>('read_log', { filename, offset }),
   getLogDir: () => invoke<{ path: string }>('get_log_dir'),
   openLogDir: () => invoke<{ ok: boolean }>('open_log_dir'),
 }

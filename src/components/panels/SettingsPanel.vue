@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onActivated, watch, nextTick } from 'vue'
+import { ref, onMounted, onActivated, onDeactivated } from 'vue'
 import { panel, avatarCache, weaponCache, equipCache, cacheDirty } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast, showConfirm } from '@/lib/utils'
@@ -11,21 +11,33 @@ const logTabs = [
   { key: 'hoyosdk', name: 'HoyoSDK' },
   { key: 'yoshunko', name: 'Yoshunko' },
   { key: 'kcpshim', name: 'KCPSHIM' },
-  { key: 'client', name: 'Client' },
 ]
+const showLogViewer = ref(false)
 const activeLogTab = ref('hoyosdk')
+const logFiles = ref<{ filename: string; display_name: string; size: number }[]>([])
+const selectedLogFile = ref('')
 const logContent = ref('')
 const logOffset = ref(0)
 const logLoading = ref(false)
+let pollTimer: ReturnType<typeof setInterval> | null = null
 
-async function loadLog(reset = false) {
-  if (reset) {
-    logContent.value = ''
-    logOffset.value = 0
-  }
+async function loadLogList() {
+  try {
+    const r = await api.listLogs(activeLogTab.value)
+    logFiles.value = r.logs || []
+    if (logFiles.value.length && !selectedLogFile.value) {
+      selectedLogFile.value = logFiles.value[logFiles.value.length - 1].filename
+      await loadLogContent(true)
+    }
+  } catch {}
+}
+
+async function loadLogContent(reset = false) {
+  if (!selectedLogFile.value) { logContent.value = ''; return }
+  if (reset) { logContent.value = ''; logOffset.value = 0 }
   logLoading.value = true
   try {
-    const r = await api.readLog(activeLogTab.value, logOffset.value)
+    const r = await api.readLog(selectedLogFile.value, logOffset.value)
     if (r.content) {
       logContent.value += r.content
       logOffset.value = r.offset
@@ -36,20 +48,48 @@ async function loadLog(reset = false) {
   logLoading.value = false
 }
 
-async function openLogDir() {
-  try {
-    await api.openLogDir()
-  } catch {
-    toast('无法打开日志目录', 'error')
-  }
+function selectLogFile(filename: string) {
+  selectedLogFile.value = filename
+  loadLogContent(true)
 }
 
-watch(activeLogTab, () => loadLog(true))
+function openLogViewer() {
+  showLogViewer.value = true
+  loadLogList()
+  startPolling()
+}
 
-onActivated(() => {
-  nextTick(() => loadLog(true))
-})
+function closeLogViewer() {
+  showLogViewer.value = false
+  stopPolling()
+}
 
+function startPolling() {
+  stopPolling()
+  pollTimer = setInterval(() => {
+    if (selectedLogFile.value) loadLogContent(false)
+  }, 3000)
+}
+
+function stopPolling() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null }
+}
+
+async function switchLogTab(key: string) {
+  activeLogTab.value = key
+  selectedLogFile.value = ''
+  logContent.value = ''
+  logOffset.value = 0
+  await loadLogList()
+}
+
+async function openLogDir() {
+  try { await api.openLogDir() } catch { toast('无法打开日志目录', 'error') }
+}
+
+onDeactivated(() => { stopPolling() })
+
+// ─── Config ──────────────────────────────────────────
 const config = ref<Config | null>(null)
 const version = ref('')
 
@@ -59,7 +99,6 @@ onMounted(async () => {
 })
 
 function autoDetect() {
-  // Handled by SetupPanel
   toast('请使用初始设置页面更改路径', 'info')
 }
 
@@ -84,66 +123,90 @@ function goToShortcuts() {
 
 <template>
   <div>
-    <div class="page-header">
-      <h2>系统设置</h2>
-      <span class="subtitle text-muted">应用配置与偏好</span>
-    </div>
-
-    <div class="settings-panel">
-      <div class="panel-box__body">
-        <!-- Data Management -->
-        <div class="section-title">数据管理</div>
-        <div class="form-field">
-          <label class="form-label">State 目录</label>
-          <div class="input-group">
-            <input class="form-input form-input--readonly" type="text" :value="config?.state_dir || '未配置'" readonly />
-          </div>
-          <p class="form-hint">游戏存档数据所在目录</p>
+    <!-- Log Viewer (overlay) -->
+    <div v-if="showLogViewer" class="log-viewer-overlay">
+      <div class="log-viewer-panel">
+        <div class="log-viewer-header">
+          <h3>运行日志</h3>
+          <button class="btn btn-ghost btn-sm" @click="closeLogViewer">✕ 关闭</button>
         </div>
-        <div class="btn-group" style="margin-top:8px;margin-bottom:16px">
-          <button class="btn btn-ghost" @click="autoDetect">自动检测路径</button>
-          <button class="btn btn-ghost" @click="clearCaches">清除缓存</button>
-          <button class="btn btn-ghost" @click="resetConfig">重置配置</button>
-        </div>
-
-        <!-- Appearance -->
-        <div class="section-title">界面偏好</div>
-        <div class="form-row">
-          <div class="form-field">
-            <label class="form-label">主题模式</label>
-            <div class="setting-toggle-group">
-              <button class="btn" :class="currentTheme === 'light' ? 'btn-primary' : 'btn-ghost'" @click="setTheme('light')">浅色</button>
-              <button class="btn" :class="currentTheme === 'dark' ? 'btn-primary' : 'btn-ghost'" @click="setTheme('dark')">深色</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Logs -->
-        <div class="section-title">运行日志</div>
         <div class="log-tabs">
           <button v-for="tab in logTabs" :key="tab.key" class="btn btn-sm"
             :class="activeLogTab === tab.key ? 'btn-primary' : 'btn-ghost'"
-            @click="activeLogTab = tab.key">{{ tab.name }}</button>
+            @click="switchLogTab(tab.key)">{{ tab.name }}</button>
         </div>
-        <pre class="log-viewer">{{ logContent || '（暂无日志）' }}</pre>
-        <div class="btn-group" style="margin-top:6px;margin-bottom:16px">
-          <button class="btn btn-ghost btn-sm" @click="loadLog(true)" :disabled="logLoading">刷新</button>
+        <div class="log-file-list">
+          <span class="log-file-label">日志文件：</span>
+          <button v-for="f in logFiles" :key="f.filename" class="btn btn-sm"
+            :class="selectedLogFile === f.filename ? 'btn-primary' : 'btn-ghost'"
+            @click="selectLogFile(f.filename)">{{ f.display_name }}</button>
+          <span v-if="!logFiles.length" class="text-muted text-xs">暂无日志</span>
+        </div>
+        <pre class="log-content">{{ logContent || '（暂无内容）' }}</pre>
+        <div class="log-viewer-footer">
+          <button class="btn btn-ghost btn-sm" @click="loadLogContent(true)" :disabled="logLoading">刷新</button>
           <button class="btn btn-ghost btn-sm" @click="openLogDir">打开日志文件夹</button>
+          <span class="text-muted text-xs" style="margin-left:auto">每 3 秒自动刷新</span>
         </div>
+      </div>
+    </div>
 
-        <!-- Shortcuts -->
-        <div class="section-title">键盘快捷键</div>
-        <p class="form-hint">Ctrl+S 保存 · Ctrl+F 搜索 · Ctrl+Z 撤销 · ESC 关闭 · 1-6 切换面板 · ↑↓ 调整数值</p>
-        <button class="btn btn-ghost" style="margin-top:4px;margin-bottom:16px" @click="goToShortcuts">查看全部快捷键 →</button>
+    <!-- Settings Main -->
+    <div v-if="!showLogViewer">
+      <div class="page-header">
+        <h2>系统设置</h2>
+        <span class="subtitle text-muted">应用配置与偏好</span>
+      </div>
 
+      <div class="settings-panel">
+        <div class="panel-box__body">
+          <!-- Data Management -->
+          <div class="section-title">数据管理</div>
+          <div class="form-field">
+            <label class="form-label">State 目录</label>
+            <div class="input-group">
+              <input class="form-input form-input--readonly" type="text" :value="config?.state_dir || '未配置'" readonly />
+            </div>
+            <p class="form-hint">游戏存档数据所在目录</p>
+          </div>
+          <div class="btn-group" style="margin-top:8px;margin-bottom:16px">
+            <button class="btn btn-ghost" @click="autoDetect">自动检测路径</button>
+            <button class="btn btn-ghost" @click="clearCaches">清除缓存</button>
+            <button class="btn btn-ghost" @click="resetConfig">重置配置</button>
+          </div>
 
-        <!-- About -->
-        <div class="section-title">关于</div>
-        <div class="about-info">
-          <div class="about-row"><span class="about-label">应用</span><span class="about-value">Yoshunko Admin</span></div>
-          <div class="about-row"><span class="about-label">版本</span><span class="about-value">{{ version }}</span></div>
-          <div class="about-row"><span class="about-label">平台</span><span class="about-value">Windows (Tauri v2)</span></div>
-          <div class="about-row"><span class="about-label">数据状态</span><span class="about-value">{{ config?.configured ? '已配置' : '未配置' }}</span></div>
+          <!-- Appearance -->
+          <div class="section-title">界面偏好</div>
+          <div class="form-row">
+            <div class="form-field">
+              <label class="form-label">主题模式</label>
+              <div class="setting-toggle-group">
+                <button class="btn" :class="currentTheme === 'light' ? 'btn-primary' : 'btn-ghost'" @click="setTheme('light')">浅色</button>
+                <button class="btn" :class="currentTheme === 'dark' ? 'btn-primary' : 'btn-ghost'" @click="setTheme('dark')">深色</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Logs -->
+          <div class="section-title">运行日志</div>
+          <div class="btn-group" style="margin-bottom:16px">
+            <button class="btn btn-ghost" @click="openLogViewer">查看运行日志</button>
+            <button class="btn btn-ghost" @click="openLogDir">打开日志文件夹</button>
+          </div>
+
+          <!-- Shortcuts -->
+          <div class="section-title">键盘快捷键</div>
+          <p class="form-hint">Ctrl+S 保存 · Ctrl+F 搜索 · Ctrl+Z 撤销 · ESC 关闭 · 1-6 切换面板 · ↑↓ 调整数值</p>
+          <button class="btn btn-ghost" style="margin-top:4px;margin-bottom:16px" @click="goToShortcuts">查看全部快捷键 →</button>
+
+          <!-- About -->
+          <div class="section-title">关于</div>
+          <div class="about-info">
+            <div class="about-row"><span class="about-label">应用</span><span class="about-value">Yoshunko Admin</span></div>
+            <div class="about-row"><span class="about-label">版本</span><span class="about-value">{{ version }}</span></div>
+            <div class="about-row"><span class="about-label">平台</span><span class="about-value">Windows (Tauri v2)</span></div>
+            <div class="about-row"><span class="about-label">数据状态</span><span class="about-value">{{ config?.configured ? '已配置' : '未配置' }}</span></div>
+          </div>
         </div>
       </div>
     </div>

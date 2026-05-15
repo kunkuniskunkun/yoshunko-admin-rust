@@ -106,6 +106,7 @@ pub fn run() {
             api::launch_program,
             api::launch_program_admin,
             api::launch_yoshunko,
+            api::list_logs,
             api::read_log,
             api::get_log_dir,
             api::open_log_dir,

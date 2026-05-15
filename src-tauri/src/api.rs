@@ -10,6 +10,11 @@ use std::sync::Mutex;
 use tauri::State;
 
 
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
+#[cfg(windows)]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
+
 pub struct AppState {
     pub data_manager: Mutex<Option<DataManager>>,
     pub template_loader: TemplateLoader,
@@ -798,19 +803,17 @@ pub fn launch_program(state: State<AppState>, key: String) -> Value {
         return json!({"ok": false, "error": format!("文件不存在: {}", path)});
     }
     let lm = &state.log_manager;
-    lm.rotate_log(&key);
-    let log_path = lm.log_path(&key);
+    let (log_file, _log_name) = lm.create_log(&key);
     let cwd = p.parent().map(|d| d.to_path_buf());
     let mut cmd = std::process::Command::new(path);
     if let Some(dir) = cwd { cmd.current_dir(dir); }
-    if let (Ok(f_out), Ok(f_err)) = (
-        std::fs::OpenOptions::new().create(true).append(true).open(&log_path),
-        std::fs::OpenOptions::new().create(true).append(true).open(&log_path),
-    ) {
+    if let Ok(log_file2) = log_file.try_clone() {
         use std::process::Stdio;
-        cmd.stdout(Stdio::from(f_out));
-        cmd.stderr(Stdio::from(f_err));
+        cmd.stdout(Stdio::from(log_file));
+        cmd.stderr(Stdio::from(log_file2));
     }
+    #[cfg(windows)]
+    { cmd.creation_flags(CREATE_NO_WINDOW); }
     match cmd.spawn() {
         Ok(_) => json!({"ok": true}),
         Err(e) => json!({"ok": false, "error": e.to_string()}),
@@ -894,19 +897,17 @@ pub fn launch_yoshunko(state: State<AppState>) -> Value {
     );
 
     let lm = &state.log_manager;
-    lm.rotate_log("yoshunko");
-    let log_path = lm.log_path("yoshunko");
+    let (log_file, _log_name) = lm.create_log("yoshunko");
 
     let mut cmd_proc = std::process::Command::new("wsl");
     cmd_proc.args(&["-u", "root", "-d", distro, "-e", "bash", "-c", &cmd]);
-    if let (Ok(f_out), Ok(f_err)) = (
-        std::fs::OpenOptions::new().create(true).append(true).open(&log_path),
-        std::fs::OpenOptions::new().create(true).append(true).open(&log_path),
-    ) {
+    if let Ok(log_file2) = log_file.try_clone() {
         use std::process::Stdio;
-        cmd_proc.stdout(Stdio::from(f_out));
-        cmd_proc.stderr(Stdio::from(f_err));
+        cmd_proc.stdout(Stdio::from(log_file));
+        cmd_proc.stderr(Stdio::from(log_file2));
     }
+    #[cfg(windows)]
+    { cmd_proc.creation_flags(CREATE_NO_WINDOW); }
     match cmd_proc.spawn() {
         Ok(_) => json!({"ok": true, "distro": distro}),
         Err(e) => json!({"ok": false, "error": e.to_string()}),
@@ -916,8 +917,19 @@ pub fn launch_yoshunko(state: State<AppState>) -> Value {
 // ─── Log ───────────────────────────────────────────────
 
 #[tauri::command]
-pub fn read_log(state: State<AppState>, key: String, offset: u64) -> Value {
-    let (content, new_offset) = state.log_manager.read_log(&key, offset);
+pub fn list_logs(state: State<AppState>, key: String) -> Value {
+    let logs = state.log_manager.list_logs(&key);
+    let entries: Vec<Value> = logs.iter().map(|e| json!({
+        "filename": e.filename,
+        "display_name": e.display_name,
+        "size": e.size,
+    })).collect();
+    json!({"logs": entries})
+}
+
+#[tauri::command]
+pub fn read_log(state: State<AppState>, filename: String, offset: u64) -> Value {
+    let (content, new_offset) = state.log_manager.read_log(&filename, offset);
     json!({"content": content, "offset": new_offset})
 }
 

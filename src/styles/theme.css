@@ -1089,10 +1089,10 @@ body {
 .btn-lg { font-size: 16px; padding: 12px 26px; font-weight: 700; }
 
 /* Prop rows */
-.prop-row { display: flex; gap: 12px; align-items: center; margin-bottom: 6px; }
-.prop-row .input-stepper { flex: 5; justify-content: flex-start; }
+.prop-row { display: flex; gap: 12px; align-items: center; margin-bottom: 6px; text-align: center; }
+.prop-row .input-stepper { flex: 5; justify-content: center; }
 .prop-header { display: flex; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--border-subtle); margin-bottom: 4px; }
-.prop-header span { font-size: 10px; text-transform: uppercase; color: var(--text-dim); font-weight: 600; letter-spacing: 0.5px; }
+.prop-header span { font-size: 10px; text-transform: uppercase; color: var(--text-dim); font-weight: 600; letter-spacing: 0.5px; text-align: center; }
 .prop-header span:first-child { width: 24px; flex-shrink: 0; }
 .prop-header span:nth-child(2) { flex: 3; }
 .prop-header span:nth-child(3) { flex: 5; }

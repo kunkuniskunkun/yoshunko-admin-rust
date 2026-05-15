@@ -370,7 +370,7 @@ async function submitCreate() {
         key: p.key,
         key_name: '',
         base_value: p.base,
-        add_value: p.add + 1,
+        add_value: p.add,
       }
     }),
   }

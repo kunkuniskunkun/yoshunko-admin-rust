@@ -334,10 +334,13 @@ body {
   width: 20px; height: 20px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; opacity: 0.6;
-  transition: opacity var(--transition-fast);
+  transition: all var(--transition-fast);
 }
+.nav-item__icon-wrap svg { transition: transform var(--transition-fast); }
 .nav-item.active .nav-item__icon-wrap { opacity: 1; }
-.nav-item:hover .nav-item__icon-wrap { opacity: 1; transform: scale(1.12); }
+.nav-item:hover .nav-item__icon-wrap { opacity: 1; }
+.nav-item:hover .nav-item__icon-wrap svg { transform: scale(1.15) rotate(8deg); }
+.nav-item.active .nav-item__icon-wrap svg { transform: scale(1.1); }
 
 /* Nav label */
 .nav-item__label {

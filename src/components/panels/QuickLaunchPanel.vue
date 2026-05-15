@@ -14,7 +14,7 @@ const launchItems: LaunchItem[] = [
   { key: 'yoshunko', name: 'Yoshunko Server', description: '自动检测 WSL 并启动游戏服务端', isAuto: true },
   { key: 'hoyosdk', name: 'HoyoSDK', description: '米哈游 SDK 服务', isAuto: false },
   { key: 'kcpshim', name: 'KCPSHIM', description: 'KCP 代理服务', isAuto: false },
-  { key: 'yidhari', name: 'Yidhari Client', description: '游戏客户端（管理员模式）', isAuto: false },
+  { key: 'yidhari', name: 'Client', description: '游戏客户端（管理员模式）', isAuto: false },
 ]
 
 const launchConfig = ref<Record<string, string>>({})

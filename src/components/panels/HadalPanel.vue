@@ -65,41 +65,45 @@ async function save() {
     <div v-if="loading" class="loading-wrap"><div class="spinner"></div></div>
 
     <template v-else-if="data">
-      <div class="section-title">入口配置</div>
-      <div class="entrance-grid">
-        <div v-for="(e, i) in entranceEdits" :key="e.id" class="entrance-card">
-          <div class="entrance-card__icon">{{ ENTRANCE_ICONS[e.id] || '◆' }}</div>
-          <div class="entrance-card__info">
-            <div class="entrance-card__name">{{ ENTRANCE_NAMES[e.id] || '入口 ' + e.id }}</div>
-            <div class="entrance-card__type">{{ isPermanent(e.id) ? '常驻' : '限时' }} · ID: {{ e.id }}</div>
+      <div class="settings-panel">
+        <div class="panel-box__body">
+          <div class="section-title">入口配置</div>
+          <div class="entrance-grid">
+            <div v-for="(e, i) in entranceEdits" :key="e.id" class="entrance-card">
+              <div class="entrance-card__icon">{{ ENTRANCE_ICONS[e.id] || '◆' }}</div>
+              <div class="entrance-card__info">
+                <div class="entrance-card__name">{{ ENTRANCE_NAMES[e.id] || '入口 ' + e.id }}</div>
+                <div class="entrance-card__type">{{ isPermanent(e.id) ? '常驻' : '限时' }} · ID: {{ e.id }}</div>
+              </div>
+              <div class="form-field">
+                <label class="form-label">Zone ID</label>
+                <input class="form-input" type="number" v-model.number="entranceEdits[i].zone_id" />
+              </div>
+            </div>
           </div>
-          <div>
-            <label class="form-label text-center">Zone ID</label>
-            <input type="number" v-model.number="entranceEdits[i].zone_id" />
+
+          <div class="btn-group" style="margin-top: 16px;">
+            <button class="btn btn-primary" @click="save">保存更改</button>
           </div>
+
+          <template v-if="data.saved_rooms && data.saved_rooms.length > 0">
+            <div class="section-title" style="margin-top: 24px;">已保存的房间</div>
+            <div class="data-table-wrap">
+              <table class="data-table">
+                <thead><tr><th>Zone</th><th>Layer</th><th>Avatars</th><th>Buddy</th></tr></thead>
+                <tbody>
+                  <tr v-for="(room, i) in data.saved_rooms" :key="i">
+                    <td>{{ room.zone_id }}</td>
+                    <td>{{ room.layer_index }}</td>
+                    <td>{{ (room.avatar_id_list || []).join(', ') || '—' }}</td>
+                    <td>{{ room.buddy_id || 0 }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </template>
         </div>
       </div>
-
-      <div class="btn-group">
-        <button class="btn btn-primary" @click="save">保存更改</button>
-      </div>
-
-      <template v-if="data.saved_rooms && data.saved_rooms.length > 0">
-        <div class="section-title mt-4">已保存的房间</div>
-        <div class="panel-box">
-          <table class="data-table">
-            <thead><tr><th>Zone</th><th>Layer</th><th>Avatars</th><th>Buddy</th></tr></thead>
-            <tbody>
-              <tr v-for="(room, i) in data.saved_rooms" :key="i">
-                <td>{{ room.zone_id }}</td>
-                <td>{{ room.layer_index }}</td>
-                <td>{{ (room.avatar_id_list || []).join(', ') || '—' }}</td>
-                <td>{{ room.buddy_id || 0 }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </template>
     </template>
 
     <div v-else class="empty-state">

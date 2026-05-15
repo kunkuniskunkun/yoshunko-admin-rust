@@ -65,7 +65,7 @@ watch(equipCache, () => updateCounts())
   <aside class="sidebar">
     <!-- Logo -->
     <div class="sidebar-logo">
-      <img src="@/assets/logo-128.png" alt="Logo" class="sidebar-logo__icon" />
+      <img src="@/assets/logo-128.png" alt="Logo" class="sidebar-logo__icon" style="filter: none !important;" />
       <div>
         <h1 class="sidebar-logo__text" style="font-family:Consolas,'Microsoft YaHei','PingFang SC',sans-serif;font-size:17px;font-weight:700;line-height:1.2;">Yoshunko<br>Admin</h1>
         <span style="font-size:10px;color:var(--text-dim)">Game Data Manager</span>

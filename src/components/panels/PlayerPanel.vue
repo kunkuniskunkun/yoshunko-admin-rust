@@ -16,7 +16,6 @@ const editAvatarId = ref(0)
 const editControlId = ref(0)
 const editGuiseId = ref(0)
 const saving = ref(false)
-const saved = ref(false)
 
 async function loadData() {
   if (!uid.value) return
@@ -58,8 +57,6 @@ async function save() {
     })
     if (r.ok === false) throw new Error(r.error || '保存失败')
     toast('玩家信息已保存', 'success')
-    saved.value = true
-    setTimeout(() => { saved.value = false }, 1500)
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '保存失败', 'error')
   }
@@ -174,7 +171,7 @@ function importData() {
 
         <div class="section-title">数据管理</div>
         <div class="btn-group">
-          <button class="btn btn-primary" :class="{ 'btn--saving': saving, 'btn--saved': saved }" :disabled="saving" @click="save">{{ saved ? '✓ 已保存' : saving ? '保存中...' : '保存更改' }}</button>
+          <button class="btn btn-primary" :class="{ 'btn--saving': saving }" :disabled="saving" @click="save">{{ saving ? '保存中...' : '保存更改' }}</button>
           <button class="btn btn-ghost" @click="exportData">导出数据</button>
           <button class="btn btn-ghost" @click="importData">导入数据</button>
         </div>

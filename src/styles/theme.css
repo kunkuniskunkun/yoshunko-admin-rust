@@ -220,11 +220,16 @@ html, body { height: 100%; overflow: hidden; margin: 0; }
   color: var(--text-secondary); font-size: 12px; cursor: pointer;
   border-radius: var(--radius-xs);
   font-family: var(--font);
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
   display: flex; align-items: center; justify-content: center;
 }
-.tb-btn:hover { background: var(--bg-hover); color: var(--text); }
+.tb-btn svg { transition: transform var(--transition-fast); }
+.tb-btn:hover { background: var(--bg-hover); color: var(--accent); }
+.tb-btn:hover svg { transform: scale(1.2) rotate(8deg); }
+.tb-btn:active { transform: scale(0.92); }
 .tb-btn--close:hover { background: #e81123; color: #fff; }
+.tb-btn--close:hover svg { transform: scale(1.15) rotate(90deg); }
+.tb-btn--close:active { transform: scale(0.9); }
 
 body {
   font: 400 var(--text-base)/1.6 var(--font);
@@ -783,7 +788,7 @@ body {
   transition: all var(--transition-fast);
   letter-spacing: 0.2px;
 }
-.btn:hover { filter: brightness(1.1); }
+.btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
 
 .btn-primary { background: var(--accent); color: #fff; }
 .btn-primary:hover { background: var(--accent-dark); }
@@ -835,8 +840,25 @@ body {
   min-height: 120px;
   display: flex; align-items: center; gap: 14px;
   transition: all var(--transition-fast);
+  position: relative; overflow: hidden;
 }
-.entrance-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+.entrance-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.entrance-card--limited { border-left-color: var(--warning); }
+.entrance-card--limited::after {
+  content: '限时';
+  position: absolute; top: 8px; right: 10px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+  color: var(--warning); background: var(--warning-bg);
+  padding: 2px 8px; border-radius: var(--radius-full);
+}
+.entrance-card--permanent { border-left-color: var(--success); }
+.entrance-card--permanent::after {
+  content: '常驻';
+  position: absolute; top: 8px; right: 10px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+  color: var(--success); background: var(--success-bg);
+  padding: 2px 8px; border-radius: var(--radius-full);
+}
 .entrance-card__icon {
   font-size: 24px; width: 46px; height: 46px;
   display: flex; align-items: center; justify-content: center;
@@ -858,10 +880,33 @@ body {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-bg);
 }
-.hadal-links { display: flex; flex-direction: column; gap: 2px; margin-top: 10px; font-size: 12px; }
-.hadal-links-label { color: var(--text-dim); font-size: 11px; }
-.hadal-link { color: var(--accent); cursor: pointer; text-decoration: none; }
-.hadal-link:hover { text-decoration: underline; }
+.hadal-links { display: flex; flex-direction: column; gap: 6px; margin-top: 16px; font-size: 15px; padding: 14px 16px; background: var(--bg-base); border-radius: var(--radius); border: 1px solid var(--border-subtle); }
+.hadal-links-label { color: var(--text-dim); font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.hadal-link { color: var(--accent); cursor: pointer; text-decoration: none; font-size: 14px; padding: 3px 0; transition: color var(--transition-fast), padding-left var(--transition-fast); }
+.hadal-link:hover { color: var(--accent-dark); padding-left: 6px; text-decoration: none; }
+
+/* Hadal help section */
+.hadal-help { margin-top: 20px; }
+.hadal-help__toggle {
+  display: flex; align-items: center; gap: 6px;
+  background: none; border: none; cursor: pointer;
+  color: var(--text-dim); font-size: 13px; font-weight: 600;
+  font-family: var(--font); padding: 8px 0;
+  transition: color var(--transition-fast);
+}
+.hadal-help__toggle:hover { color: var(--text); }
+.hadal-help__toggle svg { transition: transform var(--transition-fast); }
+.hadal-help__toggle--open svg { transform: rotate(180deg); }
+.hadal-help__body {
+  background: var(--bg-base); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius); padding: 16px 20px;
+  font-size: 13px; line-height: 1.8; color: var(--text-secondary);
+  animation: panelIn 0.25s ease;
+}
+.hadal-help__body p { margin-bottom: 8px; }
+.hadal-help__body p:last-child { margin-bottom: 0; }
+.hadal-help__body strong { color: var(--text); font-weight: 600; }
+.hadal-help__body code { background: var(--bg-elevated); padding: 1px 5px; border-radius: var(--radius-xs); font-family: var(--font-mono); font-size: 12px; }
 
 /* ═══════════════════════════════════════════════════════
    Modal
@@ -1399,7 +1444,7 @@ body {
 .skip-link:focus { top: 0; }
 
 /* Panel transition */
-@keyframes panelIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes panelIn { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 /* Skeleton shimmer */
 @keyframes shimmer {

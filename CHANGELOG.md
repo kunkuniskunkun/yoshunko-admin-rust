@@ -4,6 +4,28 @@
 
 ---
 
+## V0.706 (2026-05-16)
+
+### 按钮动画优化
+
+**按下深度模拟**
+- 按钮静止态添加浅阴影（`box-shadow: 0 1px 3px`），hover 时阴影扩大（浮起），active 时阴影消失 + `translateY(1px)` 下沉
+- Primary/Success/Danger 变体各自有分层阴影：静止浅影 → hover 发光 → active 收缩
+
+**Ghost 按钮填充动画**
+- `::before` 伪元素从左到右 `scaleX(0→1)` 填充半透明 accent 背景色，0.25s 过渡
+- hover 时文字和边框变为 accent 色
+
+**图标联动**
+- `.btn svg` 通用规则：hover `scale(1.1)`，active `scale(0.9)`
+
+**保存成功态变形**
+- 保存按钮新增 `btn--saving`（禁用 + 0.7 透明度）和 `btn--saved`（绿色背景 + 发光）状态
+- PlayerPanel / HadalPanel：保存成功后显示"✓ 已保存"绿色高亮 1.5s
+- AvatarsPanel / WeaponsPanel / EquipsPanel：加 `saving` 状态防重复点击
+
+---
+
 ## V0.705 (2026-05-16)
 
 ### UI 动画优化 + 防卫战页面丰富

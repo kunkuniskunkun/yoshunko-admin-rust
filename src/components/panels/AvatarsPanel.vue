@@ -28,6 +28,7 @@ const editAwake = ref(0)
 const editWeaponUid = ref(0)
 const editSkinId = ref(0)
 const editSkills = ref<{ type: string; level: number }[]>([])
+const saving = ref(false)
 
 const PROFESSION_ORDER = ['强攻', '击破', '异常', '支援', '防护', '命破']
 const SKILL_NAMES: Record<string, string> = {
@@ -170,6 +171,7 @@ async function loadEditor(aid: number) {
 
 async function saveAvatar() {
   if (!editorData.value || !uid.value || !selectedAvatarId.value) return
+  saving.value = true
   const aid = selectedAvatarId.value
   const types = editorData.value.skill_type_level.map(s => s.type)
 
@@ -210,6 +212,7 @@ async function saveAvatar() {
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '保存失败', 'error')
   }
+  saving.value = false
 }
 
 async function refreshCache() {
@@ -326,7 +329,7 @@ watch(filteredAvatars, () => {
     </div>
 
     <div class="editor-page__actions" v-if="editorData">
-      <button class="btn btn-primary" @click="saveAvatar">保存更改</button>
+      <button class="btn btn-primary" :class="{ 'btn--saving': saving }" :disabled="saving" @click="saveAvatar">{{ saving ? '保存中...' : '保存更改' }}</button>
     </div>
   </div>
 

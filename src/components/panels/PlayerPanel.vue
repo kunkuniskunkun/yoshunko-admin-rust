@@ -15,6 +15,8 @@ const editExp = ref(0)
 const editAvatarId = ref(0)
 const editControlId = ref(0)
 const editGuiseId = ref(0)
+const saving = ref(false)
+const saved = ref(false)
 
 async function loadData() {
   if (!uid.value) return
@@ -44,6 +46,7 @@ async function save() {
   if (!uid.value) return
   if (editLevel.value < 1 || editLevel.value > 60) { toast('等级需在 1-60 之间', 'error'); return }
   if (!editNickname.value.trim()) { toast('昵称不能为空', 'error'); return }
+  saving.value = true
   try {
     const r = await api.updatePlayerBasic(uid.value, {
       nickname: editNickname.value,
@@ -55,9 +58,12 @@ async function save() {
     })
     if (r.ok === false) throw new Error(r.error || '保存失败')
     toast('玩家信息已保存', 'success')
+    saved.value = true
+    setTimeout(() => { saved.value = false }, 1500)
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '保存失败', 'error')
   }
+  saving.value = false
 }
 
 async function exportData() {
@@ -168,7 +174,7 @@ function importData() {
 
         <div class="section-title">数据管理</div>
         <div class="btn-group">
-          <button class="btn btn-primary" @click="save">保存更改</button>
+          <button class="btn btn-primary" :class="{ 'btn--saving': saving, 'btn--saved': saved }" :disabled="saving" @click="save">{{ saved ? '✓ 已保存' : saving ? '保存中...' : '保存更改' }}</button>
           <button class="btn btn-ghost" @click="exportData">导出数据</button>
           <button class="btn btn-ghost" @click="importData">导入数据</button>
         </div>

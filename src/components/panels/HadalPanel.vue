@@ -17,6 +17,7 @@ const loading = ref(true)
 const entranceEdits = ref<{ id: number; zone_id: number }[]>([])
 const showHelp = ref(false)
 const saving = ref(false)
+const saved = ref(false)
 
 const ACTIVE_ENTRANCE_IDS = [1, 3]
 
@@ -70,6 +71,8 @@ async function save() {
     const r = await api.updateHadalZone(uid.value, { entrances: entranceEdits.value })
     if (r.ok === false) throw new Error(r.error || '保存失败')
     toast('式舆防卫战配置已保存', 'success')
+    saved.value = true
+    setTimeout(() => { saved.value = false }, 1500)
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '保存失败', 'error')
   }
@@ -124,7 +127,7 @@ function resetDefaults() {
           </div>
 
           <div class="btn-group" style="margin-top: 16px;">
-            <button class="btn btn-primary" :disabled="saving" @click="save">{{ saving ? '保存中...' : '保存更改' }}</button>
+            <button class="btn btn-primary" :class="{ 'btn--saving': saving, 'btn--saved': saved }" :disabled="saving" @click="save">{{ saved ? '✓ 已保存' : saving ? '保存中...' : '保存更改' }}</button>
             <button class="btn btn-ghost" @click="resetDefaults">重置</button>
           </div>
 

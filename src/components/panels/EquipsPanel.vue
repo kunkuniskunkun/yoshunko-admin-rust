@@ -17,6 +17,7 @@ const loading = ref(true)
 const refreshing = ref(false)
 const editorData = ref<EquipDetail | null>(null)
 const editorLoading = ref(false)
+const saving = ref(false)
 
 // Editor fields
 const editLevel = ref(0)
@@ -174,6 +175,7 @@ function getEnhanceSum(): number {
 
 async function saveEquip() {
   if (!editorData.value || !uid.value || !selectedEquipUid.value) return
+  saving.value = true
   try {
     const r = await api.updateEquip(uid.value, selectedEquipUid.value, {
       level: editLevel.value,
@@ -190,6 +192,7 @@ async function saveEquip() {
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '保存失败', 'error')
   }
+  saving.value = false
 }
 
 async function deleteEquip() {
@@ -516,7 +519,7 @@ onActivated(async () => {
     <div class="editor-page__actions editor-fab-group" v-if="editorData">
       <button class="btn btn-danger" @click="deleteEquip">删除</button>
       <button class="btn btn-ghost" @click="copyEquip">复制</button>
-      <button class="btn btn-primary" @click="saveEquip">保存更改</button>
+      <button class="btn btn-primary" :class="{ 'btn--saving': saving }" :disabled="saving" @click="saveEquip">{{ saving ? '保存中...' : '保存更改' }}</button>
     </div>
   </div>
 

@@ -186,7 +186,7 @@ export interface HadalZoneUpdate {
 export interface AvatarTemplate {
   id: number
   name: string
-  rarity: number
+  rarity: string
   camp_id: number
   camp_name: string
 }
@@ -194,7 +194,7 @@ export interface AvatarTemplate {
 export interface WeaponTemplate {
   id: number
   name: string
-  rarity: number
+  rarity: string
   profession: string
   max_star: number
   max_refine: number

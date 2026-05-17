@@ -45,7 +45,7 @@ export const configured = ref(false)
 // ─── 模板 Map ──────────────────────────────────────
 
 export const avatarMap = computed(() => {
-  const map = new Map<number, { name: string; rarity: number; camp_id: number; camp_name: string }>()
+  const map = new Map<number, { name: string; rarity: string; camp_id: number; camp_name: string }>()
   if (!templates.value) return map
   for (const a of templates.value.avatars) {
     map.set(a.id, {
@@ -59,7 +59,7 @@ export const avatarMap = computed(() => {
 })
 
 export const weaponMap = computed(() => {
-  const map = new Map<number, { name: string; rarity: number; profession: string; max_star: number; max_refine: number }>()
+  const map = new Map<number, { name: string; rarity: string; profession: string; max_star: number; max_refine: number }>()
   if (!templates.value) return map
   for (const w of templates.value.weapons) {
     map.set(w.id, {
@@ -97,8 +97,8 @@ export function avatarName(id: number): string {
   return avatarMap.value.get(id)?.name || `#${id}`
 }
 
-export function avatarRarity(id: number): number {
-  return avatarMap.value.get(id)?.rarity || 0
+export function avatarRarity(id: number): string {
+  return avatarMap.value.get(id)?.rarity || ''
 }
 
 export function avatarCamp(id: number): string {

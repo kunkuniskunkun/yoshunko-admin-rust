@@ -81,8 +81,7 @@ async function savePath(key: string) {
       toast(r.error || '保存失败', 'error')
     }
   } catch (e: unknown) {
-    launchConfig.value[key] = cleaned
-    toast('路径已保存（本地）', 'info')
+    toast('保存失败: ' + (e instanceof Error ? e.message : '未知错误'), 'error')
   }
   editingKey.value = null
 }

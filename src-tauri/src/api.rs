@@ -105,6 +105,16 @@ pub fn get_version() -> Value {
     json!({"version": format_version()})
 }
 
+/// 原子写入配置文件：tmp + write + sync + rename
+fn atomic_write_config(config_path: &str, config: &serde_json::Map<String, serde_json::Value>) -> Result<(), String> {
+    let tmp = format!("{}.tmp", config_path);
+    let mut f = std::fs::File::create(&tmp).map_err(|e| format!("创建临时文件失败: {}", e))?;
+    serde_json::to_writer_pretty(&mut f, config).map_err(|e| format!("写入配置失败: {}", e))?;
+    f.sync_all().map_err(|e| format!("同步磁盘失败: {}", e))?;
+    std::fs::rename(&tmp, config_path).map_err(|e| format!("重命名失败: {}", e))?;
+    Ok(())
+}
+
 #[tauri::command]
 pub fn set_state_dir(state: State<AppState>, path: String) -> Value {
     let path = path.trim().trim_matches('"').trim_matches('\'');
@@ -126,16 +136,8 @@ pub fn set_state_dir(state: State<AppState>, path: String) -> Value {
         .unwrap_or_default();
     config_map.insert("state_dir".to_string(), json!(path));
     config_map.insert("version".to_string(), json!(format_version()));
-    let tmp = format!("{}.tmp", state.config_path);
-    if let Ok(mut f) = std::fs::File::create(&tmp) {
-        if serde_json::to_writer_pretty(&mut f, &config_map).is_err() {
-            let _ = std::fs::remove_file(&tmp);
-            return json!({"ok": false, "error": "写入配置失败"});
-        }
-        if std::fs::rename(&tmp, &state.config_path).is_err() {
-            let _ = std::fs::remove_file(&tmp);
-            return json!({"ok": false, "error": "保存配置失败"});
-        }
+    if let Err(e) = atomic_write_config(&state.config_path, &config_map) {
+        return json!({"ok": false, "error": e});
     }
     if let Ok(mut guard) = state.data_manager.lock() {
         *guard = Some(dm);
@@ -784,16 +786,8 @@ pub fn set_launch_path(state: State<AppState>, key: String, path: String) -> Val
         launch_obj.insert(key, json!(path));
     }
     config_map.insert("launch".to_string(), launch);
-    let tmp = format!("{}.tmp", state.config_path);
-    if let Ok(mut f) = std::fs::File::create(&tmp) {
-        if serde_json::to_writer_pretty(&mut f, &config_map).is_err() {
-            let _ = std::fs::remove_file(&tmp);
-            return json!({"ok": false, "error": "写入配置失败"});
-        }
-        if std::fs::rename(&tmp, &state.config_path).is_err() {
-            let _ = std::fs::remove_file(&tmp);
-            return json!({"ok": false, "error": "保存配置失败"});
-        }
+    if let Err(e) = atomic_write_config(&state.config_path, &config_map) {
+        return json!({"ok": false, "error": e});
     }
     json!({"ok": true})
 }

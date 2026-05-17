@@ -14,6 +14,7 @@ import SearchBar from '@/components/shared/SearchBar.vue'
 import Stepper from '@/components/shared/Stepper.vue'
 import SkeletonGrid from '@/components/shared/SkeletonGrid.vue'
 import { applyStaggeredAnimation, applyEditorSlideIn } from '@/composables/useStaggeredAnimation'
+import { EXCLUDED_AVATAR_IDS, PROFESSION_ORDER } from '@/constants'
 
 const loading = ref(true)
 const refreshing = ref(false)
@@ -30,7 +31,6 @@ const editSkinId = ref(0)
 const editSkills = ref<{ type: string; level: number }[]>([])
 const saving = ref(false)
 
-const PROFESSION_ORDER = ['强攻', '击破', '异常', '支援', '防护', '命破']
 const SKILL_NAMES: Record<string, string> = {
   common_attack: '普攻',
   special_attack: '强化特殊技',
@@ -40,8 +40,6 @@ const SKILL_NAMES: Record<string, string> = {
   assist_skill: '支援技',
   core_skill: '核心被动',
 }
-
-const EXCLUDED_AVATAR_IDS = [2071, 2121] // NPC 角色，不可编辑
 
 const filteredAvatars = computed(() => {
   let list = avatarCache.value.filter(a => !EXCLUDED_AVATAR_IDS.includes(a.avatar_id))

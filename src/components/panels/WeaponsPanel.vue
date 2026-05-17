@@ -12,6 +12,7 @@ import SearchBar from '@/components/shared/SearchBar.vue'
 import Stepper from '@/components/shared/Stepper.vue'
 import SkeletonGrid from '@/components/shared/SkeletonGrid.vue'
 import { applyStaggeredAnimation, applyEditorSlideIn } from '@/composables/useStaggeredAnimation'
+import { PROFESSION_ORDER, NPC_WEAPON_ID_MIN, NPC_WEAPON_ID_MAX } from '@/constants'
 
 const loading = ref(true)
 const refreshing = ref(false)
@@ -20,11 +21,6 @@ const editorLoading = ref(false)
 const editLevel = ref(60)
 const editRefine = ref(1)
 const saving = ref(false)
-
-const PROFESSION_ORDER = ['强攻', '击破', '异常', '支援', '防护', '命破']
-
-const NPC_WEAPON_ID_MIN = 12000 // NPC 音擎 ID 范围起始
-const NPC_WEAPON_ID_MAX = 12999 // NPC 音擎 ID 范围结束
 
 const filteredWeapons = computed(() => {
   let list = weaponCache.value.filter(w => w.id < NPC_WEAPON_ID_MIN || w.id > NPC_WEAPON_ID_MAX)

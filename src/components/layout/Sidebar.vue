@@ -4,6 +4,7 @@ import { toggleTheme, currentTheme } from '@/composables/useTheme'
 import { api } from '@/lib/api'
 import { ref, onMounted, watch } from 'vue'
 import { Users, CircleDot, Hexagon, Triangle, User, Rocket, Settings, Sun, Moon } from 'lucide-vue-next'
+import { EXCLUDED_AVATAR_IDS, NPC_WEAPON_ID_MIN, NPC_WEAPON_ID_MAX } from '@/constants'
 
 const players = ref<number[]>([])
 const avatarCount = ref(0)
@@ -29,8 +30,8 @@ function onPlayerChange(e: Event) {
 }
 
 function updateCounts() {
-  avatarCount.value = avatarCache.value.filter(a => a.avatar_id !== 2071 && a.avatar_id !== 2121).length
-  weaponCount.value = weaponCache.value.filter(w => w.id < 12000 || w.id > 12999).length
+  avatarCount.value = avatarCache.value.filter(a => !EXCLUDED_AVATAR_IDS.includes(a.avatar_id)).length
+  weaponCount.value = weaponCache.value.filter(w => w.id < NPC_WEAPON_ID_MIN || w.id > NPC_WEAPON_ID_MAX).length
   equipCount.value = equipCache.value.length
 }
 

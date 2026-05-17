@@ -4,6 +4,35 @@
 
 ---
 
+## V0.707 (2026-05-17)
+
+### Bug 修复
+
+**HadalPanel 已保存房间数据**
+- 修复 `get_hadal_zone` API 不序列化 `saved_rooms` 字段：已保存房间表格永久为空，现可正常显示
+
+**QuickLaunchPanel 路径保存**
+- 修复 `savePath` 在 API 失败时仍写入本地状态并显示"已保存（本地）"误导提示：改为显示错误 toast，不写入本地状态
+
+**编辑器 Loading 状态**
+- AvatarsPanel / WeaponsPanel / EquipsPanel 的 `loadEditor` 添加 `finally` 块，确保 `editorLoading` 状态在任何情况下都能清除
+
+### 代码质量提升
+
+**CSS 设计系统一致性**
+- 日志查看器 4 个未定义 CSS 变量（`--bg-main`、`--bg-input`、`--border-color`、`--text-primary`）替换为已定义的设计 token
+
+**类型安全**
+- `AvatarTemplate.rarity` 和 `WeaponTemplate.rarity` 类型从 `number` 修正为 `string`，与后端实际返回值一致
+
+**常量提取**
+- `EXCLUDED_AVATAR_IDS`、`PROFESSION_ORDER`、`NPC_WEAPON_ID` 提取到 `src/constants.ts`，消除 3 处重复定义
+
+**Rust 后端重构**
+- 提取 `atomic_write_config` 复用函数，`set_state_dir` 和 `set_launch_path` 共用原子写入逻辑，新增 `sync_all()` 确保数据落盘
+
+---
+
 ## V0.706 (2026-05-16)
 
 ### 按钮动画优化

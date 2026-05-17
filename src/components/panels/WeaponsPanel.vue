@@ -88,8 +88,9 @@ async function loadEditor(wuid: number) {
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '加载失败', 'error')
     backToGallery()
+  } finally {
+    editorLoading.value = false
   }
-  editorLoading.value = false
 }
 
 async function selectWeapon(wuid: number, event?: Event) {

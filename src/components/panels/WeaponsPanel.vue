@@ -150,14 +150,14 @@ async function copyWeapon() {
 
 async function deleteWeapon() {
   if (!uid.value || !selectedWeaponUid.value) return
-  const wuid = selectedWeaponUid.value
   try {
-    const r = await api.deleteWeapon(uid.value, wuid)
+    const r = await api.deleteWeapon(uid.value, selectedWeaponUid.value)
     if (r.ok === false) throw new Error(r.error || '删除失败')
-    weaponCache.value = weaponCache.value.filter(w => w.uid !== wuid)
     toast('音擎已删除', 'success')
     markClean()
+    markCacheDirty()
     backToGallery()
+    await refreshCache()
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '删除失败', 'error')
   }

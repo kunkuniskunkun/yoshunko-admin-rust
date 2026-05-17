@@ -198,14 +198,13 @@ async function saveEquip() {
 
 async function deleteEquip() {
   if (!uid.value || !selectedEquipUid.value) return
-  const euid = selectedEquipUid.value
   try {
-    const r = await api.deleteEquip(uid.value, euid)
+    const r = await api.deleteEquip(uid.value, selectedEquipUid.value)
     if (r.ok === false) throw new Error(r.error || '删除失败')
-    // 立即从缓存移除，避免幽灵卡片
-    equipCache.value = equipCache.value.filter(e => e.uid !== euid)
     toast('驱动盘已删除', 'success')
+    markCacheDirty()
     backToGallery()
+    await refreshCache()
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '删除失败', 'error')
   }

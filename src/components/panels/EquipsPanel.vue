@@ -401,10 +401,7 @@ async function submitCreate() {
     toast(`驱动盘 #${r.uid} 已创建`, 'success')
     closeCreate()
     markCacheDirty()
-    // 刷新列表
-    const result = await api.getEquips(uid.value)
-    equipCache.value = result.equips
-    cacheDirty.value = false
+    await refreshCache()
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '创建失败', 'error')
   }

@@ -20,6 +20,7 @@ const editorData = ref<WeaponDetail | null>(null)
 const editorLoading = ref(false)
 const editLevel = ref(60)
 const editRefine = ref(1)
+const editStar = ref(1)
 const saving = ref(false)
 
 const filteredWeapons = computed(() => {
@@ -80,6 +81,7 @@ async function loadEditor(wuid: number) {
     if (!w) { toast('音擎数据未找到', 'error'); backToGallery(); return }
     editorData.value = w
     editLevel.value = w.level
+    editStar.value = w.star
     editRefine.value = w.refine_level
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '加载失败', 'error')
@@ -120,6 +122,7 @@ async function saveWeapon() {
   try {
     const r = await api.updateWeapon(uid.value, selectedWeaponUid.value, {
       level: editLevel.value,
+      star: editStar.value,
       refine_level: editRefine.value,
     })
     if (r.ok === false) throw new Error(r.error || '保存失败')
@@ -196,7 +199,7 @@ onMounted(async () => {
 watch(panel, (_, old) => { if (old === 'weapons') { weaponView.value = 'gallery'; selectedWeaponUid.value = null; searchQuery.weapons = '' } })
 
 // Track unsaved changes
-watch([editLevel, editRefine], () => { if (weaponView.value === 'editor') markDirty() })
+watch([editLevel, editStar, editRefine], () => { if (weaponView.value === 'editor') markDirty() })
 
 onActivated(async () => {
   await refreshCache()
@@ -228,6 +231,11 @@ onActivated(async () => {
         <div class="form-field">
           <label class="form-label">等级</label>
           <Stepper v-model="editLevel" :min="1" :max="60" label="等级" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">星级</label>
+          <Stepper v-model="editStar" :min="1" :max="editorData.max_star || 5" label="星级" />
+          <span class="text-xs text-muted">max: {{ editorData.max_star || 5 }}</span>
         </div>
         <div class="form-field">
           <label class="form-label">精炼等级</label>

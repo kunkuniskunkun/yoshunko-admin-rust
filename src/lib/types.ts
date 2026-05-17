@@ -89,6 +89,7 @@ export interface WeaponListItem {
   name: string
   en_name: string
   profession: string
+  rarity: string
   level: number
   star: number
   refine_level: number
@@ -102,6 +103,7 @@ export interface WeaponDetail {
   name: string
   en_name: string
   profession: string
+  rarity: string
   level: number
   star: number
   refine_level: number

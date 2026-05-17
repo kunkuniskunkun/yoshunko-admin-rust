@@ -233,10 +233,11 @@ pub fn get_templates(state: State<AppState>) -> Value {
     }).collect();
 
     let weapons: Vec<Value> = tl.weapon_names.iter().map(|(id, name)| {
+        let rarity = if *id >= 14000 { "S" } else if *id >= 13000 { "A" } else { "B" };
         json!({
             "id": id,
             "name": name,
-            "rarity": "A",
+            "rarity": rarity,
             "profession": tl.weapon_professions.get(id).cloned().unwrap_or_default(),
             "max_star": tl.weapon_max_star(*id),
             "max_refine": tl.weapon_max_refine(*id),
@@ -521,12 +522,14 @@ pub fn get_weapons(state: State<AppState>, uid: i64) -> Value {
         let weapons: Vec<Value> = dm.list_weapons(uid).iter().filter_map(|wid| {
             let w = dm.get_weapon(uid, *wid)?;
             let item_id = zon_int(&w, "id", 0);
+            let rarity = if item_id >= 14000 { "S" } else if item_id >= 13000 { "A" } else { "B" };
             Some(json!({
                 "uid": *wid,
                 "id": item_id,
                 "name": tl.weapon_name(item_id),
                 "en_name": tl.weapon_en_name(item_id),
                 "profession": tl.weapon_profession(item_id),
+                "rarity": rarity,
                 "level": zon_int(&w, "level", 60),
                 "star": zon_int(&w, "star", 1),
                 "refine_level": zon_int(&w, "refine_level", 1),
@@ -545,12 +548,14 @@ pub fn get_weapon(state: State<AppState>, uid: i64, weapon_uid: i64) -> Value {
             Some(w) => {
                 let tl = &state.template_loader;
                 let item_id = zon_int(&w, "id", 0);
+                let rarity = if item_id >= 14000 { "S" } else if item_id >= 13000 { "A" } else { "B" };
                 json!({
                     "uid": weapon_uid,
                     "id": item_id,
                     "name": tl.weapon_name(item_id),
                     "en_name": tl.weapon_en_name(item_id),
                     "profession": tl.weapon_profession(item_id),
+                    "rarity": rarity,
                     "level": zon_int(&w, "level", 60),
                     "star": zon_int(&w, "star", 1),
                     "refine_level": zon_int(&w, "refine_level", 1),

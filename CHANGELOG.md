@@ -4,6 +4,27 @@
 
 ---
 
+## V0.708 (2026-05-17)
+
+### 数据正确性
+
+**武器稀有度**
+- `get_templates` 武器稀有度从硬编码 `"A"` 改为 ID 范围计算（>=14000=S, >=13000=A, 其余=B）
+- `WeaponListItem` 和 `WeaponDetail` 接口添加 `rarity: string` 字段，与 `AvatarListItem` 对称
+
+### 缓存一致性
+
+**统一缓存刷新模式**
+- `EquipsPanel.submitCreate` 改用 `refreshCache()` 替代直接调用 `api.getEquips()` 赋值
+- `WeaponsPanel.deleteWeapon` 和 `EquipsPanel.deleteEquip` 统一为 `markDirty + refreshCache` 模式，移除直接缓存过滤
+
+### 功能补全
+
+**武器星级编辑器**
+- WeaponsPanel 编辑器新增星级 Stepper 控件，`saveWeapon` 现在传递 `level`、`star`、`refine_level` 三个字段
+
+---
+
 ## V0.707 (2026-05-17)
 
 ### Bug 修复

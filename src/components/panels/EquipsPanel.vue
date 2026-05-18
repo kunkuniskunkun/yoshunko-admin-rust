@@ -15,6 +15,7 @@ import { applyStaggeredAnimation, applyEditorSlideIn } from '@/composables/useSt
 
 const loading = ref(true)
 const refreshing = ref(false)
+const hasAnimated = ref(false)
 const editorData = ref<EquipDetail | null>(null)
 const editorLoading = ref(false)
 const saving = ref(false)
@@ -173,7 +174,6 @@ function backToGallery() {
   selectedEquipUid.value = null
   editorData.value = null
   nextTick(() => {
-    applyStaggeredAnimation()
     const main = document.querySelector('.main-content')
     if (main && scrollPos.value['equips'] != null) main.scrollTop = scrollPos.value['equips']
   })
@@ -502,18 +502,21 @@ onMounted(async () => {
   }
   if (equipView.value === 'gallery') {
     applyStaggeredAnimation()
+    hasAnimated.value = true
   }
 })
 
 // 离开面板时重置为仓库视图
-watch(panel, (_, old) => { if (old === 'equips') { equipView.value = 'gallery'; selectedEquipUid.value = null; searchQuery.equips = '' } })
+watch(panel, (_, old) => { if (old === 'equips') { equipView.value = 'gallery'; selectedEquipUid.value = null; searchQuery.equips = ''; hasAnimated.value = false } })
 
 // Track unsaved changes for level/star (sub-properties already tracked via change handlers)
 watch([editLevel, editStar], () => { if (equipView.value === 'editor') markDirty('equips') })
 
 onActivated(async () => {
   await refreshCache()
-  nextTick(() => applyStaggeredAnimation())
+  if (!hasAnimated.value) {
+    nextTick(() => { applyStaggeredAnimation(); hasAnimated.value = true })
+  }
 })
 </script>
 

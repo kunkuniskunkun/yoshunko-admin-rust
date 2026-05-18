@@ -61,6 +61,7 @@ const {
       || w.name.toLowerCase().includes(q)
       || w.profession.toLowerCase().includes(q)
   },
+  sortFn: (a, b) => b.id - a.id,  // 按音擎序号从大到小
   groupFn: (w) => w.profession || '未知',
   groupSort: (a, b) => {
     const ia = PROFESSION_ORDER.indexOf(a[0] as typeof PROFESSION_ORDER[number])

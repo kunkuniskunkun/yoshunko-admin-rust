@@ -28,6 +28,7 @@ export interface PanelEditorOpts<ListItem, Detail> {
 
   // Search & group
   filterFn: (item: ListItem, query: string) => boolean
+  sortFn?: (a: ListItem, b: ListItem) => number
   groupFn: (item: ListItem) => string
   groupSort?: (a: [string, ListItem[]], b: [string, ListItem[]]) => number
 
@@ -52,15 +53,17 @@ export function usePanelEditor<ListItem, Detail>(opts: PanelEditorOpts<ListItem,
   const editorData = ref<Detail | null>(null) as Ref<Detail | null>
   const editorLoading = ref(false)
   const saving = ref(false)
+  const hasAnimated = ref(false)
 
   const searchKey = opts.panelKey as 'avatars' | 'weapons' | 'equips'
 
   // ─── Filtered items ─────────────────────
   const filteredItems = computed(() => {
     const query = searchQuery[searchKey]
+    const defaultSort = (a: ListItem, b: ListItem) => opts.getItemId(a) - opts.getItemId(b)
     return opts.cache.value
       .filter(item => opts.filterFn(item, query))
-      .sort((a, b) => opts.getItemId(a) - opts.getItemId(b))
+      .sort(opts.sortFn || defaultSort)
   })
 
   // ─── Grouped items ──────────────────────
@@ -123,7 +126,6 @@ export function usePanelEditor<ListItem, Detail>(opts: PanelEditorOpts<ListItem,
     opts.selectedId.value = null
     editorData.value = null
     nextTick(() => {
-      applyStaggeredAnimation()
       const main = document.querySelector('.main-content')
       if (main && scrollPos.value[opts.panelKey] != null) {
         main.scrollTop = scrollPos.value[opts.panelKey]
@@ -270,6 +272,7 @@ export function usePanelEditor<ListItem, Detail>(opts: PanelEditorOpts<ListItem,
       opts.viewRef.value = 'gallery'
       opts.selectedId.value = null
       searchQuery[searchKey] = ''
+      hasAnimated.value = false
     }
   })
 
@@ -278,13 +281,15 @@ export function usePanelEditor<ListItem, Detail>(opts: PanelEditorOpts<ListItem,
     if (opts.viewRef.value === 'editor' && opts.selectedId.value) {
       await loadEditor(opts.selectedId.value)
     } else {
-      nextTick(() => applyStaggeredAnimation())
+      nextTick(() => { applyStaggeredAnimation(); hasAnimated.value = true })
     }
   })
 
   onActivated(async () => {
     await refreshCache()
-    nextTick(() => applyStaggeredAnimation())
+    if (!hasAnimated.value) {
+      nextTick(() => { applyStaggeredAnimation(); hasAnimated.value = true })
+    }
   })
 
   return {

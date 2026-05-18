@@ -18,6 +18,7 @@ import { EXCLUDED_AVATAR_IDS, PROFESSION_ORDER } from '@/constants'
 
 const loading = ref(true)
 const refreshing = ref(false)
+const hasAnimated = ref(false)
 const editorData = ref<AvatarDetail | null>(null)
 const editorLoading = ref(false)
 
@@ -142,7 +143,6 @@ function backToGallery() {
   selectedAvatarId.value = null
   editorData.value = null
   nextTick(() => {
-    applyStaggeredAnimation()
     const main = document.querySelector('.main-content')
     if (main && scrollPos.value['avatars'] != null) main.scrollTop = scrollPos.value['avatars']
   })
@@ -271,11 +271,12 @@ onMounted(async () => {
   }
   if (avatarView.value === 'gallery') {
     applyStaggeredAnimation()
+    hasAnimated.value = true
   }
 })
 
 // 离开面板时重置为仓库视图
-watch(panel, (_, old) => { if (old === 'avatars') { avatarView.value = 'gallery'; selectedAvatarId.value = null; searchQuery.avatars = '' } })
+watch(panel, (_, old) => { if (old === 'avatars') { avatarView.value = 'gallery'; selectedAvatarId.value = null; searchQuery.avatars = ''; hasAnimated.value = false } })
 
 // Track unsaved changes
 watch([editLevel, editTalent, editPassive, editAwake, editWeaponUid, editSkinId], () => { if (avatarView.value === 'editor') markDirty('avatars') })
@@ -283,12 +284,14 @@ watch(editSkills, () => { if (avatarView.value === 'editor') markDirty('avatars'
 
 onActivated(async () => {
   await refreshCache()
-  nextTick(() => applyStaggeredAnimation())
+  if (!hasAnimated.value) {
+    nextTick(() => { applyStaggeredAnimation(); hasAnimated.value = true })
+  }
 })
 
 watch(filteredAvatars, () => {
-  if (avatarView.value === 'gallery') {
-    applyStaggeredAnimation()
+  if (avatarView.value === 'gallery' && hasAnimated.value) {
+    nextTick(() => applyStaggeredAnimation())
   }
 })
 </script>

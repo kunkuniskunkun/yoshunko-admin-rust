@@ -4,6 +4,35 @@
 
 ---
 
+## V0.709 (2026-05-17)
+
+### 全操作撤回 (Ctrl+Z)
+
+**支持的操作**
+- 保存撤回：AvatarsPanel / WeaponsPanel / EquipsPanel / PlayerPanel — 恢复旧字段值，重新调 API 保存，自动重新进入编辑器
+- 删除撤回：WeaponsPanel（用快照数据重建）/ EquipsPanel（用快照数据重建）
+- 复制撤回：WeaponsPanel / EquipsPanel — 删除副本
+- 创建撤回：EquipsPanel — 删除新创建的驱动盘
+
+**技术细节**
+- 接入已有的 `pushUndo` / `popUndo` 基础设施和 Ctrl+Z 快捷键
+- 撤回栈最大 20 层，LIFO 顺序
+- 所有 restore 函数加 try/catch 防止 unhandled rejection
+- 后端 merge 策略兼容 delete 后重建场景
+
+### Client 启动 key 自动检测
+
+- `launch_program_admin` 新增 `key` 参数，不再硬编码 "client"
+- `detectClientKey()` 根据配置路径自动识别 gale/velina/client
+- `stop_process` 支持 gale/velina key 的管理员终止
+- `isRunning()` 同时检查 client/gale/velina 三个 key
+
+### UI 调整
+
+- 音擎编辑页删除/复制/保存按钮改为右下角浮动样式，与驱动盘编辑页一致
+
+---
+
 ## V0.708 (2026-05-17)
 
 ### 数据正确性

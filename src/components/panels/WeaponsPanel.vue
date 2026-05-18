@@ -298,7 +298,6 @@ onActivated(async () => {
       <button class="btn btn-ghost" @click="copyWeapon">复制</button>
       <button class="btn btn-primary" :class="{ 'btn--saving': saving }" :disabled="saving" @click="saveWeapon">{{ saving ? '保存中...' : '保存更改' }}</button>
     </div>
-    </div>
   </div>
 
   <!-- Gallery -->

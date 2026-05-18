@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onActivated, nextTick, watch } from 'vue'
 import {
   uid, panel, weaponCache, cacheDirty, searchQuery,
-  selectedWeaponUid, weaponView, markCacheDirty, markDirty, markClean, pushUndo,
+  selectedWeaponUid, weaponView, scrollPos, markCacheDirty, markDirty, markClean, pushUndo,
 } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/utils'
@@ -92,6 +92,9 @@ async function loadEditor(wuid: number) {
 }
 
 async function selectWeapon(wuid: number, event?: Event) {
+  // Save scroll position
+  const main = document.querySelector('.main-content')
+  if (main) scrollPos.value['weapons'] = main.scrollTop
   // Card press animation
   if (event?.currentTarget) {
     const el = event.currentTarget as HTMLElement
@@ -113,7 +116,11 @@ function backToGallery() {
   weaponView.value = 'gallery'
   selectedWeaponUid.value = null
   editorData.value = null
-  nextTick(() => applyStaggeredAnimation())
+  nextTick(() => {
+    applyStaggeredAnimation()
+    const main = document.querySelector('.main-content')
+    if (main && scrollPos.value['weapons'] != null) main.scrollTop = scrollPos.value['weapons']
+  })
 }
 
 async function saveWeapon() {

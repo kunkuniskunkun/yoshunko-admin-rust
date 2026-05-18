@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onActivated, nextTick, watch } from 'vue'
 import type { Ref } from 'vue'
 import {
   uid, panel, avatarCache, cacheDirty, avatarGroupBy, searchQuery,
-  selectedAvatarId, avatarView, templates, avatarMap,
+  selectedAvatarId, avatarView, templates, avatarMap, scrollPos,
   markCacheDirty, markDirty, markClean, pushUndo,
 } from '@/composables/useAppState'
 import { api } from '@/lib/api'
@@ -113,6 +113,9 @@ function rarityClass(rarity: string): string {
 }
 
 function selectAvatar(id: number, event?: Event) {
+  // Save scroll position
+  const main = document.querySelector('.main-content')
+  if (main) scrollPos.value['avatars'] = main.scrollTop
   // Card press animation
   if (event?.currentTarget) {
     const el = event.currentTarget as HTMLElement
@@ -134,7 +137,11 @@ function backToGallery() {
   avatarView.value = 'gallery'
   selectedAvatarId.value = null
   editorData.value = null
-  nextTick(() => applyStaggeredAnimation())
+  nextTick(() => {
+    applyStaggeredAnimation()
+    const main = document.querySelector('.main-content')
+    if (main && scrollPos.value['avatars'] != null) main.scrollTop = scrollPos.value['avatars']
+  })
 }
 
 async function loadEditor(aid: number) {

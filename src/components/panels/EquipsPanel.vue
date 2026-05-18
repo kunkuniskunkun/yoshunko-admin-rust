@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onActivated, nextTick, watch } from 'vue'
 import {
   uid, panel, equipCache, cacheDirty, searchQuery,
-  selectedEquipUid, equipView, markCacheDirty, markDirty, markClean, templates, pushUndo,
+  selectedEquipUid, equipView, scrollPos, markCacheDirty, markDirty, markClean, templates, pushUndo,
 } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/utils'
@@ -144,6 +144,9 @@ async function loadEditor(euid: number) {
 }
 
 async function selectEquip(euid: number, event?: Event) {
+  // Save scroll position
+  const main = document.querySelector('.main-content')
+  if (main) scrollPos.value['equips'] = main.scrollTop
   // Card press animation
   if (event?.currentTarget) {
     const el = event.currentTarget as HTMLElement
@@ -165,7 +168,11 @@ function backToGallery() {
   equipView.value = 'gallery'
   selectedEquipUid.value = null
   editorData.value = null
-  nextTick(() => applyStaggeredAnimation())
+  nextTick(() => {
+    applyStaggeredAnimation()
+    const main = document.querySelector('.main-content')
+    if (main && scrollPos.value['equips'] != null) main.scrollTop = scrollPos.value['equips']
+  })
 }
 
 function getEnhanceSum(): number {

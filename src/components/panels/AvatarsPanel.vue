@@ -4,7 +4,7 @@ import type { Ref } from 'vue'
 import {
   uid, panel, avatarCache, cacheDirty, avatarGroupBy, searchQuery,
   selectedAvatarId, avatarView, templates, avatarMap,
-  markCacheDirty, markDirty, markClean,
+  markCacheDirty, markDirty, markClean, pushUndo,
 } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/utils'
@@ -193,6 +193,13 @@ async function saveAvatar() {
   const awakeId = editAwake.value === 0 ? 0 : aid * 100 + (editAwake.value - 1)
 
   try {
+    const oldData = {
+      level: editLevel.value, passive_skill_level: editPassive.value,
+      unlocked_talent_num: editTalent.value, awake_id: editorData.value.awake_id,
+      avatar_skin_id: editSkinId.value, cur_weapon_uid: editWeaponUid.value,
+      skill_type_level: editorData.value.skill_type_level,
+    }
+    const savedUid = uid.value
     const result = await api.updateAvatar(uid.value, aid, {
       level: editLevel.value,
       passive_skill_level: editPassive.value,
@@ -204,6 +211,17 @@ async function saveAvatar() {
     })
     if (result.ok === false) throw new Error(result.error || '保存失败')
     toast('角色数据已保存', 'success')
+    pushUndo({
+      restore: async () => {
+        await api.updateAvatar(savedUid, aid, oldData)
+        markCacheDirty()
+        await refreshCache()
+        selectedAvatarId.value = aid
+        avatarView.value = 'editor'
+        loadEditor(aid)
+        toast('已撤回保存', 'info')
+      }
+    })
     markClean()
     markCacheDirty()
     await refreshCache()

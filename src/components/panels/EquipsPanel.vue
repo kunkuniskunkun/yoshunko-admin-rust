@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onActivated, nextTick, watch } from 'vue'
 import {
   uid, panel, equipCache, cacheDirty, searchQuery,
-  selectedEquipUid, equipView, markCacheDirty, markDirty, markClean, templates,
+  selectedEquipUid, equipView, markCacheDirty, markDirty, markClean, templates, pushUndo,
 } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/utils'
@@ -177,8 +177,14 @@ function getEnhanceSum(): number {
 async function saveEquip() {
   if (!editorData.value || !uid.value || !selectedEquipUid.value) return
   saving.value = true
+  const euid = selectedEquipUid.value
+  const savedUid = uid.value
+  const oldData = {
+    level: editLevel.value, star: editStar.value,
+    properties: [editMainProp.value], sub_properties: editSubProps.value,
+  }
   try {
-    const r = await api.updateEquip(uid.value, selectedEquipUid.value, {
+    const r = await api.updateEquip(uid.value, euid, {
       level: editLevel.value,
       star: editStar.value,
       properties: [editMainProp.value],
@@ -186,6 +192,17 @@ async function saveEquip() {
     })
     if (r.ok === false) throw new Error(r.error || '保存失败')
     toast('驱动盘数据已保存', 'success')
+    pushUndo({
+      restore: async () => {
+        await api.updateEquip(savedUid, euid, oldData)
+        markCacheDirty()
+        await refreshCache()
+        selectedEquipUid.value = euid
+        equipView.value = 'editor'
+        loadEditor(euid)
+        toast('已撤回保存', 'info')
+      }
+    })
     markClean()
     markCacheDirty()
     await refreshCache()
@@ -197,11 +214,25 @@ async function saveEquip() {
 }
 
 async function deleteEquip() {
-  if (!uid.value || !selectedEquipUid.value) return
+  if (!uid.value || !selectedEquipUid.value || !editorData.value) return
+  const euid = selectedEquipUid.value
+  const savedUid = uid.value
+  const snapData = { ...editorData.value }
   try {
-    const r = await api.deleteEquip(uid.value, selectedEquipUid.value)
+    const r = await api.deleteEquip(uid.value, euid)
     if (r.ok === false) throw new Error(r.error || '删除失败')
     toast('驱动盘已删除', 'success')
+    pushUndo({
+      restore: async () => {
+        await api.createEquip(savedUid, {
+          id: snapData.id, level: snapData.level, star: snapData.star,
+          properties: snapData.properties, sub_properties: snapData.sub_properties,
+        })
+        markCacheDirty()
+        await refreshCache()
+        toast('已撤回删除', 'info')
+      }
+    })
     markCacheDirty()
     backToGallery()
     await refreshCache()
@@ -212,10 +243,20 @@ async function deleteEquip() {
 
 async function copyEquip() {
   if (!uid.value || !selectedEquipUid.value) return
+  const savedUid = uid.value
   try {
     const r = await api.copyEquip(uid.value, selectedEquipUid.value)
     if (r.ok === false) throw new Error(r.error || '复制失败')
-    toast(`驱动盘已复制为 #${r.uid}`, 'success')
+    const newUid = r.uid
+    toast(`驱动盘已复制为 #${newUid}`, 'success')
+    pushUndo({
+      restore: async () => {
+        await api.deleteEquip(savedUid, newUid)
+        markCacheDirty()
+        await refreshCache()
+        toast('已撤回复制', 'info')
+      }
+    })
     markCacheDirty()
     await refreshCache()
     backToGallery()
@@ -397,7 +438,16 @@ async function submitCreate() {
   try {
     const r = await api.createEquip(uid.value, data)
     if (r.ok === false) throw new Error(r.error || '创建失败')
-    toast(`驱动盘 #${r.uid} 已创建`, 'success')
+    const newUid = r.uid
+    toast(`驱动盘 #${newUid} 已创建`, 'success')
+    pushUndo({
+      restore: async () => {
+        await api.deleteEquip(uid.value!, newUid)
+        markCacheDirty()
+        await refreshCache()
+        toast('已撤回创建', 'info')
+      }
+    })
     closeCreate()
     markCacheDirty()
     await refreshCache()

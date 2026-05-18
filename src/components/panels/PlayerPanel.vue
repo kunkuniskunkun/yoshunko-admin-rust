@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onActivated, watch } from 'vue'
-import { uid, markCacheDirty } from '@/composables/useAppState'
+import { uid, markCacheDirty, pushUndo } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast, showConfirm } from '@/lib/utils'
 import type { PlayerBasic } from '@/lib/types'
@@ -57,6 +57,19 @@ async function save() {
     })
     if (r.ok === false) throw new Error(r.error || '保存失败')
     toast('玩家信息已保存', 'success')
+    const savedUid = uid.value
+    const oldData = {
+      nickname: editNickname.value, level: editLevel.value, exp: editExp.value,
+      avatar_id: editAvatarId.value, control_avatar_id: editControlId.value,
+      control_guise_avatar_id: editGuiseId.value,
+    }
+    pushUndo({
+      restore: async () => {
+        await api.updatePlayerBasic(savedUid, oldData)
+        loadData()
+        toast('已撤回保存', 'info')
+      }
+    })
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '保存失败', 'error')
   }

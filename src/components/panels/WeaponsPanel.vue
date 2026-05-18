@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onActivated, nextTick, watch } from 'vue'
 import {
   uid, panel, weaponCache, cacheDirty, searchQuery,
-  selectedWeaponUid, weaponView, markCacheDirty, markDirty, markClean,
+  selectedWeaponUid, weaponView, markCacheDirty, markDirty, markClean, pushUndo,
 } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/utils'
@@ -119,14 +119,28 @@ function backToGallery() {
 async function saveWeapon() {
   if (!editorData.value || !uid.value || !selectedWeaponUid.value) return
   saving.value = true
+  const wuid = selectedWeaponUid.value
+  const savedUid = uid.value
+  const oldData = { level: editLevel.value, star: editStar.value, refine_level: editRefine.value }
   try {
-    const r = await api.updateWeapon(uid.value, selectedWeaponUid.value, {
+    const r = await api.updateWeapon(uid.value, wuid, {
       level: editLevel.value,
       star: editStar.value,
       refine_level: editRefine.value,
     })
     if (r.ok === false) throw new Error(r.error || '保存失败')
     toast('音擎数据已保存', 'success')
+    pushUndo({
+      restore: async () => {
+        await api.updateWeapon(savedUid, wuid, oldData)
+        markCacheDirty()
+        await refreshCache()
+        selectedWeaponUid.value = wuid
+        weaponView.value = 'editor'
+        loadEditor(wuid)
+        toast('已撤回保存', 'info')
+      }
+    })
     markClean()
     markCacheDirty()
     await refreshCache()
@@ -139,10 +153,20 @@ async function saveWeapon() {
 
 async function copyWeapon() {
   if (!uid.value || !selectedWeaponUid.value) return
+  const savedUid = uid.value
   try {
     const r = await api.copyWeapon(uid.value, selectedWeaponUid.value)
     if (r.ok === false) throw new Error(r.error || '复制失败')
-    toast(`音擎已复制为 #${r.uid}`, 'success')
+    const newUid = r.uid
+    toast(`音擎已复制为 #${newUid}`, 'success')
+    pushUndo({
+      restore: async () => {
+        await api.deleteWeapon(savedUid, newUid)
+        markCacheDirty()
+        await refreshCache()
+        toast('已撤回复制', 'info')
+      }
+    })
     markCacheDirty()
     await refreshCache()
     backToGallery()
@@ -152,11 +176,28 @@ async function copyWeapon() {
 }
 
 async function deleteWeapon() {
-  if (!uid.value || !selectedWeaponUid.value) return
+  if (!uid.value || !selectedWeaponUid.value || !editorData.value) return
+  const wuid = selectedWeaponUid.value
+  const savedUid = uid.value
+  const snapData = { ...editorData.value }
   try {
-    const r = await api.deleteWeapon(uid.value, selectedWeaponUid.value)
+    const r = await api.deleteWeapon(uid.value, wuid)
     if (r.ok === false) throw new Error(r.error || '删除失败')
     toast('音擎已删除', 'success')
+    pushUndo({
+      restore: async () => {
+        await api.updateWeapon(savedUid, wuid, {
+          id: snapData.id, level: snapData.level,
+          star: snapData.star, refine_level: snapData.refine_level,
+        })
+        markCacheDirty()
+        await refreshCache()
+        selectedWeaponUid.value = wuid
+        weaponView.value = 'editor'
+        loadEditor(wuid)
+        toast('已撤回删除', 'info')
+      }
+    })
     markClean()
     markCacheDirty()
     backToGallery()

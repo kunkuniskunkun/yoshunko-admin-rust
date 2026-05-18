@@ -113,6 +113,7 @@ export interface WeaponDetail {
 }
 
 export interface WeaponUpdate {
+  id?: number
   level?: number
   star?: number
   refine_level?: number

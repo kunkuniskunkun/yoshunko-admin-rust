@@ -250,7 +250,7 @@ async function copyEquip() {
   const savedUid = uid.value
   try {
     const r = await api.copyEquip(uid.value, selectedEquipUid.value)
-    if (r.ok === false) throw new Error(r.error || '复制失败')
+    if (r.ok === false || r.uid == null) throw new Error(r.error || '复制失败')
     const newUid = r.uid
     toast(`驱动盘已复制为 #${newUid}`, 'success')
     pushUndo({
@@ -443,7 +443,7 @@ async function submitCreate() {
 
   try {
     const r = await api.createEquip(uid.value, data)
-    if (r.ok === false) throw new Error(r.error || '创建失败')
+    if (r.ok === false || r.uid == null) throw new Error(r.error || '创建失败')
     const newUid = r.uid
     const savedUid = uid.value
     toast(`驱动盘 #${newUid} 已创建`, 'success')

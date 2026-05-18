@@ -158,7 +158,7 @@ async function copyWeapon() {
   const savedUid = uid.value
   try {
     const r = await api.copyWeapon(uid.value, selectedWeaponUid.value)
-    if (r.ok === false) throw new Error(r.error || '复制失败')
+    if (r.ok === false || r.uid == null) throw new Error(r.error || '复制失败')
     const newUid = r.uid
     toast(`音擎已复制为 #${newUid}`, 'success')
     pushUndo({

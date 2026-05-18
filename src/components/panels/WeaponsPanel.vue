@@ -54,8 +54,7 @@ const {
 
   filterFn: (w, q) => {
     q = q.toLowerCase()
-    // 排除 B 级（ID < 13000）和 NPC 音擎（12000-12999）
-    if (w.id < 13000) return false
+    if (w.rarity === 'B') return false
     const py = WEAPON_PINYIN[w.id]
     if (py && (py.full.includes(q) || py.initials.includes(q))) return true
     return String(w.id).includes(q) || String(w.uid).includes(q)

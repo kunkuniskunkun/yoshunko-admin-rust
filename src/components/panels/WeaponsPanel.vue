@@ -118,8 +118,12 @@ function backToGallery() {
   editorData.value = null
   nextTick(() => {
     applyStaggeredAnimation()
-    const main = document.querySelector('.main-content')
-    if (main && scrollPos.value['weapons'] != null) main.scrollTop = scrollPos.value['weapons']
+    const main = document.querySelector('.main-content') as HTMLElement | null
+    if (main && scrollPos.value['weapons'] != null) {
+      main.style.scrollBehavior = 'auto'
+      main.scrollTop = scrollPos.value['weapons']
+      main.style.scrollBehavior = ''
+    }
   })
 }
 

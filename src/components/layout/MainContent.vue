@@ -60,7 +60,7 @@ async function loadCounts() {
   }
 }
 
-useKeyboard()
+useKeyboard({})
 
 onMounted(() => {
   initTheme()

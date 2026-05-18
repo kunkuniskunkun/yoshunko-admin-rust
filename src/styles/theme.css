@@ -449,21 +449,27 @@ body {
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  transform: skewX(-2deg);
   box-shadow:
     0 1px 3px rgba(0,0,0,0.06),
     0 4px 12px rgba(0,0,0,0.04),
     inset 0 1px 0 rgba(255,255,255,0.6);
-  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.5s cubic-bezier(0.23, 1, 0.32, 1), background 0.4s ease, border-color 0.4s ease;
+  transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.35s cubic-bezier(0.23, 1, 0.32, 1), background 0.3s ease, border-color 0.3s ease;
 }
 .game-card:hover, .card:hover {
   background: var(--bg-card-hover);
   border-color: var(--border);
-  transform: translate(4px, -4px);
+  transform: skewX(-2deg) translate(5px, -5px);
   box-shadow:
     0 4px 12px rgba(0,0,0,0.1),
     0 12px 28px rgba(0,0,0,0.08),
     0 24px 48px rgba(0,0,0,0.06),
     inset 0 1px 0 rgba(255,255,255,0.8);
+}
+/* 子元素反向倾斜，保持文字正向 */
+.game-card > *, .card > * {
+  transform: skewX(2deg);
+  transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .game-card.selected, .card.selected {

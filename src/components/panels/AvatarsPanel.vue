@@ -138,7 +138,6 @@ function backToGallery() {
   selectedAvatarId.value = null
   editorData.value = null
   nextTick(() => {
-    applyStaggeredAnimation()
     const main = document.querySelector('.main-content') as HTMLElement | null
     if (main && scrollPos.value['avatars'] != null) {
       main.style.scrollBehavior = 'auto'

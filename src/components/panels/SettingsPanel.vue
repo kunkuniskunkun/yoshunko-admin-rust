@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onActivated, onDeactivated } from 'vue'
-import { panel, avatarCache, weaponCache, equipCache, cacheDirty } from '@/composables/useAppState'
+import { panel, avatarCache, weaponCache, equipCache, markAllCacheDirty } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast, showConfirm } from '@/lib/utils'
 import { currentTheme, setTheme } from '@/composables/useTheme'
@@ -107,7 +107,7 @@ function clearCaches() {
   avatarCache.value = []
   weaponCache.value = []
   equipCache.value = []
-  cacheDirty.value = true
+  markAllCacheDirty()
   toast('缓存已清除')
 }
 

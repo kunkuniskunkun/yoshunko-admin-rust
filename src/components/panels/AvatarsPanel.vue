@@ -94,12 +94,16 @@ const groupedAvatars = computed(() => {
       return (tA?.camp_id ?? 0) - (tB?.camp_id ?? 0)
     }))
   }
-  // Assign global stagger index across all groups
-  let idx = 0
-  for (const [, avatars] of sorted) {
-    for (const a of avatars) { (a as any)._i = idx++ }
-  }
   return sorted
+})
+
+const staggerIndex = computed(() => {
+  const map = new Map<number, number>()
+  let idx = 0
+  for (const [, avatars] of groupedAvatars.value) {
+    for (const a of avatars) map.set(a.avatar_id, idx++)
+  }
+  return map
 })
 
 function rarityLabel(rarity: string): string {
@@ -138,12 +142,9 @@ function backToGallery() {
   selectedAvatarId.value = null
   editorData.value = null
   nextTick(() => {
-    const main = document.querySelector('.main-content') as HTMLElement | null
-    if (main && scrollPos.value['avatars'] != null) {
-      main.style.scrollBehavior = 'auto'
-      main.scrollTop = scrollPos.value['avatars']
-      main.style.scrollBehavior = ''
-    }
+    applyStaggeredAnimation()
+    const main = document.querySelector('.main-content')
+    if (main && scrollPos.value['avatars'] != null) main.scrollTop = scrollPos.value['avatars']
   })
 }
 
@@ -225,7 +226,7 @@ async function saveAvatar() {
       restore: async () => {
         try {
           await api.updateAvatar(savedUid, aid, oldData)
-          markCacheDirty()
+          markCacheDirty('avatars')
           await refreshCache()
           selectedAvatarId.value = aid
           avatarView.value = 'editor'
@@ -234,8 +235,8 @@ async function saveAvatar() {
         } catch { toast('撤回失败', 'error') }
       }
     })
-    markClean()
-    markCacheDirty()
+    markClean('avatars')
+    markCacheDirty('avatars')
     await refreshCache()
     backToGallery()
   } catch (e: unknown) {
@@ -246,7 +247,7 @@ async function saveAvatar() {
 
 async function refreshCache() {
   if (!uid.value) return
-  if (avatarCache.value.length && !cacheDirty.value) {
+  if (avatarCache.value.length && !cacheDirty.avatars) {
     loading.value = false
     return
   }
@@ -255,7 +256,7 @@ async function refreshCache() {
   try {
     const data = await api.getAvatars(uid.value)
     avatarCache.value = data.avatars
-    cacheDirty.value = false
+    cacheDirty.avatars = false
   } catch (e: unknown) {
     toast('加载角色失败: ' + (e instanceof Error ? e.message : ''), 'error')
   }
@@ -277,8 +278,8 @@ onMounted(async () => {
 watch(panel, (_, old) => { if (old === 'avatars') { avatarView.value = 'gallery'; selectedAvatarId.value = null; searchQuery.avatars = '' } })
 
 // Track unsaved changes
-watch([editLevel, editTalent, editPassive, editAwake, editWeaponUid, editSkinId], () => { if (avatarView.value === 'editor') markDirty() })
-watch(editSkills, () => { if (avatarView.value === 'editor') markDirty() }, { deep: true })
+watch([editLevel, editTalent, editPassive, editAwake, editWeaponUid, editSkinId], () => { if (avatarView.value === 'editor') markDirty('avatars') })
+watch(editSkills, () => { if (avatarView.value === 'editor') markDirty('avatars') }, { deep: true })
 
 onActivated(async () => {
   await refreshCache()
@@ -398,7 +399,7 @@ watch(filteredAvatars, () => {
             :key="a.avatar_id"
             class="game-card avatar-gallery__card staggered-anim"
             :class="rarityClass(a.rarity)"
-            :style="{ '--i': (a as any)._i }"
+            :style="{ '--i': staggerIndex.get(a.avatar_id) }"
             tabindex="0"
             role="button"
             @click="selectAvatar(a.avatar_id, $event)"

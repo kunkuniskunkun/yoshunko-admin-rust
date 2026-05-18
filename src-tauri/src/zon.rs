@@ -60,17 +60,19 @@ enum Token {
     String(String),
 }
 
-fn tokenize(text: &str) -> Result<Vec<(Token, usize)>, String> {
+fn tokenize(text: &str) -> Result<Vec<(Token, usize, usize)>, String> {
     let chars: Vec<char> = text.chars().collect();
     let n = chars.len();
     let mut tokens = Vec::new();
     let mut i = 0;
+    let mut line = 1;
 
     while i < n {
         let ch = chars[i];
 
         // Whitespace
         if ch.is_whitespace() {
+            if ch == '\n' { line += 1; }
             i += 1;
             continue;
         }
@@ -80,6 +82,7 @@ fn tokenize(text: &str) -> Result<Vec<(Token, usize)>, String> {
             while i < n && chars[i] != '\n' && chars[i] != '\r' {
                 i += 1;
             }
+            // Don't increment line here — the newline will be caught by whitespace handler
             continue;
         }
 
@@ -102,15 +105,16 @@ fn tokenize(text: &str) -> Result<Vec<(Token, usize)>, String> {
                         }
                     }
                 } else {
+                    if chars[i] == '\n' { line += 1; }
                     s.push(chars[i]);
                 }
                 i += 1;
             }
             if i >= n {
-                return Err("Unterminated string".to_string());
+                return Err(format!("Unterminated string starting at line {}", line));
             }
             i += 1; // skip closing "
-            tokens.push((Token::String(s), i));
+            tokens.push((Token::String(s), i, line));
             continue;
         }
 
@@ -123,7 +127,7 @@ fn tokenize(text: &str) -> Result<Vec<(Token, usize)>, String> {
             }
             let num_str: String = chars[start - 1..i].iter().collect();
             let num: i64 = num_str.parse().map_err(|_| "Invalid number")?;
-            tokens.push((Token::Int(num), i));
+            tokens.push((Token::Int(num), i, line));
             continue;
         }
         if ch.is_ascii_digit() {
@@ -133,23 +137,23 @@ fn tokenize(text: &str) -> Result<Vec<(Token, usize)>, String> {
             }
             let num_str: String = chars[start..i].iter().collect();
             let num: i64 = num_str.parse().map_err(|_| "Invalid number")?;
-            tokens.push((Token::Int(num), i));
+            tokens.push((Token::Int(num), i, line));
             continue;
         }
 
         // Keywords
         if ch == 't' && text[i..].starts_with("true") && keyword_boundary(&chars, i, 4) {
-            tokens.push((Token::Bool(true), i));
+            tokens.push((Token::Bool(true), i, line));
             i += 4;
             continue;
         }
         if ch == 'f' && text[i..].starts_with("false") && keyword_boundary(&chars, i, 5) {
-            tokens.push((Token::Bool(false), i));
+            tokens.push((Token::Bool(false), i, line));
             i += 5;
             continue;
         }
         if ch == 'n' && text[i..].starts_with("null") && keyword_boundary(&chars, i, 4) {
-            tokens.push((Token::Null, i));
+            tokens.push((Token::Null, i, line));
             i += 4;
             continue;
         }
@@ -168,18 +172,18 @@ fn tokenize(text: &str) -> Result<Vec<(Token, usize)>, String> {
                 i += 1;
             }
             let id: String = chars[start..i].iter().collect();
-            tokens.push((Token::DotId(id), i));
+            tokens.push((Token::DotId(id), i, line));
             continue;
         }
 
         // Braces
         if ch == '{' {
-            tokens.push((Token::LBrace, i));
+            tokens.push((Token::LBrace, i, line));
             i += 1;
             continue;
         }
         if ch == '}' {
-            tokens.push((Token::RBrace, i));
+            tokens.push((Token::RBrace, i, line));
             i += 1;
             continue;
         }
@@ -202,7 +206,7 @@ fn tokenize(text: &str) -> Result<Vec<(Token, usize)>, String> {
             continue;
         }
 
-        return Err(format!("Unexpected character '{}' at position {}", ch, i));
+        return Err(format!("Unexpected character '{}' at line {}, position {}", ch, line, i));
     }
 
     Ok(tokens)
@@ -222,18 +226,22 @@ pub fn parse_zon(text: &str) -> Result<ZonValue, String> {
 const MAX_DEPTH: usize = 64;
 
 struct ZonParser {
-    tokens: Vec<(Token, usize)>,
+    tokens: Vec<(Token, usize, usize)>,
     pos: usize,
     depth: usize,
 }
 
 impl ZonParser {
-    fn new(tokens: Vec<(Token, usize)>) -> Self {
+    fn new(tokens: Vec<(Token, usize, usize)>) -> Self {
         ZonParser { tokens, pos: 0, depth: 0 }
     }
 
     fn peek(&self) -> Option<&Token> {
-        self.tokens.get(self.pos).map(|(t, _)| t)
+        self.tokens.get(self.pos).map(|(t, _, _)| t)
+    }
+
+    fn current_line(&self) -> usize {
+        self.tokens.get(self.pos).map(|(_, _, l)| *l).unwrap_or(1)
     }
 
     fn advance(&mut self) {
@@ -242,34 +250,34 @@ impl ZonParser {
 
     fn parse_value(&mut self) -> Result<ZonValue, String> {
         match self.peek() {
-            None => Err("Unexpected end of input".into()),
+            None => Err(format!("Unexpected end of input at line {}", self.current_line())),
             Some(Token::LBrace) => self.parse_brace(),
             Some(Token::DotId(_)) => self.parse_enum(),
             Some(&Token::Int(v)) => { self.advance(); Ok(ZonValue::Int(v)) }
             Some(Token::Bool(v)) => { let v = *v; self.advance(); Ok(ZonValue::Bool(v)) }
             Some(Token::Null) => { self.advance(); Ok(ZonValue::Null) }
             Some(Token::String(_)) => self.parse_string(),
-            Some(tok) => Err(format!("Unexpected token {:?}", tok)),
+            Some(tok) => Err(format!("Unexpected token {:?} at line {}", tok, self.current_line())),
         }
     }
 
     fn parse_string(&mut self) -> Result<ZonValue, String> {
-        if let Some((Token::String(s), _)) = self.tokens.get(self.pos) {
+        if let Some((Token::String(s), _, _)) = self.tokens.get(self.pos) {
             let s = s.clone();
             self.advance();
             Ok(ZonValue::String(s))
         } else {
-            Err("Expected string".into())
+            Err(format!("Expected string at line {}", self.current_line()))
         }
     }
 
     fn parse_enum(&mut self) -> Result<ZonValue, String> {
-        if let Some((Token::DotId(id), _)) = self.tokens.get(self.pos) {
+        if let Some((Token::DotId(id), _, _)) = self.tokens.get(self.pos) {
             let id = id.clone();
             self.advance();
             Ok(ZonValue::Enum(ZonEnum(id)))
         } else {
-            Err("Expected .identifier".into())
+            Err(format!("Expected .identifier at line {}", self.current_line()))
         }
     }
 
@@ -329,19 +337,19 @@ impl ZonParser {
                     self.advance();
                     break;
                 }
-                None => return Err("Unexpected end of input, expected '}'".into()),
+                None => return Err(format!("Unexpected end of input at line {}, expected '}}'", self.current_line())),
                 _ => {}
             }
             let key = match self.peek() {
                 Some(Token::DotId(id)) => id.clone(),
-                other => return Err(format!("Expected field name, got {:?}", other)),
+                other => return Err(format!("Expected field name at line {}, got {:?}", self.current_line(), other)),
             };
             self.advance();
             if matches!(self.peek(), Some(Token::LBrace) | Some(Token::DotId(_)) | Some(Token::String(_)) | Some(Token::Int(_)) | Some(Token::Bool(_)) | Some(Token::Null)) {
                 let value = self.parse_value()?;
                 obj.insert(key, value);
             } else {
-                return Err(format!("Expected value after '{}'", key));
+                return Err(format!("Expected value after '{}' at line {}", key, self.current_line()));
             }
         }
         Ok(ZonValue::Object(obj))

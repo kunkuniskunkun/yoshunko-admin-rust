@@ -11,7 +11,7 @@ export const templates = shallowRef<Templates | null>(null)
 export const avatarCache = shallowRef<AvatarListItem[]>([])
 export const weaponCache = shallowRef<WeaponListItem[]>([])
 export const equipCache = shallowRef<EquipListItem[]>([])
-export const cacheDirty = ref(false)
+export const cacheDirty = reactive({ avatars: false, weapons: false, equips: false })
 
 // 视图模式
 export const avatarView = ref<'gallery' | 'editor'>('gallery')
@@ -36,8 +36,8 @@ export const skillData = ref<Record<number, Record<string, number>>>({})
 // 滚动位置
 export const scrollPos = ref<Record<string, number>>({})
 
-// Dirty
-export const dirty = ref(false)
+// Dirty (per-panel)
+export const dirty = reactive({ avatars: false, weapons: false, equips: false })
 
 // Config state
 export const configured = ref(false)
@@ -109,6 +109,7 @@ export function weaponName(id: number): string {
   return weaponMap.value.get(id)?.name || `#${id}`
 }
 
-export function markDirty() { dirty.value = true }
-export function markClean() { dirty.value = false }
-export function markCacheDirty() { cacheDirty.value = true }
+export function markDirty(panelKey: 'avatars' | 'weapons' | 'equips') { dirty[panelKey] = true }
+export function markClean(panelKey: 'avatars' | 'weapons' | 'equips') { dirty[panelKey] = false }
+export function markCacheDirty(panelKey: 'avatars' | 'weapons' | 'equips') { cacheDirty[panelKey] = true }
+export function markAllCacheDirty() { cacheDirty.avatars = true; cacheDirty.weapons = true; cacheDirty.equips = true }

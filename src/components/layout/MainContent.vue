@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { panel, uid, templates, cacheDirty, avatarCache, weaponCache, equipCache, configured } from '@/composables/useAppState'
+import { panel, uid, templates, cacheDirty, avatarCache, weaponCache, equipCache, configured, markAllCacheDirty } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { ref, onMounted, watch, defineAsyncComponent, nextTick } from 'vue'
 import { initTheme } from '@/composables/useTheme'
@@ -54,7 +54,7 @@ async function loadCounts() {
     avatarCache.value = av.avatars
     weaponCache.value = wp.weapons
     equipCache.value = eq.equips
-    cacheDirty.value = false
+    cacheDirty.avatars = false; cacheDirty.weapons = false; cacheDirty.equips = false
   } catch (e) {
     console.error('Failed to load counts:', e)
   }
@@ -73,7 +73,7 @@ watch(uid, async () => {
     avatarCache.value = []
     weaponCache.value = []
     equipCache.value = []
-    cacheDirty.value = true
+    markAllCacheDirty()
     await loadCounts()
     applySlideIn()
   }

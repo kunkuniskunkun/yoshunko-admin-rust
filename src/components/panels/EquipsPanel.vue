@@ -97,12 +97,16 @@ const groupedEquips = computed(() => {
     if (!groups.has(key)) groups.set(key, [])
     groups.get(key)!.push(eq)
   }
-  // Assign global stagger index across all groups
-  let idx = 0
-  for (const [, items] of groups) {
-    for (const eq of items) { (eq as any)._i = idx++ }
-  }
   return groups
+})
+
+const staggerIndex = computed(() => {
+  const map = new Map<number, number>()
+  let idx = 0
+  for (const [, items] of groupedEquips.value) {
+    for (const eq of items) map.set(eq.uid, idx++)
+  }
+  return map
 })
 
 function suitColorClass(suitName: string): string {
@@ -169,12 +173,9 @@ function backToGallery() {
   selectedEquipUid.value = null
   editorData.value = null
   nextTick(() => {
-    const main = document.querySelector('.main-content') as HTMLElement | null
-    if (main && scrollPos.value['equips'] != null) {
-      main.style.scrollBehavior = 'auto'
-      main.scrollTop = scrollPos.value['equips']
-      main.style.scrollBehavior = ''
-    }
+    applyStaggeredAnimation()
+    const main = document.querySelector('.main-content')
+    if (main && scrollPos.value['equips'] != null) main.scrollTop = scrollPos.value['equips']
   })
 }
 
@@ -206,7 +207,7 @@ async function saveEquip() {
       restore: async () => {
         try {
           await api.updateEquip(savedUid, euid, oldData)
-          markCacheDirty()
+          markCacheDirty('equips')
           await refreshCache()
           selectedEquipUid.value = euid
           equipView.value = 'editor'
@@ -215,8 +216,8 @@ async function saveEquip() {
         } catch { toast('撤回失败', 'error') }
       }
     })
-    markClean()
-    markCacheDirty()
+    markClean('equips')
+    markCacheDirty('equips')
     await refreshCache()
     backToGallery()
   } catch (e: unknown) {
@@ -241,13 +242,13 @@ async function deleteEquip() {
             id: snapData.id, level: snapData.level, star: snapData.star,
             properties: snapData.properties, sub_properties: snapData.sub_properties,
           })
-          markCacheDirty()
+          markCacheDirty('equips')
           await refreshCache()
           toast('已撤回删除', 'info')
         } catch { toast('撤回失败', 'error') }
       }
     })
-    markCacheDirty()
+    markCacheDirty('equips')
     backToGallery()
     await refreshCache()
   } catch (e: unknown) {
@@ -267,13 +268,13 @@ async function copyEquip() {
       restore: async () => {
         try {
           await api.deleteEquip(savedUid, newUid)
-          markCacheDirty()
+          markCacheDirty('equips')
           await refreshCache()
           toast('已撤回复制', 'info')
         } catch { toast('撤回失败', 'error') }
       }
     })
-    markCacheDirty()
+    markCacheDirty('equips')
     await refreshCache()
     backToGallery()
   } catch (e: unknown) {
@@ -292,20 +293,20 @@ function onEditSubKeyChange(index: number, key: number) {
     arr[index] = { key, key_name: opt?.name || '', base_value: opt?.base_value || SUB_STAT_BASE_VALUES[key] || 0, add_value: 1 }
   }
   editSubProps.value = arr
-  markDirty()
+  markDirty('equips')
 }
 
 function onEditSubBaseChange(index: number, value: number) {
   const arr = [...editSubProps.value]
   const p = arr[index]
-  if (p) { arr[index] = { ...p, base_value: value }; markDirty() }
+  if (p) { arr[index] = { ...p, base_value: value }; markDirty('equips') }
   editSubProps.value = arr
 }
 
 function onEditSubAddChange(index: number, value: number) {
   const arr = [...editSubProps.value]
   const p = arr[index]
-  if (p) { arr[index] = { ...p, add_value: Math.max(0, value) }; markDirty() }
+  if (p) { arr[index] = { ...p, add_value: Math.max(0, value) }; markDirty('equips') }
   editSubProps.value = arr
 }
 
@@ -461,14 +462,14 @@ async function submitCreate() {
       restore: async () => {
         try {
           await api.deleteEquip(savedUid, newUid)
-          markCacheDirty()
+          markCacheDirty('equips')
           await refreshCache()
           toast('已撤回创建', 'info')
         } catch { toast('撤回失败', 'error') }
       }
     })
     closeCreate()
-    markCacheDirty()
+    markCacheDirty('equips')
     await refreshCache()
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '创建失败', 'error')
@@ -477,7 +478,7 @@ async function submitCreate() {
 
 async function refreshCache() {
   if (!uid.value) return
-  if (equipCache.value.length && !cacheDirty.value) {
+  if (equipCache.value.length && !cacheDirty.equips) {
     loading.value = false
     return
   }
@@ -486,7 +487,7 @@ async function refreshCache() {
   try {
     const data = await api.getEquips(uid.value)
     equipCache.value = data.equips
-    cacheDirty.value = false
+    cacheDirty.equips = false
   } catch (e: unknown) {
     toast('加载驱动盘失败: ' + (e instanceof Error ? e.message : ''), 'error')
   }
@@ -508,7 +509,7 @@ onMounted(async () => {
 watch(panel, (_, old) => { if (old === 'equips') { equipView.value = 'gallery'; selectedEquipUid.value = null; searchQuery.equips = '' } })
 
 // Track unsaved changes for level/star (sub-properties already tracked via change handlers)
-watch([editLevel, editStar], () => { if (equipView.value === 'editor') markDirty() })
+watch([editLevel, editStar], () => { if (equipView.value === 'editor') markDirty('equips') })
 
 onActivated(async () => {
   await refreshCache()
@@ -736,7 +737,7 @@ onActivated(async () => {
             :key="eq.uid"
             class="game-card equip-card staggered-anim"
             :class="suitColorClass(eq.suit_name)"
-            :style="{ '--i': (eq as any)._i }"
+            :style="{ '--i': staggerIndex.get(eq.uid) }"
             tabindex="0" role="button"
             @click="selectEquip(eq.uid, $event)"
           >

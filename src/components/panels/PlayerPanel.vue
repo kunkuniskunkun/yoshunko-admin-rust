@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onActivated, watch } from 'vue'
-import { uid, markCacheDirty, pushUndo } from '@/composables/useAppState'
+import { uid, markAllCacheDirty, pushUndo } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast, showConfirm } from '@/lib/utils'
 import type { PlayerBasic } from '@/lib/types'
@@ -128,7 +128,7 @@ function importData() {
         try {
           if (json.info && uid.value) await api.updatePlayerBasic(uid.value, json.info)
           toast('导入完成', 'success')
-          markCacheDirty()
+          markAllCacheDirty()
         } catch (e: unknown) {
           toast('导入失败: ' + (e instanceof Error ? e.message : ''), 'error')
         }

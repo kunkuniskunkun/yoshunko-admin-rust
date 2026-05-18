@@ -5,14 +5,9 @@ import { api } from '@/lib/api'
 import { toast } from '@/lib/utils'
 import { open } from '@tauri-apps/plugin-shell'
 import { ChevronDown } from 'lucide-vue-next'
-import type { HadalEntrance } from '@/lib/types'
+import type { HadalEntrance, HadalZone } from '@/lib/types'
 
-interface HadalData {
-  entrances: HadalEntrance[]
-  saved_rooms?: { zone_id: number; layer_index: number; avatar_id_list: number[]; buddy_id: number }[]
-}
-
-const data = ref<HadalData | null>(null)
+const data = ref<HadalZone | null>(null)
 const loading = ref(true)
 const entranceEdits = ref<{ id: number; zone_id: number }[]>([])
 const showHelp = ref(false)
@@ -48,7 +43,7 @@ async function loadData() {
   try {
     const hz = await api.getHadalZone(uid.value)
     if (hz) {
-      data.value = hz as unknown as HadalData
+      data.value = hz
       entranceEdits.value = hz.entrances.filter(e => ACTIVE_ENTRANCE_IDS.includes(e.id)).map(e => ({ ...e }))
     } else {
       data.value = null

@@ -6,7 +6,6 @@ import type {
   EquipListItem, EquipDetail, EquipUpdate, EquipCreate,
   HadalZone, HadalZoneUpdate,
   Templates,
-  DebugListDirResult, DebugAvatarIdsResult,
 } from './types'
 
 export const api = {
@@ -15,10 +14,6 @@ export const api = {
   getVersion: () => invoke<{ version: string }>('get_version'),
   setStateDir: (path: string) => invoke<{ ok: boolean; error?: string }>('set_state_dir', { path }),
   autoDetectPaths: () => invoke<{ candidates: string[] }>('auto_detect_paths'),
-
-  // Debug
-  debugListDir: (path: string) => invoke<DebugListDirResult>('debug_list_dir', { path }),
-  debugAvatarIds: (uid: number) => invoke<DebugAvatarIdsResult>('debug_avatar_ids', { uid }),
 
   // Templates
   getTemplates: () => invoke<Templates>('get_templates'),

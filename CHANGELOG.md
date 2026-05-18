@@ -4,6 +4,28 @@
 
 ---
 
+## V0.711 (2026-05-18)
+
+### 架构优化（9 项工程改进）
+
+**安全 & 可靠性**
+- Mutex 锁恢复：`with_manager` 使用 `poisoned.into_inner()` 自动恢复中毒的锁，防止一次 panic 导致 31 个 API 全部瘫痪
+- ZON 写入前校验：`update_avatar` / `update_equip` / `create_equip` 写入前验证数据结构（skill_type_level、properties 必须为正确类型）
+- ZON 解析错误增强：所有解析错误信息包含行号（`at line N`），排查问题更方便
+- dirty 全局单例拆分：`dirty` 从 `ref(false)` 改为 `reactive({ avatars, weapons, equips })`，三个面板独立追踪未保存状态
+- cacheDirty 拆分：缓存脏标记从单 boolean 拆为三实体独立标记，避免跨面板不必要的缓存刷新
+- 调试 API 移除：前端 `debugListDir` / `debugAvatarIds` API wrapper 已删除，正式版不再暴露调试接口
+
+**代码组织**
+- api.rs 模块拆分：1168 行单文件拆为 10 个子模块（helpers / config / templates / players / avatars / weapons / equips / hadal / launch / logs），最大 261 行
+- 消除 `as any` / `as unknown`：6 处类型断言全部替换——`_i` 改用 `staggerIndex` computed Map，`HadalZone` 类型补全 `saved_rooms` 字段
+- usePanelEditor composable：提取公共面板编辑逻辑为泛型 composable，WeaponsPanel 已迁移验证
+
+**性能**
+- 进程批量查证：`get_running_processes` 从逐 PID 调 tasklist 改为单次批量获取，减少外部进程开销
+
+---
+
 ## V0.710 (2026-05-18)
 
 ### 快捷键修复

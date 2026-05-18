@@ -87,7 +87,7 @@ watch(equipCache, () => updateCounts())
         v-for="item in navItems"
         :key="item.key"
         class="nav-item"
-        :class="{ active: panel === item.key, dirty: dirty && panel === item.key }"
+        :class="{ active: panel === item.key, dirty: dirty[item.key as keyof typeof dirty] }"
         role="tab"
         :aria-selected="panel === item.key"
         @click="selectPanel(item.key)"

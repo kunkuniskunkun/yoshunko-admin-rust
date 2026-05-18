@@ -175,6 +175,7 @@ export interface EquipCreate {
 
 export interface HadalZone {
   entrances: HadalEntrance[]
+  saved_rooms?: { zone_id: number; layer_index: number; avatar_id_list: number[]; buddy_id: number }[]
 }
 
 export interface HadalEntrance {

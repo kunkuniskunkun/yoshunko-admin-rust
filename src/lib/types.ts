@@ -117,6 +117,8 @@ export interface WeaponUpdate {
   level?: number
   star?: number
   refine_level?: number
+  lock?: boolean
+  exp?: number
 }
 
 // ─── Equip ─────────────────────────────────────────

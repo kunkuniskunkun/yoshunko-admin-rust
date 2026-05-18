@@ -293,9 +293,11 @@ onActivated(async () => {
       </div>
     </div>
     <div class="editor-page__actions editor-fab-group" v-if="editorData">
+      <span class="text-xs text-muted" style="margin-right:auto;opacity:0.6">Ctrl+Z 可撤回操作</span>
       <button class="btn btn-danger" @click="deleteWeapon">删除</button>
       <button class="btn btn-ghost" @click="copyWeapon">复制</button>
       <button class="btn btn-primary" :class="{ 'btn--saving': saving }" :disabled="saving" @click="saveWeapon">{{ saving ? '保存中...' : '保存更改' }}</button>
+    </div>
     </div>
   </div>
 

@@ -190,7 +190,7 @@ function goToShortcuts() {
 
           <!-- Shortcuts -->
           <div class="section-title">键盘快捷键</div>
-          <p class="form-hint">Ctrl+S 保存 · Ctrl+F 搜索 · Ctrl+Z 撤销 · ESC 关闭 · 1-6 切换面板 · ↑↓ 调整数值</p>
+          <p class="form-hint">Ctrl+S 保存 · Ctrl+F 搜索 · Ctrl+Z 撤回操作 · ESC 关闭 · 1-7 切换面板 · ↑↓ 调整数值</p>
           <button class="btn btn-ghost" style="margin-top:4px;margin-bottom:16px" @click="goToShortcuts">查看全部快捷键 →</button>
 
           <!-- About -->

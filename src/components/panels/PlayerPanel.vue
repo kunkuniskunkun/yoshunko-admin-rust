@@ -187,6 +187,7 @@ function importData() {
         <div class="section-title">数据管理</div>
         <div class="btn-group">
           <button class="btn btn-primary" :class="{ 'btn--saving': saving }" :disabled="saving" @click="save">{{ saving ? '保存中...' : '保存更改' }}</button>
+          <span class="text-xs text-muted" style="opacity:0.6;margin-left:4px">Ctrl+Z 可撤回</span>
           <button class="btn btn-ghost" @click="exportData">导出数据</button>
           <button class="btn btn-ghost" @click="importData">导入数据</button>
         </div>

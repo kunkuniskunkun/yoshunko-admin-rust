@@ -348,6 +348,7 @@ watch(filteredAvatars, () => {
     </div>
 
     <div class="editor-page__actions" v-if="editorData">
+      <span class="text-xs text-muted" style="margin-right:auto">Ctrl+Z 可撤回操作</span>
       <button class="btn btn-primary" :class="{ 'btn--saving': saving }" :disabled="saving" @click="saveAvatar">{{ saving ? '保存中...' : '保存更改' }}</button>
     </div>
   </div>

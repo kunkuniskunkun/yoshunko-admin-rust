@@ -838,7 +838,7 @@ pub fn launch_program(state: State<AppState>, key: String) -> Value {
 }
 
 #[tauri::command]
-pub fn launch_program_admin(state: State<AppState>, path: String) -> Value {
+pub fn launch_program_admin(state: State<AppState>, path: String, key: String) -> Value {
     let p = std::path::Path::new(&path);
     if !p.exists() {
         return json!({"ok": false, "error": format!("文件不存在: {}", path)});
@@ -866,7 +866,7 @@ pub fn launch_program_admin(state: State<AppState>, path: String) -> Value {
         if result_val > 32 {
             // Mark as running immediately (admin process may not be visible to us)
             if let Ok(mut procs) = state.running_processes.lock() {
-                procs.insert("client".to_string(), 1);
+                procs.insert(key.clone(), 1);
             }
             json!({"ok": true})
         } else {
@@ -985,7 +985,7 @@ pub fn stop_process(state: State<AppState>, key: String) -> Value {
     };
     #[cfg(windows)]
     {
-        if key == "client" {
+        if key == "client" || key == "gale" || key == "velina" {
             // Game runs as admin — use ShellExecuteW(runas) to kill it
             use std::ffi::OsStr;
             use std::os::windows::ffi::OsStrExt;

@@ -14,7 +14,7 @@ const launchItems: LaunchItem[] = [
   { key: 'yoshunko', name: 'Yoshunko Server', description: '自动检测 WSL 并启动游戏服务端', isAuto: true },
   { key: 'hoyosdk', name: 'HoyoSDK', description: '米哈游 SDK 服务', isAuto: false },
   { key: 'kcpshim', name: 'KCPSHIM', description: 'KCP 代理服务', isAuto: false },
-  { key: 'yidhari', name: 'Client', description: '游戏客户端（管理员模式）', isAuto: false },
+  { key: 'client', name: 'Client', description: '游戏客户端（管理员模式）', isAuto: false },
 ]
 
 const launchConfig = ref<Record<string, string>>({})
@@ -30,6 +30,9 @@ async function refreshRunning() {
 }
 
 function isRunning(key: string) {
+  if (key === 'client') {
+    return 'client' in runningProcs.value || 'gale' in runningProcs.value || 'velina' in runningProcs.value
+  }
   return key in runningProcs.value
 }
 
@@ -101,10 +104,10 @@ async function launch(key: string) {
       const r = await api.launchYoshunko()
       if (r.ok) toast('Yoshunko 服务端已启动', 'success')
       else toast(r.error || '启动失败', 'error')
-    } else if (key === 'yidhari') {
+    } else if (key === 'client') {
       const path = launchConfig.value[key]
       if (!path) { toast('请先配置路径', 'error'); return }
-      const r = await api.launchProgramAdmin(path)
+      const r = await api.launchProgramAdmin(path, detectClientKey())
       if (r.ok) toast('游戏客户端已启动', 'success')
       else toast(r.error || '启动失败', 'error')
     } else {
@@ -119,8 +122,9 @@ async function launch(key: string) {
 }
 
 async function stop(key: string) {
+  const actualKey = key === 'client' ? detectClientKey() : key
   try {
-    const r = await api.stopProcess(key)
+    const r = await api.stopProcess(actualKey)
     if (r.ok) { toast('已停止', 'success') }
     else toast(r.error || '停止失败', 'error')
   } catch (e: unknown) {
@@ -143,6 +147,14 @@ async function stopAll() {
 }
 
 const anyRunning = computed(() => Object.keys(runningProcs.value).length > 0)
+
+/** 根据配置路径自动检测客户端 key */
+function detectClientKey(): string {
+  const path = (launchConfig.value['client'] || '').toLowerCase()
+  if (path.includes('gale')) return 'gale'
+  if (path.includes('velina')) return 'velina'
+  return 'client'
+}
 
 async function launchAll() {
   for (const item of launchItems) {

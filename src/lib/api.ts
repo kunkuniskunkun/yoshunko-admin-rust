@@ -68,7 +68,7 @@ export const api = {
   setLaunchPath: (key: string, path: string) =>
     invoke<{ ok: boolean; error?: string }>('set_launch_path', { key, path }),
   launchProgram: (key: string) => invoke<{ ok: boolean; error?: string }>('launch_program', { key }),
-  launchProgramAdmin: (path: string) => invoke<{ ok: boolean; error?: string }>('launch_program_admin', { path }),
+  launchProgramAdmin: (path: string, key: string) => invoke<{ ok: boolean; error?: string }>('launch_program_admin', { path, key }),
   launchYoshunko: () => invoke<{ ok: boolean; error?: string }>('launch_yoshunko'),
   getRunningProcesses: () => invoke<{ processes: Record<string, number> }>('get_running_processes'),
   stopProcess: (key: string) => invoke<{ ok: boolean; error?: string }>('stop_process', { key }),

@@ -11,7 +11,7 @@ import { usePanelEditor } from '@/composables/usePanelEditor'
 import SearchBar from '@/components/shared/SearchBar.vue'
 import Stepper from '@/components/shared/Stepper.vue'
 import SkeletonGrid from '@/components/shared/SkeletonGrid.vue'
-import { PROFESSION_ORDER, NPC_WEAPON_ID_MIN, NPC_WEAPON_ID_MAX } from '@/constants'
+import { PROFESSION_ORDER } from '@/constants'
 
 // Edit refs
 const editLevel = ref(60)
@@ -54,7 +54,8 @@ const {
 
   filterFn: (w, q) => {
     q = q.toLowerCase()
-    if (w.id < NPC_WEAPON_ID_MIN || w.id > NPC_WEAPON_ID_MAX) return false
+    // 排除 B 级（ID < 13000）和 NPC 音擎（12000-12999）
+    if (w.id < 13000) return false
     const py = WEAPON_PINYIN[w.id]
     if (py && (py.full.includes(q) || py.initials.includes(q))) return true
     return String(w.id).includes(q) || String(w.uid).includes(q)

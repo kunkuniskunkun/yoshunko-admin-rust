@@ -134,7 +134,7 @@ pub fn set_background(state: State<AppState>, path: String, opacity: f64) -> Val
 }
 ```
 
-`--accent-glow` 和 `--accent-bg` 的 rgba 值从主色自动计算，无需手动指定。
+`--accent-glow` 和 `--accent-bg` 的 rgba 值从主色推导，在 CSS 中手动定义（仅 6 套，不需要运行时计算）。
 
 ### 2.2 实现方式
 
@@ -190,7 +190,7 @@ const accent = localStorage.getItem('accent') || 'blue'  // 读取
 | `App.vue` | 添加 `.bg-layer` + `.bg-overlay` div，onMounted 读取背景配置和主题色 |
 | `SettingsPanel.vue` | 添加"背景图"和"主题色"设置区域 |
 | `theme.css` | 添加 `[data-accent="xxx"]` 变量覆盖规则 |
-| `api/mod.rs` | 新增 `set_background` command（或在 config.rs） |
+| `api/config.rs` | 新增 `set_background` command |
 | `lib/api.ts` | 新增 `setBackground` wrapper |
 | `lib/types.ts` | Config 类型新增 `background` 字段 |
 
@@ -199,7 +199,7 @@ const accent = localStorage.getItem('accent') || 'blue'  // 读取
 ## 四、实施顺序
 
 1. 主题色切换（纯前端，~1.5h）
-   - theme.css 添加 5 套 data-accent 变量
+   - theme.css 添加 6 套 data-accent 变量
    - useTheme.ts 扩展主题色逻辑
    - SettingsPanel 添加色块选择器
 2. 自定义背景图（前后端，~2.5h）

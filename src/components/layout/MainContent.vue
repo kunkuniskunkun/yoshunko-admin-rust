@@ -3,6 +3,7 @@ import { panel, uid, templates, cacheDirty, avatarCache, weaponCache, equipCache
 import { api } from '@/lib/api'
 import { ref, onMounted, watch, defineAsyncComponent, nextTick } from 'vue'
 import { initTheme } from '@/composables/useTheme'
+import { useKeyboard } from '@/composables/useKeyboard'
 
 import SetupPanel from '@/components/panels/SetupPanel.vue'
 import SkeletonGrid from '@/components/shared/SkeletonGrid.vue'
@@ -58,6 +59,8 @@ async function loadCounts() {
     console.error('Failed to load counts:', e)
   }
 }
+
+useKeyboard()
 
 onMounted(() => {
   initTheme()

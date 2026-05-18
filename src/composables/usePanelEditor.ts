@@ -58,9 +58,7 @@ export function usePanelEditor<ListItem, Detail>(opts: PanelEditorOpts<ListItem,
   // ─── Filtered items ─────────────────────
   const filteredItems = computed(() => {
     const query = searchQuery[searchKey]
-    const list = opts.cache.value
-    if (!query) return [...list].sort((a, b) => opts.getItemId(a) - opts.getItemId(b))
-    return list
+    return opts.cache.value
       .filter(item => opts.filterFn(item, query))
       .sort((a, b) => opts.getItemId(a) - opts.getItemId(b))
   })

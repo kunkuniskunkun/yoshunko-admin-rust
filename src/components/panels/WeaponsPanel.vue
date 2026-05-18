@@ -132,13 +132,15 @@ async function saveWeapon() {
     toast('音擎数据已保存', 'success')
     pushUndo({
       restore: async () => {
-        await api.updateWeapon(savedUid, wuid, oldData)
-        markCacheDirty()
-        await refreshCache()
-        selectedWeaponUid.value = wuid
-        weaponView.value = 'editor'
-        loadEditor(wuid)
-        toast('已撤回保存', 'info')
+        try {
+          await api.updateWeapon(savedUid, wuid, oldData)
+          markCacheDirty()
+          await refreshCache()
+          selectedWeaponUid.value = wuid
+          weaponView.value = 'editor'
+          await loadEditor(wuid)
+          toast('已撤回保存', 'info')
+        } catch { toast('撤回失败', 'error') }
       }
     })
     markClean()
@@ -161,10 +163,12 @@ async function copyWeapon() {
     toast(`音擎已复制为 #${newUid}`, 'success')
     pushUndo({
       restore: async () => {
-        await api.deleteWeapon(savedUid, newUid)
-        markCacheDirty()
-        await refreshCache()
-        toast('已撤回复制', 'info')
+        try {
+          await api.deleteWeapon(savedUid, newUid)
+          markCacheDirty()
+          await refreshCache()
+          toast('已撤回复制', 'info')
+        } catch { toast('撤回失败', 'error') }
       }
     })
     markCacheDirty()
@@ -186,16 +190,19 @@ async function deleteWeapon() {
     toast('音擎已删除', 'success')
     pushUndo({
       restore: async () => {
-        await api.updateWeapon(savedUid, wuid, {
-          id: snapData.id, level: snapData.level,
-          star: snapData.star, refine_level: snapData.refine_level,
-        })
-        markCacheDirty()
-        await refreshCache()
-        selectedWeaponUid.value = wuid
-        weaponView.value = 'editor'
-        loadEditor(wuid)
-        toast('已撤回删除', 'info')
+        try {
+          await api.updateWeapon(savedUid, wuid, {
+            id: snapData.id, level: snapData.level,
+            star: snapData.star, refine_level: snapData.refine_level,
+            lock: snapData.lock, exp: 0,
+          })
+          markCacheDirty()
+          await refreshCache()
+          selectedWeaponUid.value = wuid
+          weaponView.value = 'editor'
+          await loadEditor(wuid)
+          toast('已撤回删除', 'info')
+        } catch { toast('撤回失败', 'error') }
       }
     })
     markClean()

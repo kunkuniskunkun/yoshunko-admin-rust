@@ -45,7 +45,7 @@ export function useKeyboard(opts: {
     if (e.ctrlKey && !e.shiftKey && e.key === 'z') {
       e.preventDefault()
       const snap = popUndo()
-      if (snap) snap.restore()
+      if (snap) Promise.resolve(snap.restore()).catch(() => {})
       return
     }
 

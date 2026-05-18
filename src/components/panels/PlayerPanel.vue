@@ -65,9 +65,11 @@ async function save() {
     }
     pushUndo({
       restore: async () => {
-        await api.updatePlayerBasic(savedUid, oldData)
-        loadData()
-        toast('已撤回保存', 'info')
+        try {
+          await api.updatePlayerBasic(savedUid, oldData)
+          loadData()
+          toast('已撤回保存', 'info')
+        } catch { toast('撤回失败', 'error') }
       }
     })
   } catch (e: unknown) {

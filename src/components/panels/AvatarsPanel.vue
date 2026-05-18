@@ -213,13 +213,15 @@ async function saveAvatar() {
     toast('角色数据已保存', 'success')
     pushUndo({
       restore: async () => {
-        await api.updateAvatar(savedUid, aid, oldData)
-        markCacheDirty()
-        await refreshCache()
-        selectedAvatarId.value = aid
-        avatarView.value = 'editor'
-        loadEditor(aid)
-        toast('已撤回保存', 'info')
+        try {
+          await api.updateAvatar(savedUid, aid, oldData)
+          markCacheDirty()
+          await refreshCache()
+          selectedAvatarId.value = aid
+          avatarView.value = 'editor'
+          await loadEditor(aid)
+          toast('已撤回保存', 'info')
+        } catch { toast('撤回失败', 'error') }
       }
     })
     markClean()

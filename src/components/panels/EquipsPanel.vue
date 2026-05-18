@@ -194,13 +194,15 @@ async function saveEquip() {
     toast('驱动盘数据已保存', 'success')
     pushUndo({
       restore: async () => {
-        await api.updateEquip(savedUid, euid, oldData)
-        markCacheDirty()
-        await refreshCache()
-        selectedEquipUid.value = euid
-        equipView.value = 'editor'
-        loadEditor(euid)
-        toast('已撤回保存', 'info')
+        try {
+          await api.updateEquip(savedUid, euid, oldData)
+          markCacheDirty()
+          await refreshCache()
+          selectedEquipUid.value = euid
+          equipView.value = 'editor'
+          await loadEditor(euid)
+          toast('已撤回保存', 'info')
+        } catch { toast('撤回失败', 'error') }
       }
     })
     markClean()
@@ -224,13 +226,15 @@ async function deleteEquip() {
     toast('驱动盘已删除', 'success')
     pushUndo({
       restore: async () => {
-        await api.createEquip(savedUid, {
-          id: snapData.id, level: snapData.level, star: snapData.star,
-          properties: snapData.properties, sub_properties: snapData.sub_properties,
-        })
-        markCacheDirty()
-        await refreshCache()
-        toast('已撤回删除', 'info')
+        try {
+          await api.createEquip(savedUid, {
+            id: snapData.id, level: snapData.level, star: snapData.star,
+            properties: snapData.properties, sub_properties: snapData.sub_properties,
+          })
+          markCacheDirty()
+          await refreshCache()
+          toast('已撤回删除', 'info')
+        } catch { toast('撤回失败', 'error') }
       }
     })
     markCacheDirty()
@@ -251,10 +255,12 @@ async function copyEquip() {
     toast(`驱动盘已复制为 #${newUid}`, 'success')
     pushUndo({
       restore: async () => {
-        await api.deleteEquip(savedUid, newUid)
-        markCacheDirty()
-        await refreshCache()
-        toast('已撤回复制', 'info')
+        try {
+          await api.deleteEquip(savedUid, newUid)
+          markCacheDirty()
+          await refreshCache()
+          toast('已撤回复制', 'info')
+        } catch { toast('撤回失败', 'error') }
       }
     })
     markCacheDirty()
@@ -439,13 +445,16 @@ async function submitCreate() {
     const r = await api.createEquip(uid.value, data)
     if (r.ok === false) throw new Error(r.error || '创建失败')
     const newUid = r.uid
+    const savedUid = uid.value
     toast(`驱动盘 #${newUid} 已创建`, 'success')
     pushUndo({
       restore: async () => {
-        await api.deleteEquip(uid.value!, newUid)
-        markCacheDirty()
-        await refreshCache()
-        toast('已撤回创建', 'info')
+        try {
+          await api.deleteEquip(savedUid, newUid)
+          markCacheDirty()
+          await refreshCache()
+          toast('已撤回创建', 'info')
+        } catch { toast('撤回失败', 'error') }
       }
     })
     closeCreate()

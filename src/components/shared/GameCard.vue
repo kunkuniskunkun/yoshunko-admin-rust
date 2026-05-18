@@ -17,10 +17,13 @@ let pressTimer: ReturnType<typeof setTimeout> | null = null
 
 function onPress(e: Event) {
   const target = e.currentTarget as HTMLElement
-  target.style.transition = 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
-  target.style.transform = 'scale(0.92)'
+  target.style.transition = 'transform 0.15s cubic-bezier(0.23, 1, 0.32, 1)'
+  target.style.transform = 'translate(4px, -4px) scale(0.96)'
   if (pressTimer) clearTimeout(pressTimer)
-  pressTimer = setTimeout(() => { target.style.transform = 'scale(1)' }, 120)
+  pressTimer = setTimeout(() => {
+    target.style.transform = ''
+    target.style.transition = ''
+  }, 150)
 }
 
 onUnmounted(() => { if (pressTimer) clearTimeout(pressTimer) })

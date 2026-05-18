@@ -1604,8 +1604,8 @@ body {
   animation: none !important;
 }
 @keyframes cardEnter {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: skewX(-2deg) translateY(16px); }
+  to   { opacity: 1; transform: skewX(-2deg) translateY(0); }
 }
 
 /* Animation off support */

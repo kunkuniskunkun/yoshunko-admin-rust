@@ -118,9 +118,6 @@ function rarityClass(rarity: string): string {
 }
 
 function selectAvatar(id: number, event?: Event) {
-  // Save scroll position
-  const main = document.querySelector('.main-content')
-  if (main) scrollPos.value['avatars'] = main.scrollTop
   // Card press animation
   if (event?.currentTarget) {
     const el = event.currentTarget as HTMLElement
@@ -142,10 +139,6 @@ function backToGallery() {
   avatarView.value = 'gallery'
   selectedAvatarId.value = null
   editorData.value = null
-  nextTick(() => {
-    const main = document.querySelector('.main-content')
-    if (main && scrollPos.value['avatars'] != null) main.scrollTop = scrollPos.value['avatars']
-  })
 }
 
 async function loadEditor(aid: number) {
@@ -297,8 +290,9 @@ watch(filteredAvatars, () => {
 </script>
 
 <template>
+  <div class="panel-wrapper">
   <!-- Editor View -->
-  <div v-show="avatarView === 'editor' && selectedAvatarId" class="editor-page">
+  <div v-if="avatarView === 'editor' && selectedAvatarId" class="editor-overlay">
     <div class="editor-page__top">
       <a class="editor-back" href="#" @click.prevent="backToGallery">← 角色仓库</a>
       <div class="editor-page__header" v-if="editorData">
@@ -367,8 +361,8 @@ watch(filteredAvatars, () => {
     </div>
   </div>
 
-  <!-- Gallery View -->
-  <div v-show="avatarView !== 'editor' || !selectedAvatarId">
+  <!-- Gallery View (always rendered, scroll preserved) -->
+  <div :class="{ 'gallery-hidden': avatarView === 'editor' && selectedAvatarId }">
     <div class="page-header">
       <h2>角色仓库</h2>
       <span class="subtitle text-muted">管理等级、影画、技能、潜能激发</span>
@@ -434,5 +428,6 @@ watch(filteredAvatars, () => {
         </div>
       </div>
     </div>
+  </div>
   </div>
 </template>

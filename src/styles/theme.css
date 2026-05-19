@@ -1440,6 +1440,18 @@ body {
 .avatar-gallery__card--a { border-left-color: var(--rarity-a); }
 
 /* Editor page */
+/* Panel wrapper: gallery always rendered, editor overlays on top */
+.panel-wrapper { position: relative; min-height: 100%; }
+.editor-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: var(--bg-base);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
 .editor-page { display: flex; flex-direction: column; height: 100%; }
 .editor-page__top { padding: 18px 24px 0; }
 .editor-page__top .back-link {

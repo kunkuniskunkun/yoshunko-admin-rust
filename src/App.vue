@@ -69,7 +69,7 @@ onMounted(async () => {
       <n-dialog-provider>
         <n-notification-provider>
           <n-message-provider>
-            <div class="app-layout">
+            <div class="app-layout" :class="{ 'has-bg': bgUrl }">
               <!-- Background layer -->
               <div v-if="bgUrl" class="bg-layer" :style="{ backgroundImage: `url(${bgUrl})` }" />
               <div v-if="bgUrl" class="bg-overlay" :style="{ opacity: bgOpacity }" />

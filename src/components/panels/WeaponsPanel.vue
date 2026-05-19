@@ -103,7 +103,7 @@ watch([editLevel, editStar, editRefine], () => { if (weaponView.value === 'edito
 
 <template>
   <!-- Editor -->
-  <div v-show="weaponView === 'editor' && selectedWeaponUid" class="editor-page">
+  <div v-if="weaponView === 'editor' && selectedWeaponUid" class="editor-page">
     <div class="editor-page__top">
       <a class="editor-back" href="#" @click.prevent="backToGallery">← 音擎仓库</a>
       <div class="editor-page__header" v-if="editorData">
@@ -146,8 +146,8 @@ watch([editLevel, editStar, editRefine], () => { if (weaponView.value === 'edito
     </div>
   </div>
 
-  <!-- Gallery -->
-  <div v-show="weaponView !== 'editor' || !selectedWeaponUid">
+  <!-- Gallery (always in DOM, scroll preserved) -->
+  <div :class="{ 'gallery-hidden': weaponView === 'editor' && selectedWeaponUid }">
     <div class="page-header">
       <h2>音擎仓库</h2>
       <span class="subtitle text-muted">管理音擎等级、星级突破与精炼等级</span>

@@ -1440,6 +1440,14 @@ body {
 .avatar-gallery__card--a { border-left-color: var(--rarity-a); }
 
 /* Editor page */
+/* Gallery hidden: collapsed but scroll position preserved */
+.gallery-hidden {
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .editor-page { display: flex; flex-direction: column; height: 100%; }
 .editor-page__top { padding: 18px 24px 0; }
 .editor-page__top .back-link {

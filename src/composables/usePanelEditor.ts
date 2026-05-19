@@ -95,10 +95,6 @@ export function usePanelEditor<ListItem, Detail>(opts: PanelEditorOpts<ListItem,
 
   // ─── Select item (enter editor) ─────────
   function selectItem(id: number, event?: MouseEvent) {
-    // Save scroll position
-    const main = document.querySelector('.main-content')
-    if (main) scrollPos.value[opts.panelKey] = main.scrollTop
-
     // Card press animation
     if (event) {
       const card = (event.currentTarget as HTMLElement)
@@ -125,15 +121,6 @@ export function usePanelEditor<ListItem, Detail>(opts: PanelEditorOpts<ListItem,
     opts.viewRef.value = 'gallery'
     opts.selectedId.value = null
     editorData.value = null
-    // Wait for browser to paint the gallery cards before restoring scroll
-    nextTick(() => {
-      requestAnimationFrame(() => {
-        const main = document.querySelector('.main-content')
-        if (main && scrollPos.value[opts.panelKey] != null) {
-          main.scrollTop = scrollPos.value[opts.panelKey]
-        }
-      })
-    })
   }
 
   // ─── Load editor ────────────────────────

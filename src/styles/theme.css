@@ -2029,10 +2029,24 @@ kbd {
   background: rgba(30, 30, 38, 0.5);
 }
 
+.has-bg .search-wrap input {
+  background: rgba(255, 255, 255, 0.85);
+}
+[data-theme="dark"] .has-bg .search-wrap input {
+  background: rgba(30, 30, 38, 0.85);
+}
+
 .has-bg .game-card {
   background: rgba(255, 255, 255, 0.85);
 }
 [data-theme="dark"] .has-bg .game-card {
-  background: rgba(30, 30, 38, 0.9);
+  background: rgba(30, 30, 38, 0.85);
+}
+
+.has-bg .avatar-gallery__camp-header {
+  background: rgba(255, 255, 255, 0.85);
+}
+[data-theme="dark"] .has-bg .avatar-gallery__camp-header {
+  background: rgba(30, 30, 38, 0.85);
 }
 .launch-card__running { font-size: 11px; color: #2bad00; font-weight: 600; margin-top: 2px; }

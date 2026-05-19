@@ -235,6 +235,62 @@
   --accent-secondary-bg: rgba(224, 152, 176, 0.06);
 }
 
+/* Dark mode accent overrides (higher specificity) */
+[data-theme="dark"][data-accent="green"] {
+  --accent: #60c890;
+  --accent-dark: #50b880;
+  --accent-glow: rgba(96, 200, 144, 0.3);
+  --accent-bg: rgba(96, 200, 144, 0.08);
+  --accent-secondary: #88ddaa;
+  --accent-secondary-dark: #68cc90;
+  --accent-secondary-glow: rgba(136, 221, 170, 0.25);
+  --accent-secondary-bg: rgba(136, 221, 170, 0.06);
+}
+
+[data-theme="dark"][data-accent="purple"] {
+  --accent: #a080d8;
+  --accent-dark: #9070c8;
+  --accent-glow: rgba(160, 128, 216, 0.3);
+  --accent-bg: rgba(160, 128, 216, 0.08);
+  --accent-secondary: #b8a0e0;
+  --accent-secondary-dark: #a088d0;
+  --accent-secondary-glow: rgba(184, 160, 224, 0.25);
+  --accent-secondary-bg: rgba(184, 160, 224, 0.06);
+}
+
+[data-theme="dark"][data-accent="red"] {
+  --accent: #f07878;
+  --accent-dark: #e06060;
+  --accent-glow: rgba(240, 120, 120, 0.3);
+  --accent-bg: rgba(240, 120, 120, 0.08);
+  --accent-secondary: #f09898;
+  --accent-secondary-dark: #e08080;
+  --accent-secondary-glow: rgba(240, 152, 152, 0.25);
+  --accent-secondary-bg: rgba(240, 152, 152, 0.06);
+}
+
+[data-theme="dark"][data-accent="orange"] {
+  --accent: #f0a060;
+  --accent-dark: #e09050;
+  --accent-glow: rgba(240, 160, 96, 0.3);
+  --accent-bg: rgba(240, 160, 96, 0.08);
+  --accent-secondary: #f0b888;
+  --accent-secondary-dark: #e0a070;
+  --accent-secondary-glow: rgba(240, 184, 136, 0.25);
+  --accent-secondary-bg: rgba(240, 184, 136, 0.06);
+}
+
+[data-theme="dark"][data-accent="pink"] {
+  --accent: #e088a8;
+  --accent-dark: #d07090;
+  --accent-glow: rgba(224, 136, 168, 0.3);
+  --accent-bg: rgba(224, 136, 168, 0.08);
+  --accent-secondary: #e8a0b8;
+  --accent-secondary-dark: #d888a0;
+  --accent-secondary-glow: rgba(232, 160, 184, 0.25);
+  --accent-secondary-bg: rgba(232, 160, 184, 0.06);
+}
+
 /* ─── Accent picker ─────────────────────────────────── */
 
 .accent-picker {

@@ -16,6 +16,8 @@ export const api = {
   autoDetectPaths: () => invoke<{ candidates: string[] }>('auto_detect_paths'),
   setBackground: (path: string, opacity: number) =>
     invoke<{ ok: boolean; error?: string }>('set_background', { path, opacity }),
+  readImageDataUrl: (path: string) =>
+    invoke<{ ok: boolean; url?: string; error?: string }>('read_image_data_url', { path }),
 
   // Templates
   getTemplates: () => invoke<Templates>('get_templates'),

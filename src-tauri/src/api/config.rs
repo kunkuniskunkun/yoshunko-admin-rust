@@ -127,6 +127,29 @@ pub fn set_state_dir(state: State<AppState>, path: String) -> Value {
 }
 
 #[tauri::command]
+pub fn read_image_data_url(path: String) -> Value {
+    let p = std::path::Path::new(&path);
+    if !p.exists() {
+        return json!({"ok": false, "error": "文件不存在"});
+    }
+    let ext = p.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+    let mime = match ext.as_str() {
+        "png" => "image/png",
+        "jpg" | "jpeg" => "image/jpeg",
+        "webp" => "image/webp",
+        _ => return json!({"ok": false, "error": "不支持的图片格式"}),
+    };
+    match std::fs::read(p) {
+        Ok(bytes) => {
+            use base64::Engine;
+            let b64 = base64::engine::general_purpose::STANDARD.encode(&bytes);
+            json!({"ok": true, "url": format!("data:{};base64,{}", mime, b64)})
+        }
+        Err(e) => json!({"ok": false, "error": e.to_string()}),
+    }
+}
+
+#[tauri::command]
 pub fn set_background(state: State<AppState>, path: String, opacity: f64) -> Value {
     let opacity = opacity.clamp(0.3, 0.95);
     let mut config_map: serde_json::Map<String, serde_json::Value> =

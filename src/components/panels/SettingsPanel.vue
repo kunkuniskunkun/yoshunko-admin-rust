@@ -131,10 +131,11 @@ async function selectBackground() {
   })
   if (!selected) return
   const path = selected as string
+  console.log('[selectBackground] selected:', path)
   try {
     const r = await api.setBackground(path, bgOpacity.value)
     if (!r.ok) { toast('保存失败: ' + r.error, 'error'); return }
-    setBackground(path, bgOpacity.value)
+    await setBackground(path, bgOpacity.value)
     toast('背景图已设置', 'success')
   } catch (e: unknown) {
     toast('设置失败: ' + (e instanceof Error ? e.message : ''), 'error')
@@ -145,7 +146,7 @@ async function clearBackground() {
   try {
     const r = await api.setBackground('', 0)
     if (!r.ok) { toast('清除失败: ' + r.error, 'error'); return }
-    setBackground('', 0.85)
+    await setBackground('', 0.85)
     toast('背景图已清除', 'success')
   } catch (e: unknown) {
     toast('清除失败: ' + (e instanceof Error ? e.message : ''), 'error')

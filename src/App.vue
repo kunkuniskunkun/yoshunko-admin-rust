@@ -55,10 +55,11 @@ onMounted(async () => {
   initAccent()
   try {
     const config = await api.getConfig()
+    console.log('[App] config.background:', config.background)
     if (config.background?.path) {
-      setBackground(config.background.path, config.background.opacity)
+      await setBackground(config.background.path, config.background.opacity)
     }
-  } catch {}
+  } catch (e) { console.error('[App] getConfig failed:', e) }
 })
 </script>
 

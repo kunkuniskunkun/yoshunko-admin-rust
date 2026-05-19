@@ -78,6 +78,7 @@ pub fn run() {
             api::set_state_dir,
             api::auto_detect_paths,
             api::set_background,
+            api::read_image_data_url,
             api::debug_list_dir,
             api::debug_avatar_ids,
             api::get_templates,

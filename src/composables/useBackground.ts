@@ -1,12 +1,27 @@
 import { ref } from 'vue'
-import { convertFileSrc } from '@tauri-apps/api/core'
+import { api } from '@/lib/api'
 
 export const bgUrl = ref('')
 export const bgOpacity = ref(0.85)
 export const bgPath = ref('')
 
-export function setBackground(path: string, opacity: number) {
+export async function setBackground(path: string, opacity: number) {
   bgPath.value = path
   bgOpacity.value = opacity
-  bgUrl.value = path ? convertFileSrc(path) : ''
+  if (!path) {
+    bgUrl.value = ''
+    return
+  }
+  try {
+    const r = await api.readImageDataUrl(path)
+    if (r.ok && r.url) {
+      bgUrl.value = r.url
+    } else {
+      console.error('[setBackground] readImageDataUrl failed:', r.error)
+      bgUrl.value = ''
+    }
+  } catch (e) {
+    console.error('[setBackground] error:', e)
+    bgUrl.value = ''
+  }
 }

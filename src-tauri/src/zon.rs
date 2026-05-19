@@ -406,3 +406,82 @@ fn serialize_zon_with_indent(value: &ZonValue, indent: usize) -> String {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn roundtrip_simple_object() {
+        let input = ".{.name = \"Koleda\",.level = 60,}";
+        let parsed = parse_zon(input).unwrap();
+        let serialized = serialize_zon(&parsed);
+        let reparsed = parse_zon(&serialized).unwrap();
+        assert_eq!(parsed, reparsed);
+    }
+
+    #[test]
+    fn roundtrip_nested_object() {
+        let input = ".{.outer = .{.inner = 42,},.flag = true,}";
+        let parsed = parse_zon(input).unwrap();
+        let serialized = serialize_zon(&parsed);
+        let reparsed = parse_zon(&serialized).unwrap();
+        assert_eq!(parsed, reparsed);
+    }
+
+    #[test]
+    fn roundtrip_array() {
+        let input = ".{.items = .{1, 2, 3,},}";
+        let parsed = parse_zon(input).unwrap();
+        let serialized = serialize_zon(&parsed);
+        let reparsed = parse_zon(&serialized).unwrap();
+        assert_eq!(parsed, reparsed);
+    }
+
+    #[test]
+    fn roundtrip_enum_and_null() {
+        let input = ".{.type = .active,.value = null,}";
+        let parsed = parse_zon(input).unwrap();
+        let serialized = serialize_zon(&parsed);
+        let reparsed = parse_zon(&serialized).unwrap();
+        assert_eq!(parsed, reparsed);
+    }
+
+    #[test]
+    fn roundtrip_string_escaping() {
+        let input = r#"{.msg = "hello\nworld",.path = "C:\\Users\\test",}"#;
+        let parsed = parse_zon(input).unwrap();
+        let serialized = serialize_zon(&parsed);
+        let reparsed = parse_zon(&serialized).unwrap();
+        assert_eq!(parsed, reparsed);
+    }
+
+    #[test]
+    fn parse_comments_ignored() {
+        let input = "// comment\n.{.x = 1,}";
+        let parsed = parse_zon(input).unwrap();
+        match &parsed {
+            ZonValue::Object(obj) => assert_eq!(obj.get("x"), Some(&ZonValue::Int(1))),
+            _ => panic!("Expected object"),
+        }
+    }
+
+    #[test]
+    fn serialize_zon_object_direct() {
+        let mut obj = BTreeMap::new();
+        obj.insert("key".to_string(), ZonValue::Int(42));
+        let s = serialize_zon_object(&obj);
+        let reparsed = parse_zon(&s).unwrap();
+        match reparsed {
+            ZonValue::Object(map) => assert_eq!(map.get("key"), Some(&ZonValue::Int(42))),
+            _ => panic!("Expected object"),
+        }
+    }
+
+    #[test]
+    fn error_includes_line_number() {
+        let input = ".{.x = 1,\n.y = .{.bad,}";
+        let err = parse_zon(input).unwrap_err();
+        assert!(err.contains("line"), "Error should mention line: {}", err);
+    }
+}

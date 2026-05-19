@@ -118,6 +118,9 @@ function rarityClass(rarity: string): string {
 }
 
 function selectAvatar(id: number, event?: Event) {
+  // Save scroll position before gallery collapses
+  const main = document.querySelector('.main-content')
+  if (main) scrollPos.value['avatars'] = main.scrollTop
   // Card press animation
   if (event?.currentTarget) {
     const el = event.currentTarget as HTMLElement
@@ -139,6 +142,10 @@ function backToGallery() {
   avatarView.value = 'gallery'
   selectedAvatarId.value = null
   editorData.value = null
+  requestAnimationFrame(() => {
+    const main = document.querySelector('.main-content')
+    if (main && scrollPos.value['avatars'] != null) main.scrollTop = scrollPos.value['avatars']
+  })
 }
 
 async function loadEditor(aid: number) {

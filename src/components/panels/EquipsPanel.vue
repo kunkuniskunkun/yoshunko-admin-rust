@@ -149,6 +149,9 @@ async function loadEditor(euid: number) {
 }
 
 async function selectEquip(euid: number, event?: Event) {
+  // Save scroll position before gallery collapses
+  const main = document.querySelector('.main-content')
+  if (main) scrollPos.value['equips'] = main.scrollTop
   // Card press animation
   if (event?.currentTarget) {
     const el = event.currentTarget as HTMLElement
@@ -170,6 +173,10 @@ function backToGallery() {
   equipView.value = 'gallery'
   selectedEquipUid.value = null
   editorData.value = null
+  requestAnimationFrame(() => {
+    const main = document.querySelector('.main-content')
+    if (main && scrollPos.value['equips'] != null) main.scrollTop = scrollPos.value['equips']
+  })
 }
 
 function getEnhanceSum(): number {

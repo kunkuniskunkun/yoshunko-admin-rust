@@ -2030,6 +2030,9 @@ kbd {
 }
 
 .has-bg .game-card {
+  background: rgba(255, 255, 255, 0.85);
+}
+[data-theme="dark"] .has-bg .game-card {
   background: rgba(30, 30, 38, 0.9);
 }
 .launch-card__running { font-size: 11px; color: #2bad00; font-weight: 600; margin-top: 2px; }

@@ -143,8 +143,10 @@ function backToGallery() {
   selectedAvatarId.value = null
   editorData.value = null
   nextTick(() => {
-    const main = document.querySelector('.main-content')
-    if (main && scrollPos.value['avatars'] != null) main.scrollTop = scrollPos.value['avatars']
+    requestAnimationFrame(() => {
+      const main = document.querySelector('.main-content')
+      if (main && scrollPos.value['avatars'] != null) main.scrollTop = scrollPos.value['avatars']
+    })
   })
 }
 

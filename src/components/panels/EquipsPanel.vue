@@ -174,8 +174,10 @@ function backToGallery() {
   selectedEquipUid.value = null
   editorData.value = null
   nextTick(() => {
-    const main = document.querySelector('.main-content')
-    if (main && scrollPos.value['equips'] != null) main.scrollTop = scrollPos.value['equips']
+    requestAnimationFrame(() => {
+      const main = document.querySelector('.main-content')
+      if (main && scrollPos.value['equips'] != null) main.scrollTop = scrollPos.value['equips']
+    })
   })
 }
 

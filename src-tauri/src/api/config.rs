@@ -128,6 +128,9 @@ pub fn set_state_dir(state: State<AppState>, path: String) -> Value {
 
 #[tauri::command]
 pub fn read_image_data_url(path: String) -> Value {
+    if path.contains("..") {
+        return json!({"ok": false, "error": "路径不合法"});
+    }
     let p = std::path::Path::new(&path);
     if !p.exists() {
         return json!({"ok": false, "error": "文件不存在"});
@@ -182,7 +185,7 @@ pub fn auto_detect_paths() -> Value {
             }
         }
     }
-    for p in [r"D:\3.0.1\state", "/root/yoshunko/state"] {
+    for p in ["/root/yoshunko/state"] {
         if std::path::Path::new(p).join("player").is_dir() {
             candidates.push(p.to_string());
         }
@@ -190,6 +193,8 @@ pub fn auto_detect_paths() -> Value {
     json!({"candidates": candidates})
 }
 
+#[cfg(debug_assertions)]
+#[allow(dead_code)]
 #[tauri::command]
 pub fn debug_list_dir(path: String) -> Value {
     let dir = std::path::Path::new(&path);
@@ -204,6 +209,8 @@ pub fn debug_list_dir(path: String) -> Value {
     json!({"path": path, "exists": dir.exists(), "is_dir": dir.is_dir(), "entries": entries})
 }
 
+#[cfg(debug_assertions)]
+#[allow(dead_code)]
 #[tauri::command]
 pub fn debug_avatar_ids(state: State<AppState>) -> Value {
     let guard = match state.data_manager.lock() {

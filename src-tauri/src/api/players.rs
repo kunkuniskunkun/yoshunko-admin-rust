@@ -36,7 +36,9 @@ pub fn update_player_basic(state: State<AppState>, uid: i64, data: BTreeMap<Stri
         if let Some(v) = data.get("avatar_id").and_then(|v| v.as_i64()) {
             if v < 0 { return json!({"ok": false, "error": "角色 ID 不能为负数"}); }
         }
-        dm.update_basic_info(uid, &data);
-        json!({"ok": true})
+        match dm.update_basic_info(uid, &data) {
+            Ok(()) => json!({"ok": true}),
+            Err(e) => json!({"ok": false, "error": e}),
+        }
     })
 }

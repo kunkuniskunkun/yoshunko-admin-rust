@@ -67,20 +67,23 @@ pub fn update_weapon(state: State<AppState>, uid: i64, weapon_uid: i64, mut data
             if let Err(e) = check_range(v, MIN_REFINE, MAX_REFINE, "refine_level") { return json!({"ok": false, "error": e}); }
         }
         // Merge with existing data to preserve fields not sent by frontend (id, exp, star, lock)
-        if let Some(mut existing) = dm.get_weapon(uid, weapon_uid) {
+        let result = if let Some(mut existing) = dm.get_weapon(uid, weapon_uid) {
             for (k, v) in data {
                 existing.insert(k, v);
             }
             // Ensure exp and lock fields exist
             existing.entry("exp".to_string()).or_insert(ZonValue::Int(0));
             existing.entry("lock".to_string()).or_insert(ZonValue::Bool(false));
-            dm.update_weapon(uid, weapon_uid, &existing);
+            dm.update_weapon(uid, weapon_uid, &existing)
         } else {
             data.entry("exp".to_string()).or_insert(ZonValue::Int(0));
             data.entry("lock".to_string()).or_insert(ZonValue::Bool(false));
-            dm.update_weapon(uid, weapon_uid, &data);
+            dm.update_weapon(uid, weapon_uid, &data)
+        };
+        match result {
+            Ok(()) => json!({"ok": true}),
+            Err(e) => json!({"ok": false, "error": e}),
         }
-        json!({"ok": true})
     })
 }
 

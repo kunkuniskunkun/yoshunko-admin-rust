@@ -67,9 +67,9 @@ impl DataManager {
         self.read_zon_obj(&path)
     }
 
-    pub fn update_basic_info(&mut self, uid: i64, data: &BTreeMap<String, ZonValue>) {
+    pub fn update_basic_info(&mut self, uid: i64, data: &BTreeMap<String, ZonValue>) -> Result<(), String> {
         let path = self.player_path(uid, "info", "");
-        self.write_zon(&path, data);
+        self.write_zon(&path, data)
     }
 
     // ─── Avatars ──────────────────────────────────────────
@@ -84,9 +84,9 @@ impl DataManager {
         self.read_zon_obj(&path)
     }
 
-    pub fn update_avatar(&mut self, uid: i64, avatar_id: i64, data: &BTreeMap<String, ZonValue>) {
+    pub fn update_avatar(&mut self, uid: i64, avatar_id: i64, data: &BTreeMap<String, ZonValue>) -> Result<(), String> {
         let path = self.player_path(uid, "avatar", &avatar_id.to_string());
-        self.write_zon(&path, data);
+        self.write_zon(&path, data)
     }
 
     // ─── Weapons ──────────────────────────────────────────
@@ -101,9 +101,9 @@ impl DataManager {
         self.read_zon_obj(&path)
     }
 
-    pub fn update_weapon(&mut self, uid: i64, weapon_uid: i64, data: &BTreeMap<String, ZonValue>) {
+    pub fn update_weapon(&mut self, uid: i64, weapon_uid: i64, data: &BTreeMap<String, ZonValue>) -> Result<(), String> {
         let path = self.player_path(uid, "weapon", &weapon_uid.to_string());
-        self.write_zon(&path, data);
+        self.write_zon(&path, data)
     }
 
     pub fn delete_weapon(&mut self, uid: i64, weapon_uid: i64) -> Result<(), String> {
@@ -121,7 +121,7 @@ impl DataManager {
         let weapon_dir = self.player_dir.join(uid.to_string()).join("weapon");
         let new_uid = self.next_uid(&weapon_dir);
         let dst_path = weapon_dir.join(new_uid.to_string());
-        self.write_zon(&dst_path, &data);
+        self.write_zon(&dst_path, &data)?;
         Ok(new_uid)
     }
 
@@ -137,9 +137,9 @@ impl DataManager {
         self.read_zon_obj(&path)
     }
 
-    pub fn update_equip(&mut self, uid: i64, equip_uid: i64, data: &BTreeMap<String, ZonValue>) {
+    pub fn update_equip(&mut self, uid: i64, equip_uid: i64, data: &BTreeMap<String, ZonValue>) -> Result<(), String> {
         let path = self.player_path(uid, "equip", &equip_uid.to_string());
-        self.write_zon(&path, data);
+        self.write_zon(&path, data)
     }
 
     pub fn copy_equip(&mut self, uid: i64, equip_uid: i64) -> Result<i64, String> {
@@ -148,7 +148,7 @@ impl DataManager {
         let equip_dir = self.player_dir.join(uid.to_string()).join("equip");
         let new_uid = self.next_uid(&equip_dir);
         let dst_path = equip_dir.join(new_uid.to_string());
-        self.write_zon(&dst_path, &data);
+        self.write_zon(&dst_path, &data)?;
         Ok(new_uid)
     }
 
@@ -166,7 +166,7 @@ impl DataManager {
         fs::create_dir_all(&equip_dir).map_err(|e| format!("Cannot create equip dir: {}", e))?;
         let new_uid = self.next_uid(&equip_dir);
         let path = equip_dir.join(new_uid.to_string());
-        self.write_zon(&path, data);
+        self.write_zon(&path, data)?;
         Ok(new_uid)
     }
 
@@ -223,9 +223,9 @@ impl DataManager {
         self.read_zon_obj(&path)
     }
 
-    pub fn update_hadal_zone(&mut self, uid: i64, data: &BTreeMap<String, ZonValue>) {
+    pub fn update_hadal_zone(&mut self, uid: i64, data: &BTreeMap<String, ZonValue>) -> Result<(), String> {
         let path = self.player_player_path(uid, "hadal_zone", "info");
-        self.write_zon(&path, data);
+        self.write_zon(&path, data)
     }
 
     fn player_player_path(&self, uid: i64, sub: &str, name: &str) -> PathBuf {
@@ -263,36 +263,31 @@ impl DataManager {
         }
     }
 
-    fn write_zon(&mut self, path: &Path, data: &BTreeMap<String, ZonValue>) {
+    fn write_zon(&mut self, path: &Path, data: &BTreeMap<String, ZonValue>) -> Result<(), String> {
         // Backup (best-effort)
         let _ = self.backup_zon(path);
 
         // Ensure parent directory exists
         if let Some(parent) = path.parent() {
-            let _ = fs::create_dir_all(parent);
+            fs::create_dir_all(parent).map_err(|e| format!("创建目录失败: {}", e))?;
         }
 
         // Atomic write: write to .tmp, then rename
         let tmp = path.with_extension("tmp");
         let zon_str = serialize_zon_object(data);
-        if let Ok(mut f) = fs::File::create(&tmp) {
-            if f.write_all(zon_str.as_bytes()).is_err() || f.write_all(b"\n").is_err() {
-                let _ = fs::remove_file(&tmp);
-                return;
-            }
-            if f.sync_all().is_err() {
-                let _ = fs::remove_file(&tmp);
-                return;
-            }
-            drop(f);
-            let _ = fs::rename(&tmp, path);
-        }
+        let mut f = fs::File::create(&tmp).map_err(|e| format!("创建临时文件失败: {}", e))?;
+        f.write_all(zon_str.as_bytes()).map_err(|e| format!("写入失败: {}", e))?;
+        f.write_all(b"\n").map_err(|e| format!("写入换行失败: {}", e))?;
+        f.sync_all().map_err(|e| { let _ = fs::remove_file(&tmp); format!("同步磁盘失败: {}", e) })?;
+        drop(f);
+        fs::rename(&tmp, path).map_err(|e| format!("重命名失败: {}", e))?;
 
         // Update cache
         self.cache.insert(path.to_path_buf(), data.clone());
 
         // Audit log (best-effort)
         let _ = self.audit_log(path);
+        Ok(())
     }
 
     fn backup_zon(&self, path: &Path) -> Result<(), String> {

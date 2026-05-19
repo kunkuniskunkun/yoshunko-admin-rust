@@ -17,14 +17,17 @@ pub fn get_hadal_zone(state: State<AppState>, uid: i64) -> Value {
 pub fn update_hadal_zone(state: State<AppState>, uid: i64, data: BTreeMap<String, ZonValue>) -> Value {
     with_manager(&state, |dm| {
         // Merge with existing data to preserve saved_rooms not sent by frontend
-        if let Some(mut existing) = dm.get_hadal_zone(uid) {
+        let result = if let Some(mut existing) = dm.get_hadal_zone(uid) {
             for (k, v) in data {
                 existing.insert(k, v);
             }
-            dm.update_hadal_zone(uid, &existing);
+            dm.update_hadal_zone(uid, &existing)
         } else {
-            dm.update_hadal_zone(uid, &data);
+            dm.update_hadal_zone(uid, &data)
+        };
+        match result {
+            Ok(()) => json!({"ok": true}),
+            Err(e) => json!({"ok": false, "error": e}),
         }
-        json!({"ok": true})
     })
 }

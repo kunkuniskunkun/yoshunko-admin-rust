@@ -98,14 +98,17 @@ pub fn update_avatar(state: State<AppState>, uid: i64, avatar_id: i64, mut data:
         }
         // Merge with existing data: read existing, overlay updates, write full object
         // This matches Python version which always writes ALL fields
-        if let Some(mut existing) = dm.get_avatar(uid, avatar_id) {
+        let result = if let Some(mut existing) = dm.get_avatar(uid, avatar_id) {
             for (k, v) in data {
                 existing.insert(k, v);
             }
-            dm.update_avatar(uid, avatar_id, &existing);
+            dm.update_avatar(uid, avatar_id, &existing)
         } else {
-            dm.update_avatar(uid, avatar_id, &data);
+            dm.update_avatar(uid, avatar_id, &data)
+        };
+        match result {
+            Ok(()) => json!({"ok": true}),
+            Err(e) => json!({"ok": false, "error": e}),
         }
-        json!({"ok": true})
     })
 }

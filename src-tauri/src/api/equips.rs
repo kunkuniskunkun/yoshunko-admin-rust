@@ -64,19 +64,22 @@ pub fn update_equip(state: State<AppState>, uid: i64, equip_uid: i64, mut data: 
         }
         clean_equip_data(&mut data);
         // Merge with existing data to preserve fields not sent by frontend (id, exp, lock)
-        if let Some(mut existing) = dm.get_equip(uid, equip_uid) {
+        let result = if let Some(mut existing) = dm.get_equip(uid, equip_uid) {
             for (k, v) in data {
                 existing.insert(k, v);
             }
             existing.entry("exp".to_string()).or_insert(ZonValue::Int(0));
             existing.entry("lock".to_string()).or_insert(ZonValue::Bool(false));
-            dm.update_equip(uid, equip_uid, &existing);
+            dm.update_equip(uid, equip_uid, &existing)
         } else {
             data.entry("exp".to_string()).or_insert(ZonValue::Int(0));
             data.entry("lock".to_string()).or_insert(ZonValue::Bool(false));
-            dm.update_equip(uid, equip_uid, &data);
+            dm.update_equip(uid, equip_uid, &data)
+        };
+        match result {
+            Ok(()) => json!({"ok": true}),
+            Err(e) => json!({"ok": false, "error": e}),
         }
-        json!({"ok": true})
     })
 }
 

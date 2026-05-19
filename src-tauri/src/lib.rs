@@ -77,6 +77,7 @@ pub fn run() {
             api::get_version,
             api::set_state_dir,
             api::auto_detect_paths,
+            api::set_background,
             api::debug_list_dir,
             api::debug_avatar_ids,
             api::get_templates,

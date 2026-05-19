@@ -2,6 +2,8 @@
 import { computed, onMounted } from 'vue'
 import { darkTheme, lightTheme } from 'naive-ui'
 import { currentTheme, initAccent } from '@/composables/useTheme'
+import { bgUrl, bgOpacity, setBackground } from '@/composables/useBackground'
+import { api } from '@/lib/api'
 import TitleBar from '@/components/layout/TitleBar.vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import MainContent from '@/components/layout/MainContent.vue'
@@ -49,7 +51,15 @@ const themeOverrides = {
   },
 }
 
-onMounted(() => { initAccent() })
+onMounted(async () => {
+  initAccent()
+  try {
+    const config = await api.getConfig()
+    if (config.background?.path) {
+      setBackground(config.background.path, config.background.opacity)
+    }
+  } catch {}
+})
 </script>
 
 <template>
@@ -59,6 +69,9 @@ onMounted(() => { initAccent() })
         <n-notification-provider>
           <n-message-provider>
             <div class="app-layout">
+              <!-- Background layer -->
+              <div v-if="bgUrl" class="bg-layer" :style="{ backgroundImage: `url(${bgUrl})` }" />
+              <div v-if="bgUrl" class="bg-overlay" :style="{ opacity: bgOpacity }" />
               <TitleBar />
               <div class="app-body">
                 <Sidebar />
@@ -100,3 +113,22 @@ onMounted(() => { initAccent() })
     </n-loading-bar-provider>
   </n-config-provider>
 </template>
+
+<style scoped>
+.bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+}
+
+.bg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--bg-void);
+  pointer-events: none;
+}
+</style>

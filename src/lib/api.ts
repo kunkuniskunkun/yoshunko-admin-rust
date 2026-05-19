@@ -14,6 +14,8 @@ export const api = {
   getVersion: () => invoke<{ version: string }>('get_version'),
   setStateDir: (path: string) => invoke<{ ok: boolean; error?: string }>('set_state_dir', { path }),
   autoDetectPaths: () => invoke<{ candidates: string[] }>('auto_detect_paths'),
+  setBackground: (path: string, opacity: number) =>
+    invoke<{ ok: boolean; error?: string }>('set_background', { path, opacity }),
 
   // Templates
   getTemplates: () => invoke<Templates>('get_templates'),

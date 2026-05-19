@@ -80,12 +80,14 @@ pub fn get_config(state: State<AppState>) -> Value {
         .unwrap_or(json!({}));
     let launch_config = config.get("launch").cloned().unwrap_or(json!({}));
     let state_dir = config.get("state_dir").and_then(|v| v.as_str()).unwrap_or("");
+    let background = config.get("background").cloned();
     json!({
         "configured": dm_configured,
         "state_dir": state_dir,
         "version": format_version(),
         "config_exists": std::fs::metadata(&state.config_path).is_ok(),
-        "launch_config": launch_config
+        "launch_config": launch_config,
+        "background": background
     })
 }
 
@@ -120,6 +122,28 @@ pub fn set_state_dir(state: State<AppState>, path: String) -> Value {
     }
     if let Ok(mut guard) = state.data_manager.lock() {
         *guard = Some(dm);
+    }
+    json!({"ok": true})
+}
+
+#[tauri::command]
+pub fn set_background(state: State<AppState>, path: String, opacity: f64) -> Value {
+    let opacity = opacity.clamp(0.3, 0.95);
+    let mut config_map: serde_json::Map<String, serde_json::Value> =
+        std::fs::read_to_string(&state.config_path)
+            .ok()
+            .and_then(|s| serde_json::from_str(&s).ok())
+            .unwrap_or_default();
+    if path.is_empty() {
+        config_map.remove("background");
+    } else {
+        let mut bg = serde_json::Map::new();
+        bg.insert("path".to_string(), json!(path));
+        bg.insert("opacity".to_string(), json!(opacity));
+        config_map.insert("background".to_string(), serde_json::Value::Object(bg));
+    }
+    if let Err(e) = atomic_write_config(&state.config_path, &config_map) {
+        return json!({"ok": false, "error": e});
     }
     json!({"ok": true})
 }

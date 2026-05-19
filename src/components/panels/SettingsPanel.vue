@@ -4,6 +4,7 @@ import { panel, avatarCache, weaponCache, equipCache, markAllCacheDirty } from '
 import { api } from '@/lib/api'
 import { toast, showConfirm } from '@/lib/utils'
 import { currentTheme, setTheme, currentAccent, setAccent, ACCENT_COLORS } from '@/composables/useTheme'
+import { bgUrl, bgOpacity, bgPath, setBackground } from '@/composables/useBackground'
 import type { Config } from '@/lib/types'
 
 // ─── Logs ────────────────────────────────────────────
@@ -120,6 +121,44 @@ function resetConfig() {
 function goToShortcuts() {
   panel.value = 'shortcuts'
 }
+
+// ─── Background image ──────────────────────────────────
+async function selectBackground() {
+  const { open } = await import('@tauri-apps/plugin-dialog')
+  const selected = await open({
+    multiple: false,
+    filters: [{ name: '图片', extensions: ['png', 'jpg', 'jpeg', 'webp'] }],
+  })
+  if (!selected) return
+  const path = selected as string
+  try {
+    const r = await api.setBackground(path, bgOpacity.value)
+    if (!r.ok) { toast('保存失败: ' + r.error, 'error'); return }
+    setBackground(path, bgOpacity.value)
+    toast('背景图已设置', 'success')
+  } catch (e: unknown) {
+    toast('设置失败: ' + (e instanceof Error ? e.message : ''), 'error')
+  }
+}
+
+async function clearBackground() {
+  try {
+    const r = await api.setBackground('', 0)
+    if (!r.ok) { toast('清除失败: ' + r.error, 'error'); return }
+    setBackground('', 0.85)
+    toast('背景图已清除', 'success')
+  } catch (e: unknown) {
+    toast('清除失败: ' + (e instanceof Error ? e.message : ''), 'error')
+  }
+}
+
+async function setBgOpacity(val: number) {
+  const opacity = Math.round(val * 100) / 100
+  bgOpacity.value = opacity
+  if (bgPath.value) {
+    try { await api.setBackground(bgPath.value, opacity) } catch {}
+  }
+}
 </script>
 
 <template>
@@ -192,6 +231,28 @@ function goToShortcuts() {
                 :title="color.label"
                 @click="setAccent(color.key)"
               />
+            </div>
+          </div>
+          <div class="form-field" style="margin-top: 16px;">
+            <label class="form-label">背景图</label>
+            <div class="btn-group" style="margin-bottom: 8px;">
+              <button class="btn btn-ghost" @click="selectBackground">选择图片</button>
+              <button class="btn btn-ghost" @click="clearBackground">清除背景</button>
+            </div>
+            <div v-if="bgPath" class="form-field" style="margin-top: 8px;">
+              <label class="form-label">遮罩透明度</label>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <input
+                  type="range"
+                  min="0.3"
+                  max="0.95"
+                  step="0.05"
+                  :value="bgOpacity"
+                  style="flex: 1;"
+                  @input="setBgOpacity(parseFloat(($event.target as HTMLInputElement).value))"
+                />
+                <span class="text-muted text-xs" style="min-width: 36px;">{{ Math.round(bgOpacity * 100) }}%</span>
+              </div>
             </div>
           </div>
 

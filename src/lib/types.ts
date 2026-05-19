@@ -6,6 +6,7 @@ export interface Config {
   state_dir: string
   version: string
   launch_config: Record<string, string>
+  background?: { path: string; opacity: number }
 }
 
 // ─── Player ────────────────────────────────────────

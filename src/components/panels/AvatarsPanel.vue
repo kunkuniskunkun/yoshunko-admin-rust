@@ -298,7 +298,7 @@ watch(filteredAvatars, () => {
 
 <template>
   <!-- Editor View -->
-  <div v-if="avatarView === 'editor' && selectedAvatarId" class="editor-page">
+  <div v-show="avatarView === 'editor' && selectedAvatarId" class="editor-page">
     <div class="editor-page__top">
       <a class="editor-back" href="#" @click.prevent="backToGallery">← 角色仓库</a>
       <div class="editor-page__header" v-if="editorData">
@@ -368,7 +368,7 @@ watch(filteredAvatars, () => {
   </div>
 
   <!-- Gallery View -->
-  <div v-else>
+  <div v-show="avatarView !== 'editor' || !selectedAvatarId">
     <div class="page-header">
       <h2>角色仓库</h2>
       <span class="subtitle text-muted">管理等级、影画、技能、潜能激发</span>

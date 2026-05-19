@@ -522,7 +522,7 @@ onActivated(async () => {
 
 <template>
   <!-- Editor -->
-  <div v-if="equipView === 'editor' && selectedEquipUid" class="editor-page">
+  <div v-show="equipView === 'editor' && selectedEquipUid" class="editor-page">
     <div class="editor-page__top">
       <a class="editor-back" href="#" @click.prevent="backToGallery">← 驱动盘仓库</a>
       <div class="editor-page__header" v-if="editorData">
@@ -595,7 +595,7 @@ onActivated(async () => {
   </div>
 
   <!-- Gallery -->
-  <div v-else>
+  <div v-show="equipView !== 'editor' || !selectedEquipUid">
     <div class="page-header flex-between">
       <div>
         <h2>驱动盘仓库</h2>

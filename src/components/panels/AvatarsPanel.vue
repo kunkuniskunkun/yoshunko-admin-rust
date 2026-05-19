@@ -302,8 +302,10 @@ watch(filteredAvatars, () => {
     <div class="editor-page__top">
       <a class="editor-back" href="#" @click.prevent="backToGallery">← 角色仓库</a>
       <div class="editor-page__header" v-if="editorData">
-        <h2>{{ editorData.name }}</h2>
-        <span v-if="editorData.en_name" class="sub en-name text-muted">{{ editorData.en_name }}</span>
+        <div>
+          <h2>{{ editorData.name }}</h2>
+          <span v-if="editorData.en_name" class="sub en-name text-muted">{{ editorData.en_name }}</span>
+        </div>
         <span class="sub text-muted">ID: {{ selectedAvatarId }}</span>
       </div>
     </div>

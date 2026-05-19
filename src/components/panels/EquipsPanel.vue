@@ -149,6 +149,9 @@ async function loadEditor(euid: number) {
 }
 
 async function selectEquip(euid: number, event?: Event) {
+  // Save scroll position
+  const main = document.querySelector('.main-content')
+  if (main) scrollPos.value['equips'] = main.scrollTop
   // Card press animation
   if (event?.currentTarget) {
     const el = event.currentTarget as HTMLElement
@@ -170,6 +173,10 @@ function backToGallery() {
   equipView.value = 'gallery'
   selectedEquipUid.value = null
   editorData.value = null
+  nextTick(() => {
+    const main = document.querySelector('.main-content')
+    if (main && scrollPos.value['equips'] != null) main.scrollTop = scrollPos.value['equips']
+  })
 }
 
 function getEnhanceSum(): number {
@@ -514,9 +521,8 @@ onActivated(async () => {
 </script>
 
 <template>
-  <div class="panel-wrapper">
   <!-- Editor -->
-  <div v-if="equipView === 'editor' && selectedEquipUid" class="editor-overlay">
+  <div v-show="equipView === 'editor' && selectedEquipUid" class="editor-page">
     <div class="editor-page__top">
       <a class="editor-back" href="#" @click.prevent="backToGallery">← 驱动盘仓库</a>
       <div class="editor-page__header" v-if="editorData">
@@ -588,8 +594,8 @@ onActivated(async () => {
     </div>
   </div>
 
-  <!-- Gallery (always rendered, scroll preserved) -->
-  <div :class="{ 'gallery-hidden': equipView === 'editor' && selectedEquipUid }">
+  <!-- Gallery -->
+  <div v-show="equipView !== 'editor' || !selectedEquipUid">
     <div class="page-header flex-between">
       <div>
         <h2>驱动盘仓库</h2>
@@ -754,6 +760,5 @@ onActivated(async () => {
         </div>
       </div>
     </div>
-  </div>
   </div>
 </template>

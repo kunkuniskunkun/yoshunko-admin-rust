@@ -235,6 +235,34 @@
   --accent-secondary-bg: rgba(224, 152, 176, 0.06);
 }
 
+/* ─── Accent picker ─────────────────────────────────── */
+
+.accent-picker {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.accent-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: var(--dot-color);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.accent-dot:hover {
+  transform: scale(1.15);
+}
+
+.accent-dot.active {
+  border-color: var(--text);
+  box-shadow: 0 0 0 3px var(--dot-color);
+  transform: scale(1.1);
+}
+
 /* ── Reset ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 

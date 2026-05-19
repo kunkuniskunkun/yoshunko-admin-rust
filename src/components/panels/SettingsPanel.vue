@@ -3,7 +3,7 @@ import { ref, watch, onMounted, onActivated, onDeactivated } from 'vue'
 import { panel, avatarCache, weaponCache, equipCache, markAllCacheDirty } from '@/composables/useAppState'
 import { api } from '@/lib/api'
 import { toast, showConfirm } from '@/lib/utils'
-import { currentTheme, setTheme } from '@/composables/useTheme'
+import { currentTheme, setTheme, currentAccent, setAccent, ACCENT_COLORS } from '@/composables/useTheme'
 import type { Config } from '@/lib/types'
 
 // ─── Logs ────────────────────────────────────────────
@@ -178,6 +178,20 @@ function goToShortcuts() {
                 <button class="btn" :class="currentTheme === 'light' ? 'btn-primary' : 'btn-ghost'" @click="setTheme('light')">浅色</button>
                 <button class="btn" :class="currentTheme === 'dark' ? 'btn-primary' : 'btn-ghost'" @click="setTheme('dark')">深色</button>
               </div>
+            </div>
+          </div>
+          <div class="form-field" style="margin-top: 12px;">
+            <label class="form-label">主题色</label>
+            <div class="accent-picker">
+              <button
+                v-for="color in ACCENT_COLORS"
+                :key="color.key"
+                class="accent-dot"
+                :class="{ active: currentAccent === color.key }"
+                :style="{ '--dot-color': color.hex }"
+                :title="color.label"
+                @click="setAccent(color.key)"
+              />
             </div>
           </div>
 

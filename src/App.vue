@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { darkTheme, lightTheme } from 'naive-ui'
-import { currentTheme } from '@/composables/useTheme'
+import { currentTheme, initAccent } from '@/composables/useTheme'
 import TitleBar from '@/components/layout/TitleBar.vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import MainContent from '@/components/layout/MainContent.vue'
@@ -48,6 +48,8 @@ const themeOverrides = {
     itemIconColorActiveHover: '#4a9fd8',
   },
 }
+
+onMounted(() => { initAccent() })
 </script>
 
 <template>

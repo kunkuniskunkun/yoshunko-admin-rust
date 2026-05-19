@@ -2002,30 +2002,46 @@ kbd {
 
 /* ─── Background image transparency ────────────────────── */
 /* Only active when .has-bg is present on app-layout */
+/* Light mode: white semi-transparent; Dark mode: dark semi-transparent */
 .has-bg .sidebar {
-  background-color: rgba(15, 15, 20, 0.4);
+  background-color: rgba(255, 255, 255, 0.4);
   background-image: none;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
+[data-theme="dark"] .has-bg .sidebar {
+  background-color: rgba(15, 15, 20, 0.4);
+}
 
 .has-bg .title-bar {
-  background: rgba(15, 15, 20, 0.5);
+  background: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
+[data-theme="dark"] .has-bg .title-bar {
+  background: rgba(15, 15, 20, 0.5);
+}
 
 .has-bg .sidebar-select {
+  background: rgba(255, 255, 255, 0.5);
+}
+[data-theme="dark"] .has-bg .sidebar-select {
   background: rgba(30, 30, 38, 0.5);
 }
 
 .has-bg .editor-page__actions {
-  background: rgba(30, 30, 38, 0.7);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
+[data-theme="dark"] .has-bg .editor-page__actions {
+  background: rgba(30, 30, 38, 0.7);
+}
 
 .has-bg .form-input--readonly {
+  background: rgba(255, 255, 255, 0.5);
+}
+[data-theme="dark"] .has-bg .form-input--readonly {
   background: rgba(30, 30, 38, 0.5);
 }
 

@@ -2003,14 +2003,14 @@ kbd {
 /* ─── Background image transparency ────────────────────── */
 /* Only active when .has-bg is present on app-layout */
 .has-bg .sidebar {
-  background-color: rgba(15, 15, 20, 0.6);
+  background-color: rgba(15, 15, 20, 0.4);
   background-image: none;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 .has-bg .title-bar {
-  background: rgba(15, 15, 20, 0.6);
+  background: rgba(15, 15, 20, 0.5);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
@@ -2027,5 +2027,9 @@ kbd {
 
 .has-bg .form-input--readonly {
   background: rgba(30, 30, 38, 0.5);
+}
+
+.has-bg .game-card {
+  background: rgba(30, 30, 38, 0.9);
 }
 .launch-card__running { font-size: 11px; color: #2bad00; font-weight: 600; margin-top: 2px; }

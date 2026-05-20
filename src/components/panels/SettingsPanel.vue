@@ -5,6 +5,7 @@ import { api } from '@/lib/api'
 import { toast, showConfirm } from '@/lib/utils'
 import { currentTheme, setTheme, currentAccent, setAccent, ACCENT_COLORS } from '@/composables/useTheme'
 import { bgUrl, bgOpacity, bgPath, setBackground } from '@/composables/useBackground'
+import { checkUpdate, updateInfo, openReleasePage } from '@/composables/useUpdater'
 import type { Config } from '@/lib/types'
 
 // ─── Logs ────────────────────────────────────────────
@@ -94,6 +95,18 @@ watch(panel, (val) => { if (val !== 'settings') { stopPolling(); showLogViewer.v
 // ─── Config ──────────────────────────────────────────
 const config = ref<Config | null>(null)
 const version = ref('')
+const checking = ref(false)
+async function handleCheckUpdate() {
+  checking.value = true
+  const found = await checkUpdate()
+  checking.value = false
+  if (found) {
+    // Use NMessage to show toast (auto-imported)
+    ;(window as any).$message?.success(`发现新版本 v${updateInfo.value?.version}`)
+  } else {
+    ;(window as any).$message?.info('已是最新版本')
+  }
+}
 
 onMounted(async () => {
   try { config.value = await api.getConfig() } catch {}
@@ -268,6 +281,19 @@ async function setBgOpacity(val: number) {
           <div class="section-title">键盘快捷键</div>
           <p class="form-hint">Ctrl+S 保存 · Ctrl+F 搜索 · Ctrl+Z 撤回操作 · ESC 关闭 · 1-7 切换面板 · ↑↓ 调整数值</p>
           <button class="btn btn-ghost" style="margin-top:4px;margin-bottom:16px" @click="goToShortcuts">查看全部快捷键 →</button>
+
+          <!-- 更新 -->
+          <div class="section-title">更新</div>
+          <div class="settings-row">
+            <span class="settings-label">自动检查</span>
+            <span class="settings-value">启动时自动检查新版本</span>
+          </div>
+          <div class="settings-row">
+            <n-button size="small" @click="handleCheckUpdate" :loading="checking">
+              {{ checking ? '检查中...' : '手动检查更新' }}
+            </n-button>
+            <n-button size="small" text @click="openReleasePage">手动下载</n-button>
+          </div>
 
           <!-- About -->
           <div class="section-title">关于</div>

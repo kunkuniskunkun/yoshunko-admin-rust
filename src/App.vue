@@ -8,6 +8,7 @@ import TitleBar from '@/components/layout/TitleBar.vue'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import MainContent from '@/components/layout/MainContent.vue'
 import { toasts, removeToast, confirmState, closeConfirm } from '@/lib/utils'
+import { checkUpdate } from '@/composables/useUpdater'
 
 const naiveTheme = computed(() => currentTheme.value === 'light' ? lightTheme : darkTheme)
 
@@ -60,6 +61,8 @@ onMounted(async () => {
       await setBackground(config.background.path, config.background.opacity)
     }
   } catch (e) { console.error('[App] getConfig failed:', e) }
+  // 后台检查更新（静默，有新版也不弹窗，只设 updateInfo 触发角标）
+  checkUpdate()
 })
 </script>
 

@@ -250,3 +250,11 @@ export interface DebugAvatarIdsResult {
   count: number
   first_result: Record<string, unknown>
 }
+
+// ─── Updater ───────────────────────────────────────
+
+export interface UpdateInfo {
+  version: string
+  body: string
+  date: string
+}

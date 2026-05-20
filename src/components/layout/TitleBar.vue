@@ -2,21 +2,25 @@
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { api } from '@/lib/api'
 import { ref, onMounted } from 'vue'
+import { updateAvailable, updateInfo, installUpdate } from '@/composables/useUpdater'
 
 const appWindow = getCurrentWindow()
 const version = ref('---')
+const showModal = ref(false)
+const installing = ref(false)
+const progress = ref(0)
 
 function minimize() { appWindow.minimize() }
 function toggleMax() { appWindow.toggleMaximize() }
 function close() { appWindow.close() }
 
+async function doInstall() {
+  installing.value = true
+  await installUpdate((pct) => { progress.value = pct })
+}
+
 onMounted(async () => {
-  try {
-    const data = await api.getVersion()
-    version.value = data.version
-  } catch {
-    version.value = '---'
-  }
+  try { const data = await api.getVersion(); version.value = data.version } catch { version.value = '---' }
 })
 </script>
 
@@ -25,6 +29,13 @@ onMounted(async () => {
     <div class="title-bar__left" data-tauri-drag-region>
       <span class="title-bar__brand">Yoshunko Admin</span>
       <span class="title-bar__version">{{ version }}</span>
+      <span
+        v-if="updateAvailable"
+        class="title-bar__update-badge"
+        @click.stop="showModal = true"
+      >
+        新版本 v{{ updateInfo?.version }}
+      </span>
     </div>
     <div class="title-bar__controls">
       <button class="tb-btn" aria-label="最小化" @click="minimize">
@@ -38,4 +49,18 @@ onMounted(async () => {
       </button>
     </div>
   </div>
+
+  <n-modal v-model:show="showModal" title="发现新版本" :mask-closable="false">
+    <div class="update-modal">
+      <p>新版本: <strong>v{{ updateInfo?.version }}</strong></p>
+      <pre class="update-notes">{{ updateInfo?.body || '无更新说明' }}</pre>
+      <p v-if="installing">下载进度: {{ progress }}%</p>
+      <div class="update-modal__actions">
+        <n-button @click="showModal = false">稍后提醒</n-button>
+        <n-button type="primary" @click="doInstall" :loading="installing">
+          {{ installing ? '下载安装中...' : '立即更新' }}
+        </n-button>
+      </div>
+    </div>
+  </n-modal>
 </template>

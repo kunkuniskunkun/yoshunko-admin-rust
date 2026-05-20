@@ -284,15 +284,14 @@ async function setBgOpacity(val: number) {
 
           <!-- 更新 -->
           <div class="section-title">更新</div>
-          <div class="settings-row">
-            <span class="settings-label">自动检查</span>
-            <span class="settings-value">启动时自动检查新版本</span>
-          </div>
-          <div class="settings-row">
-            <n-button size="small" @click="handleCheckUpdate" :loading="checking">
-              {{ checking ? '检查中...' : '手动检查更新' }}
-            </n-button>
-            <n-button size="small" text @click="openReleasePage">手动下载</n-button>
+          <div class="update-info-box">
+            <p class="form-hint">启动时自动检查新版本，发现更新后标题栏会出现通知</p>
+            <div class="btn-group">
+              <n-button size="small" @click="handleCheckUpdate" :loading="checking">
+                {{ checking ? '检查中...' : '手动检查更新' }}
+              </n-button>
+              <n-button size="small" text @click="openReleasePage">手动下载</n-button>
+            </div>
           </div>
 
           <!-- About -->

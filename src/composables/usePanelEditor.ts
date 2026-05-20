@@ -114,11 +114,11 @@ export function usePanelEditor<ListItem, Detail>(opts: PanelEditorOpts<ListItem,
 
     opts.selectedId.value = id
     opts.viewRef.value = 'editor'
-    loadEditor(id)
     nextTick(() => {
       const mainEl = document.querySelector('.main-content') as HTMLElement
       if (mainEl) applyEditorSlideIn(mainEl)
     })
+    loadEditor(id)
   }
 
   // ─── Back to gallery ────────────────────
@@ -128,10 +128,10 @@ export function usePanelEditor<ListItem, Detail>(opts: PanelEditorOpts<ListItem,
     opts.selectedId.value = null
     editorData.value = null
     // Reverse slide animation before restoring scroll
-    nextTick(() => {
+    setTimeout(() => {
       const mainEl = document.querySelector('.main-content') as HTMLElement
       if (mainEl) applyEditorSlideBack(mainEl)
-    })
+    }, 10)
     // Restore scroll after gallery un-hides
     requestAnimationFrame(() => {
       const main = document.querySelector('.main-content')

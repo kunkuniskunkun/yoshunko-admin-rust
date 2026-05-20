@@ -1030,8 +1030,21 @@ body {
   flex-shrink: 0; border: 1px solid var(--border-subtle);
 }
 .entrance-card__info { flex: 1; min-width: 0; }
-.entrance-card__name { font-weight: 600; color: var(--text); margin-bottom: 3px; font-size: 13px; }
+.entrance-card__name { font-weight: 600; color: var(--text); margin-bottom: 3px; font-size: 13px; display: flex; align-items: center; }
 .entrance-card__type { font-size: 11px; color: var(--text-dim); }
+.entrance-card__index {
+  position: absolute; top: 10px; right: 14px;
+  font-size: 28px; font-weight: 700;
+  color: var(--text-dim); opacity: 0.12;
+  font-family: var(--font-mono); line-height: 1;
+  user-select: none; pointer-events: none;
+}
+.entrance-card__dot {
+  display: inline-block; width: 10px; height: 10px;
+  border-radius: 50%; margin-right: 8px; flex-shrink: 0;
+}
+.dot--green { background: var(--success); }
+.dot--orange { background: var(--warning); }
 .entrance-card input {
   width: 110px;
   background: var(--bg-base); color: var(--text);
@@ -1336,6 +1349,11 @@ body {
 .about-label { color: var(--text-secondary); font-size: var(--text-sm); }
 .about-value { color: var(--text); font-weight: 500; }
 .form-hint { font-size: var(--text-xs); color: var(--text-dim); margin-top: 4px; }
+.update-info-box {
+  background: var(--bg-base); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius); padding: 14px 18px; margin-top: 4px;
+}
+.update-info-box .form-hint { margin-top: 0; margin-bottom: 10px; }
 .input-group { display: flex; gap: var(--space-2); }
 .input-group .form-input { flex: 1; }
 .form-input--short { max-width: 180px; }

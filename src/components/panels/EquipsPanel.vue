@@ -159,16 +159,19 @@ async function selectEquip(euid: number, event?: Event) {
     const el = event.currentTarget as HTMLElement
     el.style.transition = 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
     el.style.transform = 'scale(0.92)'
-    setTimeout(() => { el.style.transform = 'scale(1)' }, 120)
+    setTimeout(() => {
+      el.style.transform = 'scale(1)'
+      setTimeout(() => { el.style.transition = ''; el.style.transform = '' }, 400)
+    }, 120)
   }
   selectedEquipUid.value = euid
   equipView.value = 'editor'
-  loadEditor(euid)
-  // Editor slide-in
+  // Editor slide-in — must be scheduled before loadEditor to avoid re-render cancelling the animation
   nextTick(() => {
     const mainEl = document.querySelector('.main-content') as HTMLElement
     if (mainEl) applyEditorSlideIn(mainEl)
   })
+  loadEditor(euid)
 }
 
 function backToGallery() {
@@ -177,10 +180,10 @@ function backToGallery() {
   selectedEquipUid.value = null
   editorData.value = null
   // Reverse slide animation before restoring scroll
-  nextTick(() => {
+  setTimeout(() => {
     const mainEl = document.querySelector('.main-content') as HTMLElement
     if (mainEl) applyEditorSlideBack(mainEl)
-  })
+  }, 10)
   requestAnimationFrame(() => {
     const main = document.querySelector('.main-content')
     if (main && scrollPos.value['equips'] != null) main.scrollTop = scrollPos.value['equips']

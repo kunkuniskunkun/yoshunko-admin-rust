@@ -10,7 +10,7 @@ import type { HadalEntrance, HadalZone } from '@/lib/types'
 const data = ref<HadalZone | null>(null)
 const loading = ref(true)
 const entranceEdits = ref<{ id: number; zone_id: number }[]>([])
-const showHelp = ref(false)
+const showHelp = ref(true)
 const saving = ref(false)
 
 const ACTIVE_ENTRANCE_IDS = [1, 3]
@@ -91,8 +91,13 @@ function resetDefaults() {
               class="entrance-card"
               :class="isPermanent(e.id) ? 'entrance-card--permanent' : 'entrance-card--limited'"
             >
+              <div class="entrance-card__index">{{ i + 1 }}</div>
               <div class="entrance-card__info" style="margin-left: 0;">
-                <div class="entrance-card__name">{{ ENTRANCE_NAMES[e.id] || '入口 ' + e.id }}</div>
+                <div class="entrance-card__name">
+                  <span class="entrance-card__dot" :class="isPermanent(e.id) ? 'dot--green' : 'dot--orange'"></span>
+                  {{ ENTRANCE_NAMES[e.id] || '入口 ' + e.id }}
+                </div>
+                <div class="entrance-card__type">{{ isPermanent(e.id) ? '常驻' : '限时' }}</div>
               </div>
               <div class="form-field">
                 <label class="form-label">Zone ID</label>

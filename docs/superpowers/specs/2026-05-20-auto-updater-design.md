@@ -4,7 +4,7 @@
 
 ## 一、目标
 
-为 Yoshunko Admin 添加应用内自动更新功能。用户点击"检查更新"按钮，自动下载并安装新版本。更新内容包括新数据模板、新功能、Bug 修复等全部应用变更。
+为 Yoshunko Admin 添加应用内自动更新功能。应用启动时后台自动检查新版本，发现有更新后通知用户，用户自主决定是否立即安装。更新内容包括新数据模板、新功能、Bug 修复等全部应用变更。
 
 ## 二、选型
 
@@ -20,26 +20,34 @@
 ## 三、更新流程
 
 ```
-用户点"检查更新"
-  → Rust 端调用 updater.check()
-  → 请求 GitHub Releases 获取 latest version JSON
+应用启动
+  → 后台静默调用 updater.check()
+  → 请求 GitHub Releases 获取最新版本 JSON
   → 比对本地版本号
-  → 有新版 → 弹出确认框 → 下载 .msi → 静默安装 → 自动重启
-  → 已是最新 → 提示"当前已是最新版本"
-  → 网络错误 → 提示"检查更新失败"
-  → 手动模式（备用）→ 打开浏览器到 GitHub Releases 页面
+  → 无新版 → 不做任何提示
+  → 有新版 → 更新按钮出现角标，提示"发现新版本 vX.XX"
+  → 用户点击 → 弹出更新详情（版本号 + changelog 摘要）→ 选择：
+       [立即更新] → 下载 .msi（显示进度）→ 静默安装 → 自动重启
+       [稍后提醒] → 关闭弹窗，下次启动再次通知
+  → 网络错误 → 静默失败，不做任何提示
+  → 手动模式（备用）→ 设置页"手动下载"链接 → 浏览器打开 GitHub Releases
 ```
 
 ## 四、架构
 
 ```
 ┌────────────────────────────────────────┐
+│  App.vue (onMounted)                    │
+│  启动时异步调用 api.checkUpdate()       │
+│  发现新版 → 存入 updateInfo ref         │
+├────────────────────────────────────────┤
+│  TitleBar.vue                           │
+│  app-update-badge (角标 + 版本号)        │
+│  点击 → 弹出更新详情 Modal              │
+├────────────────────────────────────────┤
 │  SettingsPanel.vue                      │
-│  ┌──────────────────────────────┐       │
-│  │ "检查更新" 按钮               │       │
-│  │  - 调用 api.checkUpdate()    │       │
-│  │  - 显示进度 / 结果            │       │
-│  └──────────────────────────────┘       │
+│  "手动检查更新" 按钮（手动触发）          │
+│  "手动下载" 链接（跳转 GitHub Releases） │
 ├────────────────────────────────────────┤
 │  lib/api.ts                             │
 │  checkUpdate() / installUpdate()        │
@@ -124,23 +132,45 @@ export const api = {
 }
 ```
 
-**`src/components/panels/SettingsPanel.vue`** — 新增更新区域：
+**`src/App.vue`** — onMounted 中启动后台检查：
+```typescript
+onMounted(async () => {
+  // ... existing init ...
+  // 后台静默检查更新
+  const result = await api.checkUpdate()
+  if (result.has_update) {
+    updateInfo.value = result  // 触发 TitleBar 角标
+  }
+})
+```
+
+**`src/components/layout/TitleBar.vue`** — 新增更新角标：
 ```html
-<!-- 更新部分 -->
+<!-- 版本更新角标，有新版时显示 -->
+<span v-if="updateVersion" class="app-update-badge" @click="showUpdateModal = true">
+  v{{ updateVersion }}
+</span>
+<!-- 点击弹出更新详情 Modal -->
+<NModal v-model:show="showUpdateModal" title="发现新版本">
+  <p>{{ updateBody }}</p>
+  <div class="modal-actions">
+    <NButton @click="showUpdateModal = false">稍后提醒</NButton>
+    <NButton type="primary" @click="doInstall" :loading="installing">
+      {{ installing ? '下载安装中...' : '立即更新' }}
+    </NButton>
+  </div>
+</NModal>
+```
+
+**`src/components/panels/SettingsPanel.vue`** — 更新区域简化：
+```html
 <div class="settings-section">
   <h3>版本更新</h3>
   <p>当前版本: {{ version }}</p>
   <NButton @click="doCheckUpdate" :loading="checking">
     {{ checking ? '检查中...' : '检查更新' }}
   </NButton>
-  <div v-if="updateAvailable" class="update-info">
-    <p>新版本: {{ updateVersion }}</p>
-    <p>{{ updateBody }}</p>
-    <NButton type="primary" @click="doInstallUpdate" :loading="installing">
-      {{ installing ? '下载安装中...' : '立即更新' }}
-    </NButton>
-  </div>
-  <div v-if="updateMessage" class="update-message">{{ updateMessage }}</div>
+  <NButton text @click="openReleasePage">手动下载</NButton>
 </div>
 ```
 
@@ -224,13 +254,16 @@ jobs:
 | `src-tauri/src/lib.rs` | 修改 | 注册 updater plugin |
 | `src/lib/api.ts` | 修改 | 新增 update API |
 | `src/lib/types.ts` | 修改 | 新增 UpdateResult 类型 |
-| `src/components/panels/SettingsPanel.vue` | 修改 | 新增更新按钮 |
+| `src/App.vue` | 修改 | onMounted 自动检查更新 |
+| `src/components/layout/TitleBar.vue` | 修改 | 新增更新角标 + Modal |
+| `src/components/panels/SettingsPanel.vue` | 修改 | 手动检查 + 手动下载链接 |
 | `scripts/release.cjs` | 修改 | 增强 release 流程 |
 | `.github/workflows/release.yml` | 新建 | release CI |
 
 ## 八、不做的
 
-- **不自动推送更新**：不后台静默下载，用户手动点击才检查
+- **不强制更新**：用户可以选择"稍后提醒"，下次启动再通知
+- **不后台下载**：用户点击"立即更新"后才开始下载
 - **不做增量更新**：每次下载完整 .msi（20-30MB 级别，不大）
 - **不做跨平台更新**：仅 Windows
 - **不做回滚功能**：用户可从 GitHub Releases 下载旧版手动安装

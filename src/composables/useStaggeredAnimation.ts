@@ -13,13 +13,23 @@ export function applyStaggeredAnimation() {
 }
 
 export function applyEditorSlideIn(el: HTMLElement) {
-  el.classList.remove('editor-slide-in')
-  void el.offsetHeight // force reflow — single element, negligible cost
-  el.classList.add('editor-slide-in')
+  el.animate([
+    { opacity: 0, transform: 'translateY(24px) scale(0.96)' },
+    { opacity: 1, transform: 'translateY(0) scale(1)' },
+  ], {
+    duration: 720,
+    easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+    fill: 'forwards',
+  })
 }
 
 export function applyEditorSlideBack(el: HTMLElement) {
-  el.classList.remove('editor-slide-back')
-  void el.offsetHeight
-  el.classList.add('editor-slide-back')
+  el.animate([
+    { opacity: 0, transform: 'translateY(-24px) scale(0.96)' },
+    { opacity: 1, transform: 'translateY(0) scale(1)' },
+  ], {
+    duration: 720,
+    easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+    fill: 'forwards',
+  })
 }

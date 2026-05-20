@@ -31,25 +31,7 @@ pub fn check_range(value: i64, min: i64, max: i64, name: &str) -> Result<(), Str
 }
 
 pub fn format_version() -> String {
-    // Try exe directory first (release builds bundle config there),
-    // fall back to CARGO_MANIFEST_DIR (dev mode)
-    let exe_dir = std::env::current_exe()
-        .ok()
-        .and_then(|p| p.parent().map(|p| p.to_path_buf()));
-    let config_path = exe_dir
-        .as_ref()
-        .map(|d| d.join("tauri.conf.json"))
-        .filter(|p| p.exists())
-        .unwrap_or_else(|| {
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tauri.conf.json")
-        });
-    let version = std::fs::read_to_string(&config_path)
-        .ok()
-        .and_then(|s| {
-            let v: serde_json::Value = serde_json::from_str(&s).ok()?;
-            v.get("version")?.as_str().map(|s| s.to_string())
-        })
-        .unwrap_or_else(|| "0.0.0".to_string());
+    let version = env!("APP_VERSION");
     let parts: Vec<&str> = version.split('.').collect();
     if parts.len() >= 2 {
         let major = parts[0];

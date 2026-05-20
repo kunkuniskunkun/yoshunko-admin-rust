@@ -352,7 +352,10 @@ mod tests {
     use std::thread;
 
     fn temp_dm() -> (DataManager, std::path::PathBuf) {
-        let dir = std::env::temp_dir().join(format!("yos_test_{}", std::process::id()));
+        use std::sync::atomic::{AtomicU32, Ordering};
+        static COUNTER: AtomicU32 = AtomicU32::new(0);
+        let n = COUNTER.fetch_add(1, Ordering::Relaxed);
+        let dir = std::env::temp_dir().join(format!("yos_test_{}_{}", std::process::id(), n));
         let _ = fs::remove_dir_all(&dir);
         let player_dir = dir.join("player").join("1").join("weapon");
         fs::create_dir_all(&player_dir).unwrap();
@@ -430,10 +433,10 @@ mod tests {
 
     #[test]
     fn atomic_write_clean_on_crash_simulation() {
-        // Verify that a .tmp file doesn't become a valid ZON file
-        // unless the full write+rename sequence completes
         let (_dm, dir) = temp_dm();
-        let path = dir.join("player").join("1").join("weapon").join("99");
+        let dir = dir.join("player").join("1").join("weapon");
+        fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("99");
         let tmp_path = path.with_extension("tmp");
 
         // Write partial data to .tmp (simulating crash mid-write)

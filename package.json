@@ -12,6 +12,7 @@
     "@tauri-apps/api": "^2.2.0",
     "@tauri-apps/plugin-dialog": "^2.7.1",
     "@tauri-apps/plugin-shell": "^2.2.0",
+    "@tauri-apps/plugin-updater": "^2.10.1",
     "lucide-vue-next": "^1.0.0",
     "naive-ui": "^2.40.3",
     "vue": "^3.5.13"

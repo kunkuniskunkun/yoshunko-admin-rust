@@ -16,7 +16,7 @@
 ### 普通用户（推荐）
 
 1. 打开 [Releases 页面](https://github.com/kunkuniskunkun/yoshunko-admin-rust/releases)
-2. 下载最新版本的 `.msi` 安装包
+2. 下载最新版本的 `.exe` 安装包
 3. 双击运行，一路点下一步即可
 4. 以后有新版本会提示你更新，点一下就能升级
 

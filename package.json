@@ -1,6 +1,6 @@
 {
   "name": "yoshunko-admin",
-  "version": "0.714.0",
+  "version": "0.715.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

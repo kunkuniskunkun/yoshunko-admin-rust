@@ -102,9 +102,9 @@ async function handleCheckUpdate() {
   checking.value = false
   if (found) {
     // Use NMessage to show toast (auto-imported)
-    ;(window as any).$message?.success(`发现新版本 v${updateInfo.value?.version}`)
+    toast(`发现新版本 v${updateInfo.value?.version}`, 'success')
   } else {
-    ;(window as any).$message?.info('已是最新版本')
+    toast('已是最新版本', 'info')
   }
 }
 

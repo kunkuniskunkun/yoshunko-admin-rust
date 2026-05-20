@@ -27,14 +27,17 @@ export async function checkUpdate(): Promise<boolean> {
   }
 }
 
-export async function installUpdate(onProgress?: (pct: number) => void) {
-  if (!pendingUpdate) return
+export async function installUpdate(onProgress?: (pct: number) => void): Promise<boolean> {
+  if (!pendingUpdate) return false
   try {
     let total = 0
     let downloaded = 0
     await pendingUpdate.downloadAndInstall((event) => {
       if (event.event === 'Started') {
         total = event.data.contentLength ?? 0
+        if (total === 0 && onProgress) {
+          onProgress(-1)
+        }
       } else if (event.event === 'Progress' && onProgress) {
         downloaded += event.data.chunkLength
         if (total > 0) {
@@ -42,8 +45,10 @@ export async function installUpdate(onProgress?: (pct: number) => void) {
         }
       }
     })
+    return true
   } catch (e) {
     console.error('[Updater] install failed:', e)
+    return false
   }
 }
 
@@ -52,5 +57,5 @@ export function openReleasePage() {
   // Use Tauri shell plugin to open URL in default browser
   import('@tauri-apps/plugin-shell').then(({ open }) => {
     open(url)
-  })
+  }).catch((e) => console.error('[Updater] open release page failed:', e))
 }

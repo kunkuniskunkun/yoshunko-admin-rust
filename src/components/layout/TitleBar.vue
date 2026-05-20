@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { api } from '@/lib/api'
+import { toast } from '@/lib/utils'
 import { ref, onMounted } from 'vue'
 import { updateAvailable, updateInfo, installUpdate } from '@/composables/useUpdater'
 
@@ -16,7 +17,12 @@ function close() { appWindow.close() }
 
 async function doInstall() {
   installing.value = true
-  await installUpdate((pct) => { progress.value = pct })
+  const ok = await installUpdate((pct) => { progress.value = pct })
+  installing.value = false
+  if (!ok) {
+    showModal.value = false
+    toast('更新下载失败，请手动下载或稍后重试', 'error')
+  }
 }
 
 onMounted(async () => {

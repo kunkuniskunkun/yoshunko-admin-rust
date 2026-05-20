@@ -2066,3 +2066,39 @@ kbd {
   background: rgba(30, 30, 38, 0.85);
 }
 .launch-card__running { font-size: 11px; color: #2bad00; font-weight: 600; margin-top: 2px; }
+
+/* ─── Update Badge ─────────────────────────────── */
+.title-bar__update-badge {
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: filter 0.2s;
+  margin-left: 10px;
+}
+.title-bar__update-badge:hover {
+  filter: brightness(1.15);
+}
+
+.update-modal {
+  min-width: 320px;
+}
+.update-notes {
+  font-size: 13px;
+  color: var(--text-secondary);
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  margin: 12px 0;
+  padding: 8px;
+  background: var(--bg-hover);
+  border-radius: 6px;
+}
+.update-modal__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}

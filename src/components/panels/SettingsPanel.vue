@@ -5,7 +5,7 @@ import { api } from '@/lib/api'
 import { toast, showConfirm } from '@/lib/utils'
 import { currentTheme, setTheme, currentAccent, setAccent, ACCENT_COLORS } from '@/composables/useTheme'
 import { bgUrl, bgOpacity, bgPath, setBackground } from '@/composables/useBackground'
-import { checkUpdate, updateInfo, openReleasePage } from '@/composables/useUpdater'
+import { checkUpdate, getLastError, updateInfo, openReleasePage } from '@/composables/useUpdater'
 import type { Config } from '@/lib/types'
 
 // ─── Logs ────────────────────────────────────────────
@@ -101,10 +101,14 @@ async function handleCheckUpdate() {
   const found = await checkUpdate()
   checking.value = false
   if (found) {
-    // Use NMessage to show toast (auto-imported)
     toast(`发现新版本 v${updateInfo.value?.version}`, 'success')
   } else {
-    toast('已是最新版本', 'info')
+    const err = getLastError()
+    if (err) {
+      toast(`检查失败: ${err}`, 'error')
+    } else {
+      toast('已是最新版本', 'info')
+    }
   }
 }
 

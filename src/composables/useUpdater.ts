@@ -7,7 +7,10 @@ export const updateAvailable = ref(false)
 
 let pendingUpdate: Awaited<ReturnType<typeof check>> = null
 
+let lastError = ''
+
 export async function checkUpdate(): Promise<boolean> {
+  lastError = ''
   try {
     const update = await check()
     if (update) {
@@ -21,11 +24,14 @@ export async function checkUpdate(): Promise<boolean> {
       return true
     }
     return false
-  } catch {
-    // 静默失败—开发环境或网络不可用时不影响正常使用
+  } catch (e) {
+    // 开发环境或网络不可用时静默失败
+    lastError = String(e)
     return false
   }
 }
+
+export function getLastError() { return lastError }
 
 export async function installUpdate(onProgress?: (pct: number) => void): Promise<boolean> {
   if (!pendingUpdate) return false

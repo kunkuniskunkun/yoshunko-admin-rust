@@ -3,7 +3,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/utils'
 import { ref, onMounted } from 'vue'
-import { updateAvailable, updateInfo, installUpdate } from '@/composables/useUpdater'
+import { updateAvailable, updateInfo, installUpdate, getLastError } from '@/composables/useUpdater'
 
 const appWindow = getCurrentWindow()
 const version = ref('---')
@@ -21,7 +21,7 @@ async function doInstall() {
   installing.value = false
   if (!ok) {
     showModal.value = false
-    toast('更新下载失败，请手动下载或稍后重试', 'error')
+    toast(`更新下载失败: ${getLastError() || '未知错误'}`, 'error')
   }
 }
 

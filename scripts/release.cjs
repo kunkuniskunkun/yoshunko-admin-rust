@@ -75,7 +75,7 @@ let signature = '';
 if (fs.existsSync(sigPath)) {
   signature = fs.readFileSync(sigPath, 'utf8').trim();
 } else {
-  warn(`Signature file not found: ${sigPath} — updater verification will fail`);
+  fail(`Signature file not found: ${sigPath}`);
 }
 
 const latestJson = {
@@ -91,7 +91,8 @@ const latestJson = {
   platforms: {
     "windows-x86_64": {
       signature,
-      url: `https://github.com/kunkuniskunkun/yoshunko-admin-rust/releases/download/v${frontVer}/${encodeURIComponent(exeName)}`
+      // GitHub replaces spaces with dots in release asset download URLs
+      url: `https://github.com/kunkuniskunkun/yoshunko-admin-rust/releases/download/v${frontVer}/${exeName.replace(/ /g, '.')}`
     }
   }
 };

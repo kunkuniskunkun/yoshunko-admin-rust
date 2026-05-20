@@ -34,7 +34,10 @@ export async function checkUpdate(): Promise<boolean> {
 export function getLastError() { return lastError }
 
 export async function installUpdate(onProgress?: (pct: number) => void): Promise<boolean> {
-  if (!pendingUpdate) return false
+  if (!pendingUpdate) {
+    lastError = '没有待处理的更新'
+    return false
+  }
   try {
     let total = 0
     let downloaded = 0
@@ -53,7 +56,9 @@ export async function installUpdate(onProgress?: (pct: number) => void): Promise
     })
     return true
   } catch (e) {
-    console.error('[Updater] install failed:', e)
+    const msg = String(e)
+    console.error('[Updater] install failed:', msg)
+    lastError = msg
     return false
   }
 }

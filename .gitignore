@@ -24,4 +24,11 @@ Desktop.ini
 node_modules
 src-tauri/gen/
 
+# Auto-generated
+auto-imports.d.ts
+components.d.ts
+
+# AI assistant context (local only)
+CLAUDE.md
+
 .superpowers/

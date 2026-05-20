@@ -49,7 +49,7 @@
   "plugins": {
     "updater": {
       "endpoints": [
-        "https://github.com/kunkunr/yoshunko-admin-rust/releases/latest/download/latest.json"
+        "https://github.com/kunkuniskunkun/yoshunko-admin-rust/releases/latest/download/latest.json"
       ]
     }
   }

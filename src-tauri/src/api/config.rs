@@ -76,7 +76,7 @@ pub fn auto_detect_paths() -> Value {
 
 #[tauri::command]
 pub fn open_release_page() -> Value {
-    let repo = "https://github.com/kunkunr/yoshunko-admin-rust/releases";
+    let repo = "https://github.com/kunkuniskunkun/yoshunko-admin-rust/releases";
     if let Err(e) = std::process::Command::new("cmd")
         .args(["/c", "start", repo])
         .spawn()

@@ -53,7 +53,7 @@ export async function installUpdate(onProgress?: (pct: number) => void): Promise
 }
 
 export function openReleasePage() {
-  const url = 'https://github.com/kunkunr/yoshunko-admin-rust/releases'
+  const url = 'https://github.com/kunkuniskunkun/yoshunko-admin-rust/releases'
   // Use Tauri shell plugin to open URL in default browser
   import('@tauri-apps/plugin-shell').then(({ open }) => {
     open(url)

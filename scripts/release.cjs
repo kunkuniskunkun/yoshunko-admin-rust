@@ -79,7 +79,7 @@ const latestJson = {
   platforms: {
     "windows-x86_64": {
       signature: "",
-      url: `https://github.com/kunkunr/yoshunko-admin-rust/releases/download/v${frontVer}/Yoshunko_Admin_${frontVer}_x64-setup.exe`
+      url: `https://github.com/kunkuniskunkun/yoshunko-admin-rust/releases/download/v${frontVer}/Yoshunko_Admin_${frontVer}_x64-setup.exe`
     }
   }
 };

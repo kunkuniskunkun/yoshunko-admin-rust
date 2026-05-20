@@ -1,63 +1,50 @@
 # Yoshunko Admin
 
-Tauri v2 桌面应用 — ZZZ 游戏存档数据管理工具
+桌面工具 — 用来编辑绝区零的游戏存档
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform: Windows](https://img.shields.io/badge/Platform-Windows-0078D6.svg)](#)
-[![Tauri v2](https://img.shields.io/badge/Tauri-v2-FFC131.svg)](https://tauri.app)
 
-## 功能
+## 这个工具能做什么
 
-角色、音擎、驱动盘、防卫战的面板化编辑管理，支持键盘快捷键操作和自动更新。
+如果你在玩绝区零的私服，这个工具可以帮你编辑存档：修改角色等级和技能、添加音擎和驱动盘、切换防卫战关卡等等。所有操作都在界面上点点就行，不用手动改文件。
 
-## 快速开始
+## 怎么安装
 
-### 系统要求
+### 普通用户（推荐）
 
-- Windows 10 / 11
-- [Node.js](https://nodejs.org) 20+
-- [Rust](https://www.rust-lang.org/tools/install) stable
+1. 打开 [Releases 页面](https://github.com/kunkuniskunkun/yoshunko-admin-rust/releases)
+2. 下载最新版本的 `.msi` 安装包
+3. 双击运行，一路点下一步即可
+4. 以后有新版本会提示你更新，点一下就能升级
 
-### 从源码构建
+### 开发者（从代码构建）
+
+需要安装 [Node.js](https://nodejs.org) 20+ 和 [Rust](https://www.rust-lang.org/tools/install)。
 
 ```bash
 git clone https://github.com/kunkuniskunkun/yoshunko-admin-rust.git
 cd yoshunko-admin-rust
 npm ci
-npm run tauri dev        # 开发模式
+npm run tauri dev
 ```
 
-```bash
-npm run build            # 构建前端
-cd src-tauri && cargo tauri build   # 打包 .msi 安装包
-```
+## 怎么使用
 
-### 首次使用
+1. 打开软件后，先点左侧的「设置」
+2. 在「状态目录」那里，选择你放游戏存档的文件夹（就是里面有个 `player` 子目录的那个）
+3. 配好后，左侧会列出所有玩家，选一个就能编辑了
+4. 数字键 1-7 可以快速切换面板，`Ctrl+S` 保存，`Ctrl+Z` 撤回
 
-1. 启动应用后，在设置页面配置**状态目录**（包含 `player/` 子目录的游戏存档目录）
-2. 应用将自动加载玩家列表和游戏数据
-3. 从侧边栏选择面板开始编辑
+## 安全吗
 
-## 数据格式
-
-使用 **ZON**（Zig Object Notation）格式读写游戏存档，键名与结构与游戏客户端保持一致。
-
-所有写操作采用原子写入（`.tmp` + `rename`），保留最近 5 份备份于 `.backup/` 目录，支持 `Ctrl+Z` 撤回。
-
-## 技术栈
-
-| 层 | 技术 |
-|----|------|
-| 桌面框架 | Tauri v2 |
-| 后端 | Rust |
-| 前端 | Vue 3 + TypeScript |
-| UI 组件 | Naive UI |
-| 样式 | Tailwind CSS 4 |
-| 构建工具 | Vite 6 |
+- 每次保存会自动备份（保留最近 5 份），改错了可以找回来
+- 撤回到上一步操作前
+- 这个工具只读写你电脑上的存档文件，不上传任何数据到网络
 
 ## 免责声明
 
-本项目是独立开发的开源工具，与 HoYoverse / miHoYo 无关。不包含游戏客户端、服务器代码或加密密钥。
+本项目与 HoYoverse / miHoYo 无关，不包含游戏客户端或服务器代码。
 
 ## License
 

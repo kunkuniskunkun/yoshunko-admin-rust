@@ -7,6 +7,7 @@ const { execSync } = require('child_process');
 
 const ROOT = __dirname + '/..';
 const DRY = process.argv.includes('--dry-run');
+const CI = process.argv.includes('--ci');
 const YELLOW = '\x1b[33m';
 const GREEN = '\x1b[32m';
 const RED = '\x1b[31m';
@@ -38,29 +39,31 @@ if (parts.length < 2) fail(`Invalid version format: ${frontVer}`);
 const displayVer = `V${parts[0]}.${parts[1].padStart(3, '0')}`;
 console.log(`Display version:  ${displayVer}`);
 
-// 3. Check CHANGELOG
-const changelogPath = `${ROOT}/CHANGELOG.md`;
-if (!fs.existsSync(changelogPath)) {
-    warn('CHANGELOG.md not found, skipping changelog check');
-} else {
-    const changelog = fs.readFileSync(changelogPath, 'utf8');
-    const verPatterns = [displayVer, `v${frontVer}`];
-    const found = verPatterns.some(p => changelog.includes(p));
-    if (found) {
-        ok(`CHANGELOG.md contains ${displayVer}`);
+if (!CI) {
+    // 3. Check CHANGELOG
+    const changelogPath = `${ROOT}/CHANGELOG.md`;
+    if (!fs.existsSync(changelogPath)) {
+        warn('CHANGELOG.md not found, skipping changelog check');
     } else {
-        warn(`CHANGELOG.md does not contain ${displayVer} — please update before releasing`);
+        const changelog = fs.readFileSync(changelogPath, 'utf8');
+        const verPatterns = [displayVer, `v${frontVer}`];
+        const found = verPatterns.some(p => changelog.includes(p));
+        if (found) {
+            ok(`CHANGELOG.md contains ${displayVer}`);
+        } else {
+            warn(`CHANGELOG.md does not contain ${displayVer} — please update before releasing`);
+        }
     }
-}
 
-// 4. Check git status
-const status = execSync('git status --porcelain', { cwd: ROOT, encoding: 'utf8' });
-if (status.trim()) {
-    warn('Uncommitted changes detected — commit them before release');
-    console.log(status.trim());
+    // 4. Check git status
+    const status = execSync('git status --porcelain', { cwd: ROOT, encoding: 'utf8' });
+    if (status.trim()) {
+        warn('Uncommitted changes detected — commit them before release');
+        console.log(status.trim());
+    }
+    const branch = execSync('git branch --show-current', { cwd: ROOT, encoding: 'utf8' }).trim();
+    console.log(`Current branch:   ${branch}`);
 }
-const branch = execSync('git branch --show-current', { cwd: ROOT, encoding: 'utf8' }).trim();
-console.log(`Current branch:   ${branch}`);
 
 // 4.5 Generate updater manifest (latest.json)
 const latestJson = {
@@ -85,6 +88,11 @@ const latestPath = `${ROOT}/src-tauri/target/release/latest.json`;
 fs.mkdirSync(path.dirname(latestPath), { recursive: true });
 fs.writeFileSync(latestPath, JSON.stringify(latestJson, null, 2));
 ok('latest.json generated');
+
+if (CI) {
+    console.log(`${GREEN}✓${RESET} latest.json generated for CI`);
+    process.exit(0);
+}
 
 // 5. Tag
 const tag = `v${frontVer}`;

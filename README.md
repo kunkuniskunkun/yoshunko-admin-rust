@@ -4,6 +4,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform: Windows](https://img.shields.io/badge/Platform-Windows-0078D6.svg)](#)
+[![Release](https://img.shields.io/github/v/release/kunkuniskunkun/yoshunko-admin-rust?label=latest)](https://github.com/kunkuniskunkun/yoshunko-admin-rust/releases)
+
+![截图](assets/screenshot.png)
 
 ## 这个工具能做什么
 
@@ -45,6 +48,10 @@ npm run tauri dev
 - 每次保存会自动备份（保留最近 5 份），改错了可以找回来
 - 撤回到上一步操作前
 - 这个工具只读写你电脑上的存档文件，不上传任何数据到网络
+
+## 反馈
+
+有问题或建议？[提交 Issue](https://github.com/kunkuniskunkun/yoshunko-admin-rust/issues)
 
 ## 免责声明
 

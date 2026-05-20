@@ -67,7 +67,7 @@ if (!CI) {
 
 // 4.5 Generate updater manifest (latest.json)
 const latestJson = {
-  version: `v${frontVer}`,
+  version: `${frontVer}`,
   notes: (() => {
     try {
       const changelog = fs.readFileSync(`${ROOT}/CHANGELOG.md`, 'utf8');

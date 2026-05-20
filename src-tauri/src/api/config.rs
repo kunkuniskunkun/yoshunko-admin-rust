@@ -73,3 +73,15 @@ pub fn auto_detect_paths() -> Value {
     }
     json!({"candidates": candidates})
 }
+
+#[tauri::command]
+pub fn open_release_page() -> Value {
+    let repo = "https://github.com/kunkunr/yoshunko-admin-rust/releases";
+    if let Err(e) = std::process::Command::new("cmd")
+        .args(["/c", "start", repo])
+        .spawn()
+    {
+        return json!({"ok": false, "error": e.to_string()});
+    }
+    json!({"ok": true})
+}

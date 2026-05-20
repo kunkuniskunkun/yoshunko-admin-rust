@@ -115,6 +115,7 @@ pub fn run() {
             api::read_log,
             api::get_log_dir,
             api::open_log_dir,
+            api::open_release_page,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

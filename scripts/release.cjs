@@ -2,6 +2,7 @@
 // Usage: node scripts/release.js [--dry-run]
 
 const fs = require('fs');
+const path = require('path');
 const { execSync } = require('child_process');
 
 const ROOT = __dirname + '/..';
@@ -60,6 +61,30 @@ if (status.trim()) {
 }
 const branch = execSync('git branch --show-current', { cwd: ROOT, encoding: 'utf8' }).trim();
 console.log(`Current branch:   ${branch}`);
+
+// 4.5 Generate updater manifest (latest.json)
+const latestJson = {
+  version: `v${frontVer}`,
+  notes: (() => {
+    try {
+      const changelog = fs.readFileSync(`${ROOT}/CHANGELOG.md`, 'utf8');
+      const match = changelog.match(new RegExp(`## ${displayVer}[\\s\\S]*?(?=## V|$)`));
+      return match ? match[0].trim() : `Release ${displayVer}`;
+    } catch { return `Release ${displayVer}`; }
+  })(),
+  pub_date: new Date().toISOString(),
+  platforms: {
+    "windows-x86_64": {
+      signature: "",
+      url: `https://github.com/kunkunr/yoshunko-admin-rust/releases/download/v${frontVer}/Yoshunko_Admin_${frontVer}_x64-setup.exe`
+    }
+  }
+};
+
+const latestPath = `${ROOT}/src-tauri/target/release/latest.json`;
+fs.mkdirSync(path.dirname(latestPath), { recursive: true });
+fs.writeFileSync(latestPath, JSON.stringify(latestJson, null, 2));
+ok('latest.json generated');
 
 // 5. Tag
 const tag = `v${frontVer}`;

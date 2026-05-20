@@ -4,6 +4,29 @@
 
 ---
 
+## V0.714 (2026-05-20)
+
+### 自动更新
+
+- 启动时后台自动检查 GitHub Releases 新版本
+- 发现新版后标题栏显示角标通知，点击弹出更新详情
+- 用户可选择立即更新（下载 .msi + 静默安装 + 自动重启）或稍后提醒
+- 设置页面增加手动检查更新按钮和手动下载链接
+- CI 支持 tag push 自动构建 Release
+
+### 后端重构
+
+- api/config.rs 拆为 config / window / image / debug 四个模块
+- helpers.rs 集中管理校验常量、format_version、with_manager、atomic_write_config
+- data_manager.rs 新增 4 个测试（next_uid 并发安全、读写 roundtrip、原子写入防损坏）
+
+### 开发工具
+
+- 新增 scripts/release.cjs 自动校验版本号、CHANGELOG、创建 git tag
+- 添加 Rust 测试基础设施（12 个测试全部通过）
+
+---
+
 ## V0.713 (2026-05-19)
 
 ### Bug 修复

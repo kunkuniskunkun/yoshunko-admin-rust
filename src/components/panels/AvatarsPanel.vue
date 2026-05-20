@@ -13,7 +13,7 @@ import type { AvatarListItem, AvatarDetail, SkillTypeLevel } from '@/lib/types'
 import SearchBar from '@/components/shared/SearchBar.vue'
 import Stepper from '@/components/shared/Stepper.vue'
 import SkeletonGrid from '@/components/shared/SkeletonGrid.vue'
-import { applyStaggeredAnimation, applyEditorSlideIn } from '@/composables/useStaggeredAnimation'
+import { applyStaggeredAnimation, applyEditorSlideIn, applyEditorSlideBack } from '@/composables/useStaggeredAnimation'
 import { EXCLUDED_AVATAR_IDS, PROFESSION_ORDER } from '@/constants'
 
 const loading = ref(true)
@@ -144,6 +144,11 @@ function backToGallery() {
   avatarView.value = 'gallery'
   selectedAvatarId.value = null
   editorData.value = null
+  // Reverse slide animation before restoring scroll
+  nextTick(() => {
+    const mainEl = document.querySelector('.main-content') as HTMLElement
+    if (mainEl) applyEditorSlideBack(mainEl)
+  })
   requestAnimationFrame(() => {
     const main = document.querySelector('.main-content')
     if (main && scrollPos.value['avatars'] != null) main.scrollTop = scrollPos.value['avatars']
@@ -305,11 +310,10 @@ watch(filteredAvatars, () => {
     <div class="editor-page__top">
       <a class="editor-back" href="#" @click.prevent="backToGallery">← 角色仓库</a>
       <div class="editor-page__header" v-if="editorData">
-        <div>
-          <h2>{{ editorData.name }}</h2>
-          <span v-if="editorData.en_name" class="sub en-name text-muted">{{ editorData.en_name }}</span>
-        </div>
-        <span class="sub text-muted">ID: {{ selectedAvatarId }}</span>
+        <h2>
+          {{ editorData.name }}<template v-if="editorData.en_name"> — <span class="en-name-inline">{{ editorData.en_name }}</span></template>
+        </h2>
+        <span class="sub text-muted">id: {{ selectedAvatarId }}</span>
       </div>
     </div>
 

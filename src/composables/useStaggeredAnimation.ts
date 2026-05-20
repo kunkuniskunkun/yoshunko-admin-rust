@@ -17,3 +17,9 @@ export function applyEditorSlideIn(el: HTMLElement) {
   void el.offsetHeight // force reflow — single element, negligible cost
   el.classList.add('editor-slide-in')
 }
+
+export function applyEditorSlideBack(el: HTMLElement) {
+  el.classList.remove('editor-slide-back')
+  void el.offsetHeight
+  el.classList.add('editor-slide-back')
+}

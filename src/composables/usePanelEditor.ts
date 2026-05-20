@@ -2,7 +2,7 @@ import { ref, computed, watch, onMounted, onActivated, nextTick, type Ref, type 
 import { uid, panel, searchQuery, scrollPos, dirty, cacheDirty, markDirty, markClean, markCacheDirty, pushUndo } from './useAppState'
 import { api } from '@/lib/api'
 import { toast } from '@/lib/utils'
-import { applyStaggeredAnimation, applyEditorSlideIn } from './useStaggeredAnimation'
+import { applyStaggeredAnimation, applyEditorSlideIn, applyEditorSlideBack } from './useStaggeredAnimation'
 
 // ─── Types ──────────────────────────────────────────
 
@@ -127,6 +127,11 @@ export function usePanelEditor<ListItem, Detail>(opts: PanelEditorOpts<ListItem,
     opts.viewRef.value = 'gallery'
     opts.selectedId.value = null
     editorData.value = null
+    // Reverse slide animation before restoring scroll
+    nextTick(() => {
+      const mainEl = document.querySelector('.main-content') as HTMLElement
+      if (mainEl) applyEditorSlideBack(mainEl)
+    })
     // Restore scroll after gallery un-hides
     requestAnimationFrame(() => {
       const main = document.querySelector('.main-content')

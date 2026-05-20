@@ -11,7 +11,7 @@ import type { EquipListItem, EquipDetail, EquipProperty, EquipCreate } from '@/l
 import SearchBar from '@/components/shared/SearchBar.vue'
 import Stepper from '@/components/shared/Stepper.vue'
 import SkeletonGrid from '@/components/shared/SkeletonGrid.vue'
-import { applyStaggeredAnimation, applyEditorSlideIn } from '@/composables/useStaggeredAnimation'
+import { applyStaggeredAnimation, applyEditorSlideIn, applyEditorSlideBack } from '@/composables/useStaggeredAnimation'
 
 const loading = ref(true)
 const refreshing = ref(false)
@@ -176,6 +176,11 @@ function backToGallery() {
   equipView.value = 'gallery'
   selectedEquipUid.value = null
   editorData.value = null
+  // Reverse slide animation before restoring scroll
+  nextTick(() => {
+    const mainEl = document.querySelector('.main-content') as HTMLElement
+    if (mainEl) applyEditorSlideBack(mainEl)
+  })
   requestAnimationFrame(() => {
     const main = document.querySelector('.main-content')
     if (main && scrollPos.value['equips'] != null) main.scrollTop = scrollPos.value['equips']

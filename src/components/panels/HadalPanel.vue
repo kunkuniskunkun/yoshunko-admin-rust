@@ -16,17 +16,8 @@ const saving = ref(false)
 const ACTIVE_ENTRANCE_IDS = [1, 3]
 
 const ENTRANCE_NAMES: Record<number, string> = {
-  1: '危局强袭站',
+  1: '危局强袭战',
   3: '式舆防卫战·剧变',
-}
-
-const ENTRANCE_DESCS: Record<number, string> = {
-  1: '限时挑战模式，定期刷新 Zone ID 以切换期号',
-  3: '常驻防卫战模式，Zone ID 通常不变',
-}
-
-const ENTRANCE_ICONS: Record<number, string> = {
-  1: '⚔', 3: '🛡',
 }
 
 function isPermanent(id: number): boolean {
@@ -100,10 +91,8 @@ function resetDefaults() {
               class="entrance-card"
               :class="isPermanent(e.id) ? 'entrance-card--permanent' : 'entrance-card--limited'"
             >
-              <div class="entrance-card__icon">{{ ENTRANCE_ICONS[e.id] || '◆' }}</div>
-              <div class="entrance-card__info">
+              <div class="entrance-card__info" style="margin-left: 0;">
                 <div class="entrance-card__name">{{ ENTRANCE_NAMES[e.id] || '入口 ' + e.id }}</div>
-                <div class="entrance-card__type">{{ ENTRANCE_DESCS[e.id] || '' }}</div>
               </div>
               <div class="form-field">
                 <label class="form-label">Zone ID</label>
@@ -131,7 +120,7 @@ function resetDefaults() {
             </button>
             <div v-if="showHelp" class="hadal-help__body">
               <p><strong>Zone ID</strong> 是防卫战每期的唯一标识。修改 Zone ID 可以切换到不同的防卫战期号。</p>
-              <p><strong>危局强袭站</strong>（限时）：定期刷新，需要手动更新 Zone ID 以匹配最新期号。</p>
+              <p><strong>危局强袭战</strong>（限时）：定期刷新，需要手动更新 Zone ID 以匹配最新期号。</p>
               <p><strong>式舆防卫战·剧变</strong>（常驻）：Zone ID 通常保持不变。</p>
               <p>点击上方链接可查看最新的 Zone ID。修改后点击<strong>保存更改</strong>，服务器会热加载即时生效。</p>
             </div>

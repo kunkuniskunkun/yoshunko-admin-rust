@@ -9,7 +9,6 @@ use data_manager::DataManager;
 use std::fs;
 use template_loader::TemplateLoader;
 use tauri::Manager;
-use tauri_plugin_updater::UpdaterExt;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

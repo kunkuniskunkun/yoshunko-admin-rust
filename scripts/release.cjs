@@ -66,6 +66,18 @@ if (!CI) {
 }
 
 // 4.5 Generate updater manifest (latest.json)
+const nsisDir = `${ROOT}/src-tauri/target/release/bundle/nsis`;
+const exeFiles = fs.readdirSync(nsisDir).filter(f => f.endsWith('.exe'));
+if (exeFiles.length === 0) fail('No .exe found in NSIS bundle dir');
+const exeName = exeFiles[0]; // e.g. "Yoshunko Admin_0.716.0_x64-setup.exe"
+const sigPath = `${nsisDir}/${exeName}.sig`;
+let signature = '';
+if (fs.existsSync(sigPath)) {
+  signature = fs.readFileSync(sigPath, 'utf8').trim();
+} else {
+  warn(`Signature file not found: ${sigPath} — updater verification will fail`);
+}
+
 const latestJson = {
   version: `${frontVer}`,
   notes: (() => {
@@ -78,8 +90,8 @@ const latestJson = {
   pub_date: new Date().toISOString(),
   platforms: {
     "windows-x86_64": {
-      signature: "",
-      url: `https://github.com/kunkuniskunkun/yoshunko-admin-rust/releases/download/v${frontVer}/Yoshunko_Admin_${frontVer}_x64-setup.exe`
+      signature,
+      url: `https://github.com/kunkuniskunkun/yoshunko-admin-rust/releases/download/v${frontVer}/${encodeURIComponent(exeName)}`
     }
   }
 };

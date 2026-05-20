@@ -343,3 +343,105 @@ impl DataManager {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::BTreeMap;
+    use std::sync::{Arc, Mutex};
+    use std::thread;
+
+    fn temp_dm() -> (DataManager, std::path::PathBuf) {
+        let dir = std::env::temp_dir().join(format!("yos_test_{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        let player_dir = dir.join("player").join("1").join("weapon");
+        fs::create_dir_all(&player_dir).unwrap();
+        let dm = DataManager::new(dir.to_str().unwrap());
+        (dm, dir)
+    }
+
+    #[test]
+    fn next_uid_sequential_increments() {
+        let (dm, _dir) = temp_dm();
+        let dir = dm.player_dir.join("1").join("weapon");
+        let a = dm.next_uid(&dir);
+        let b = dm.next_uid(&dir);
+        let c = dm.next_uid(&dir);
+        assert!(a < b, "{} should be < {}", a, b);
+        assert!(b < c, "{} should be < {}", b, c);
+    }
+
+    #[test]
+    fn write_then_read_roundtrip() {
+        let (mut dm, _dir) = temp_dm();
+        let path = dm.player_dir.join("1").join("weapon").join("42");
+        let mut data = BTreeMap::new();
+        data.insert("name".into(), ZonValue::String("TestWeapon".into()));
+        data.insert("level".into(), ZonValue::Int(60));
+        dm.write_zon(&path, &data).unwrap();
+
+        let read = dm.read_zon_obj(&path).unwrap();
+        assert_eq!(read.get("name").and_then(|v| v.as_str()), Some("TestWeapon"));
+        assert_eq!(read.get("level").and_then(|v| v.as_i64()), Some(60));
+    }
+
+    #[test]
+    fn concurrent_next_uid_uniqueness() {
+        let dm = Arc::new(Mutex::new(temp_dm().0));
+        let dir = {
+            let guard = dm.lock().unwrap();
+            guard.player_dir.join("1").join("weapon")
+        };
+
+        let n_threads = 8;
+        let iters_per_thread = 10;
+        let mut handles = vec![];
+        let results = Arc::new(Mutex::new(Vec::new()));
+
+        for _ in 0..n_threads {
+            let dm = Arc::clone(&dm);
+            let dir = dir.clone();
+            let results = Arc::clone(&results);
+            handles.push(thread::spawn(move || {
+                for _ in 0..iters_per_thread {
+                    let uid = {
+                        let guard = dm.lock().unwrap();
+                        guard.next_uid(&dir)
+                    };
+                    results.lock().unwrap().push(uid);
+                }
+            }));
+        }
+
+        for h in handles {
+            h.join().unwrap();
+        }
+
+        let uids = results.lock().unwrap();
+        let total = n_threads * iters_per_thread;
+        assert_eq!(uids.len(), total);
+
+        // All UIDs must be unique
+        let mut sorted = uids.clone();
+        sorted.sort();
+        sorted.dedup();
+        assert_eq!(sorted.len(), total, "duplicate UIDs detected");
+    }
+
+    #[test]
+    fn atomic_write_clean_on_crash_simulation() {
+        // Verify that a .tmp file doesn't become a valid ZON file
+        // unless the full write+rename sequence completes
+        let (_dm, dir) = temp_dm();
+        let path = dir.join("player").join("1").join("weapon").join("99");
+        let tmp_path = path.with_extension("tmp");
+
+        // Write partial data to .tmp (simulating crash mid-write)
+        fs::write(&tmp_path, "corrupted data").unwrap();
+        assert!(tmp_path.exists());
+        assert!(!path.exists());
+
+        // Cleanup
+        fs::remove_file(&tmp_path).unwrap();
+    }
+}

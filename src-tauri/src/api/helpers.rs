@@ -1,8 +1,78 @@
-// Zon helpers — pure extraction functions with no external dependencies
+// Shared utilities — validation, version formatting, ZON extraction, config I/O
 
+use crate::data_manager::DataManager;
 use crate::zon::ZonValue;
+use crate::AppState;
 use serde_json::{json, Value};
 use std::collections::BTreeMap;
+
+// ─── Validation constants ──────────────────────────────────
+
+pub const MIN_LEVEL: i64 = 1;
+pub const MAX_LEVEL: i64 = 60;
+pub const MIN_STAR: i64 = 1;
+pub const MAX_STAR: i64 = 5;
+pub const MIN_REFINE: i64 = 1;
+pub const MAX_REFINE: i64 = 5;
+pub const MIN_RANK: i64 = 0;
+pub const MAX_RANK: i64 = 6;
+pub const MIN_PASSIVE: i64 = 0;
+pub const MAX_PASSIVE: i64 = 6;
+pub const MIN_EQUIP_LEVEL: i64 = 0;
+pub const MAX_EQUIP_LEVEL: i64 = 15;
+pub const MAX_EQUIP_STAR: i64 = 5;
+
+pub fn check_range(value: i64, min: i64, max: i64, name: &str) -> Result<(), String> {
+    if value < min || value > max {
+        Err(format!("{} 必须在 {} 到 {} 之间，当前值: {}", name, min, max, value))
+    } else {
+        Ok(())
+    }
+}
+
+pub fn format_version() -> String {
+    let config_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tauri.conf.json");
+    let version = std::fs::read_to_string(&config_path)
+        .ok()
+        .and_then(|s| {
+            let v: serde_json::Value = serde_json::from_str(&s).ok()?;
+            v.get("version")?.as_str().map(|s| s.to_string())
+        })
+        .unwrap_or_else(|| "0.0.0".to_string());
+    let parts: Vec<&str> = version.split('.').collect();
+    if parts.len() >= 2 {
+        let major = parts[0];
+        let minor = parts[1].parse::<u32>().unwrap_or(0);
+        format!("V{}.{:03}", major, minor)
+    } else {
+        format!("V{}", version)
+    }
+}
+
+pub fn with_manager<F>(state: &AppState, f: F) -> Value
+where
+    F: FnOnce(&mut DataManager) -> Value,
+{
+    let mut guard = state.data_manager.lock().unwrap_or_else(|poisoned| {
+        eprintln!("[with_manager] Mutex was poisoned, recovering...");
+        poisoned.into_inner()
+    });
+    match guard.as_mut() {
+        Some(dm) => f(dm),
+        None => json!({"ok": false, "error": "状态目录未配置"}),
+    }
+}
+
+pub fn atomic_write_config(config_path: &str, config: &serde_json::Map<String, serde_json::Value>) -> Result<(), String> {
+    let tmp = format!("{}.tmp", config_path);
+    let mut f = std::fs::File::create(&tmp).map_err(|e| format!("创建临时文件失败: {}", e))?;
+    serde_json::to_writer_pretty(&mut f, config).map_err(|e| format!("写入配置失败: {}", e))?;
+    f.sync_all().map_err(|e| format!("同步磁盘失败: {}", e))?;
+    std::fs::rename(&tmp, config_path).map_err(|e| format!("重命名失败: {}", e))?;
+    Ok(())
+}
+
+// ─── Zon helpers ───────────────────────────────────────────
 
 pub fn zon_str(obj: &BTreeMap<String, ZonValue>, key: &str, default: &str) -> String {
     obj.get(key).and_then(|v| v.as_str()).unwrap_or(default).to_string()

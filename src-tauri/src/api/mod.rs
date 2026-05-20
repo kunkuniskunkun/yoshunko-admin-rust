@@ -26,6 +26,10 @@ pub struct AppState {
 // Submodules
 mod helpers;
 mod config;
+mod window;
+mod image;
+#[cfg(debug_assertions)]
+mod debug;
 mod templates;
 mod players;
 mod avatars;
@@ -38,6 +42,11 @@ mod logs;
 // Re-export all public items
 pub use helpers::*;
 pub use config::*;
+pub use window::*;
+pub use image::*;
+#[cfg(debug_assertions)]
+#[allow(unused_imports)]
+pub use debug::*;
 pub use templates::*;
 pub use players::*;
 pub use avatars::*;

@@ -54,6 +54,7 @@ export function usePanelEditor<ListItem, Detail>(opts: PanelEditorOpts<ListItem,
   const editorLoading = ref(false)
   const saving = ref(false)
   const hasAnimated = ref(false)
+  const editorReady = ref(false)
 
   const searchKey = opts.panelKey as 'avatars' | 'weapons' | 'equips'
 
@@ -122,6 +123,7 @@ export function usePanelEditor<ListItem, Detail>(opts: PanelEditorOpts<ListItem,
 
   // ─── Back to gallery ────────────────────
   function backToGallery() {
+    editorReady.value = false
     opts.viewRef.value = 'gallery'
     opts.selectedId.value = null
     editorData.value = null
@@ -148,6 +150,7 @@ export function usePanelEditor<ListItem, Detail>(opts: PanelEditorOpts<ListItem,
       }
       editorData.value = data
       opts.mapDetailToEdit(data)
+      nextTick(() => { editorReady.value = true })
     } catch (e: unknown) {
       toast(`加载失败: ${e instanceof Error ? e.message : ''}`, 'error')
       backToGallery()
@@ -299,6 +302,7 @@ export function usePanelEditor<ListItem, Detail>(opts: PanelEditorOpts<ListItem,
     editorData,
     editorLoading,
     saving,
+    editorReady,
     filteredItems,
     groupedItems,
     staggerIndex,

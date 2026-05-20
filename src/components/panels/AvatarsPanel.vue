@@ -31,6 +31,7 @@ const editWeaponUid = ref(0)
 const editSkinId = ref(0)
 const editSkills = ref<{ type: string; level: number }[]>([])
 const saving = ref(false)
+const editorReady = ref(false)
 
 const SKILL_NAMES: Record<string, string> = {
   common_attack: '普攻',
@@ -139,6 +140,7 @@ function selectAvatar(id: number, event?: Event) {
 }
 
 function backToGallery() {
+  editorReady.value = false
   avatarView.value = 'gallery'
   selectedAvatarId.value = null
   editorData.value = null
@@ -171,6 +173,7 @@ async function loadEditor(aid: number) {
     editSkills.value = av.skill_type_level
       .filter(s => s.type !== 'core_skill' && s.type !== 'unique_skill')
       .map(s => ({ type: s.type, level: s.level }))
+    nextTick(() => { editorReady.value = true })
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '加载失败', 'error')
     backToGallery()
@@ -278,9 +281,9 @@ onMounted(async () => {
 // 离开面板时重置为仓库视图
 watch(panel, (_, old) => { if (old === 'avatars') { avatarView.value = 'gallery'; selectedAvatarId.value = null; searchQuery.avatars = ''; hasAnimated.value = false } })
 
-// Track unsaved changes
-watch([editLevel, editTalent, editPassive, editAwake, editWeaponUid, editSkinId], () => { if (avatarView.value === 'editor') markDirty('avatars') })
-watch(editSkills, () => { if (avatarView.value === 'editor') markDirty('avatars') }, { deep: true })
+// Track unsaved changes (skip initial load)
+watch([editLevel, editTalent, editPassive, editAwake, editWeaponUid, editSkinId], () => { if (editorReady.value) markDirty('avatars') })
+watch(editSkills, () => { if (editorReady.value) markDirty('avatars') }, { deep: true })
 
 onActivated(async () => {
   await refreshCache()

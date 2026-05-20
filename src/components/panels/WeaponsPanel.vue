@@ -28,6 +28,7 @@ const {
   saveItem: saveWeapon,
   deleteItem: deleteWeapon,
   copyItem: copyWeapon,
+  editorReady,
 } = usePanelEditor<WeaponListItem, WeaponDetail>({
   panelKey: 'weapons',
   entityName: '音擎',
@@ -97,8 +98,8 @@ function rarityLabel(id: number): string {
   return 'B'
 }
 
-// Track unsaved changes
-watch([editLevel, editStar, editRefine], () => { if (weaponView.value === 'editor') markDirty('weapons') })
+// Track unsaved changes (skip initial load)
+watch([editLevel, editStar, editRefine], () => { if (editorReady.value) markDirty('weapons') })
 </script>
 
 <template>

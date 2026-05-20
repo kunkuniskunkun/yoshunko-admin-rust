@@ -19,6 +19,7 @@ const hasAnimated = ref(false)
 const editorData = ref<EquipDetail | null>(null)
 const editorLoading = ref(false)
 const saving = ref(false)
+const editorReady = ref(false)
 
 // Editor fields
 const editLevel = ref(0)
@@ -140,6 +141,7 @@ async function loadEditor(euid: number) {
     editMainProp.value = eq.properties[0] || { key: 0, key_name: '', base_value: 0, add_value: 0 }
     editSubProps.value = [...eq.sub_properties]
     while (editSubProps.value.length < 4) editSubProps.value.push(null)
+    nextTick(() => { editorReady.value = true })
   } catch (e: unknown) {
     toast(e instanceof Error ? e.message : '加载失败', 'error')
     backToGallery()
@@ -170,6 +172,7 @@ async function selectEquip(euid: number, event?: Event) {
 }
 
 function backToGallery() {
+  editorReady.value = false
   equipView.value = 'gallery'
   selectedEquipUid.value = null
   editorData.value = null
@@ -510,7 +513,7 @@ onMounted(async () => {
 watch(panel, (_, old) => { if (old === 'equips') { equipView.value = 'gallery'; selectedEquipUid.value = null; searchQuery.equips = ''; hasAnimated.value = false } })
 
 // Track unsaved changes for level/star (sub-properties already tracked via change handlers)
-watch([editLevel, editStar], () => { if (equipView.value === 'editor') markDirty('equips') })
+watch([editLevel, editStar], () => { if (editorReady.value) markDirty('equips') })
 
 onActivated(async () => {
   await refreshCache()

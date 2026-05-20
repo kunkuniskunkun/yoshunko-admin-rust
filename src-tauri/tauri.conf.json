@@ -48,6 +48,7 @@
   },
   "plugins": {
     "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDhGQkVBODdDNDFBRjM5RApSV1NkOHhyRWgrcjdDQjdkdVl4WFJSbjlrNXpJc2YwNUtwREJtL3I1VWJadG91Ym00c3ZpcmliNwo=",
       "endpoints": [
         "https://github.com/kunkuniskunkun/yoshunko-admin-rust/releases/latest/download/latest.json"
       ]

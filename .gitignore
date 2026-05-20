@@ -33,3 +33,6 @@ CLAUDE.md
 
 .superpowers/
 docs/
+
+# Updater signing key (keep secret)
+src-tauri/updater-key
